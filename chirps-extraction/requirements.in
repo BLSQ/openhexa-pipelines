@@ -1,0 +1,8 @@
+click
+requests
+s3fs
+numpy
+pandas
+geopandas
+rasterio
+rasterstats
