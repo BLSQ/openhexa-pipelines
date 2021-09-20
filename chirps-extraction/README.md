@@ -132,7 +132,7 @@ podman run \
     chirps:latest chirps download \
         --start 2017 \
         --end 2018 \
-        --output-dir "s3://test/chirps/input/africa" \
+        --output-dir "s3://chirps/input/africa" \
 
 # run "chirps extract"
 podman run \
@@ -147,7 +147,7 @@ podman run \
     chirps:latest chirps extract \
         --start 2017 \
         --end 2018 \
-        --contours "s3://test/chirps/input/contours/bfa.geojson" \
-        --input-dir "s3://test/chirps/input/africa" \
-        --output-file "s3://test/chirps/output/bfa.csv"
+        --contours "s3://chirps/input/contours/bfa.geojson" \
+        --input-dir "s3://chirps/input/africa" \
+        --output-file "s3://chirps/output/bfa.csv"
 ```
