@@ -82,3 +82,27 @@ Running pytest:
 ``` sh
 docker run chirps:latest pytest tests/
 ```
+
+## S3 credentials
+
+S3 access can be configured by passing the following environment variables.
+
+Read by `s3fs`:
+
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_SESSION_TOKEN`
+* `AWS_DEFAULT_REGION`
+* See [boto3 doc](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables)
+
+Read by `rasterio` (via `GDAL`):
+
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_SESSION_TOKEN`
+* `AWS_DEFAULT_REGION`
+* `AWS_S3_ENDPOINT`
+* `AWS_HTTPS=YES`
+* `AWS_VIRTUAL_HOSTING=TRUE`
+* `AWS_NO_SIGN_REQUEST=YES`
+* See [GDAL doc](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
