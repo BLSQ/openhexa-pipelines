@@ -106,3 +106,48 @@ Read by `rasterio` (via `GDAL`):
 * `AWS_VIRTUAL_HOSTING=TRUE`
 * `AWS_NO_SIGN_REQUEST=YES`
 * See [GDAL doc](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
+
+## Local
+
+The program only support S3 paths for both inputs and outputs. In order to run the script locally, a local S3 server must be setup first. For instance with [MinIO](https://min.io/). Environment variables must be passed to the Docker image so that both `boto3` and `GDAL` are able to connect to the local server.
+
+``` sh
+# create minio directory and a "chirps" bucket
+mkdir data/chirps
+minio_server --address ":9000"
+
+# add contours file to the "chirps" bucket
+mkdir -p data/chirps/input/contours/bfa.geojson
+cp tests/bfa.geojson data/chirps/input/contours/
+
+# run "chirps download"
+podman run \
+    --network="host" \
+    -e AWS_ACCESS_KEY_ID="minioadmin" \
+    -e AWS_SECRET_ACCESS_KEY="minioadmin" \
+    -e AWS_DEFAULT_REGION="us-east-1" \
+    -e AWS_S3_ENDPOINT="127.0.0.1:9000" \
+    -e AWS_HTTPS="NO" \
+    -e AWS_VIRTUAL_HOSTING="FALSE" \
+    chirps:latest chirps download \
+        --start 2017 \
+        --end 2018 \
+        --output-dir "s3://test/chirps/input/africa" \
+
+# run "chirps extract"
+podman run \
+    --network="host" \
+    -e AWS_ACCESS_KEY_ID="minioadmin" \
+    -e AWS_SECRET_ACCESS_KEY="minioadmin" \
+    -e AWS_DEFAULT_REGION="us-east-1" \
+    -e AWS_S3_ENDPOINT="127.0.0.1:9000" \
+    -e AWS_HTTPS="NO" \
+    -e AWS_VIRTUAL_HOSTING="FALSE" \
+    -e GDAL_DISABLE_READDIR_ON_OPEN="YES" \
+    chirps:latest chirps extract \
+        --start 2017 \
+        --end 2018 \
+        --contours "s3://test/chirps/input/contours/bfa.geojson" \
+        --input-dir "s3://test/chirps/input/africa" \
+        --output-file "s3://test/chirps/output/bfa.csv"
+```
