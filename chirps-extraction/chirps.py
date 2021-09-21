@@ -308,38 +308,6 @@ def download_chirps_daily(
         download_chirps_data(fs, url, output_path)
 
 
-def chunks(data, n):
-    """Iterable successive n-sized chunks from a slice-able iterable."""
-    return [data[i : i + n] for i in range(0, len(data), n)]
-
-
-def zonal_stats_partial(features, raster, affine):
-    """Wrapper for zonal stats, takes a list of features and raster path
-
-    Parameters
-    ----------
-    features : List
-        Input features as a list of GeoJSON-like dictionaries.
-    raster : str
-        Path to input raster.
-    affine : rasterio.Affine
-        Raster affine transformation.
-
-    Returns
-    -------
-    dict
-        Output zonal statistics (GeoJSON format).
-    """
-    return zonal_stats(
-        features,
-        raster,
-        affine=affine,
-        nodata=np.nan,
-        stats="sum count",
-        geojson_out=True,
-    )
-
-
 def rio_read_file(file, band=1, nodata=-9999):
     """Read a raster band.
 
