@@ -1,6 +1,8 @@
 click
 requests
+fsspec
 s3fs
+gcsfs
 numpy
 pandas
 geopandas
