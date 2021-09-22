@@ -7,6 +7,7 @@ import os
 import gzip
 from datetime import date, timedelta
 import logging
+import tempfile
 
 import click
 import geopandas as gpd
@@ -15,16 +16,16 @@ import pandas as pd
 import rasterio
 import requests
 from rasterstats import zonal_stats
-import s3fs
+
+import storage
+
 
 CHIRPS_VERSION = "2.0"
 CHIRPS_TIMELY = "daily"
 CHIRPS_ZONE = "africa"
 # Year folder added on the fly by the download_chirps_daily function.
 CHIRPS_URL = f"https://data.chc.ucsb.edu/products/CHIRPS-{CHIRPS_VERSION}/{CHIRPS_ZONE}_{CHIRPS_TIMELY}/tifs/p05/"
-CHIRPS_BASENAME = (
-    "chirps-v2.0.{chirps_year}.{chirps_month:0>2d}.{chirps_day:0>2d}.tif.gz"
-)
+CHIRPS_BASENAME = "chirps-v2.0.{chirps_year}.{chirps_month:0>2d}.{chirps_day:0>2d}.tif"
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
@@ -57,22 +58,8 @@ def test():
 def download(start, end, output_dir, overwrite):
     """Download raw precipitation data."""
     logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
-
-    if "AWS_S3_ENDPOINT" in os.environ:
-        fs = s3fs.S3FileSystem(
-            client_kwargs={
-                "endpoint_url": f"http://{os.environ.get('AWS_S3_ENDPOINT')}"
-            }
-        )
-    else:
-        fs = s3fs.S3FileSystem()
-
     output_dir = _no_ending_slash(output_dir)
-
-    if not output_dir.startswith("s3://"):
-        raise ValueError(f"{output_dir} is not a valid S3 path.")
-
-    download_chirps_daily(fs, output_dir, start, end, overwrite)
+    download_chirps_daily(output_dir, start, end, overwrite)
 
 
 @cli.command()
@@ -87,22 +74,15 @@ def extract(start, end, contours, input_dir, output_file):
     contours_df = gpd.read_file(contours)
     logger.info(f"Computing zonal statistics for {len(contours_df)} areas.")
 
-    if not input_dir.startswith("s3://"):
-        raise ValueError(f"{input_dir} is not a valid S3 path.")
-    if not output_file.startswith("s3://"):
-        raise ValueError(f"{output_file} is not a valid S3 path.")
+    stats = extract_chirps_data(
+        contours=gpd.read_file(contours),
+        input_dir=input_dir,
+        start=start,
+        end=end,
+    )
 
-    if "AWS_S3_ENDPOINT" in os.environ:
-        fs = s3fs.S3FileSystem(
-            client_kwargs={
-                "endpoint_url": f"http://{os.environ.get('AWS_S3_ENDPOINT')}"
-            }
-        )
-    else:
-        fs = s3fs.S3FileSystem()
-
-    stats = extract_chirps_data(fs, contours_df, input_dir, start, end)
-    with fs.open(output_file, "w") as f:
+    storage.makedirs(os.path.dirname(output_file))
+    with storage.open(output_file, "w") as f:
         csv = stats.to_csv(index=False)
         f.write(csv)
         logger.info(f"Aggregated statistics written to {output_file}.")
@@ -225,44 +205,57 @@ def provide_time_range(year_start, year_end, future=False):
     return pd.date_range(start_period, end_period)
 
 
-def download_chirps_data(fs, url, output_path):
+def download_chirps_data(url, output_path):
     """Download .tif or .gzip file from URL.
 
     Parameters
     ----------
-    fs : s3fs.FileSystem
-        Instance of a remote filesystem.
     url : str
         Download URL.
     output_path : str
-        S3 output path.
+        Output path.
     """
     logger.info(f"Downloading {url}")
-    tiff = False
-    try:
-        response = requests.get(url, stream=True, timeout=60)
-        if response.status_code == 404:
-            # If 404, check if the `tif` file is available instead of `gzip`
-            response = requests.get(url[:-3], stream=True, timeout=60)
-            tiff = True
 
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print("HTTP exception error: {}".format(err))
-        return
-    except requests.exceptions.RequestException as e:
-        print("Exception error {}".format(e))
-        return
+    # If a .tif file is requested but not available, the request will be
+    # successfull (status code = 200) and the server will include the location
+    # of the corresponding .tif.gz in the Content-Location header.
+    src_fname = url.split("/")[-1]
+    r = requests.head(url)
+    url = url.replace(src_fname, r.headers.get("content-location", src_fname))
 
-    with fs.open(output_path, "wb") as f:
-        if tiff:
-            f.write(response.content)
-        else:
-            f.write(gzip.decompress(response.content))
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        # Write the GeoTIFF in a temporary file
+        tmp_file = os.path.join(tmp_dir, "raster.tif")
+        r = requests.get(url, stream=True, timeout=60)
+        r.raise_for_status()
+        with open(tmp_file, "wb") as f:
+            if url.endswith(".gz"):
+                f.write(gzip.decompress(r.content))
+            else:
+                f.write(r.content)
+
+        # Compress, tile and assign nodata value with Rasterio before writing
+        with rasterio.open(tmp_file) as src:
+            dst_profile = src.profile.copy()
+            dst_profile.update(
+                compress="deflate",
+                predictor=3,
+                zlevel=6,
+                tiled=True,
+                blockxsize=256,
+                blockysize=256,
+                nodata=-9999,
+            )
+            tmp_file_2 = os.path.join(tmp_dir, "raster2.tif")
+            with rasterio.open(tmp_file_2, "w", **dst_profile) as dst:
+                dst.write(src.read(1), 1)
+
+        storage.put(tmp_file_2, output_path)
 
 
 def download_chirps_daily(
-    fs,
     output_dir,
     year_start,
     year_end,
@@ -272,8 +265,6 @@ def download_chirps_daily(
 
     Parameters
     ----------
-    fs : s3fs.FileSystem
-        Instance of a remote filesystem.
     output_dir : str
         CHIRPS download folder.
     year_start : int
@@ -289,78 +280,65 @@ def download_chirps_daily(
     )
 
     for day, (epi_week, year, _, _) in time_serie.items():
+
         output_file = CHIRPS_BASENAME.format(
             chirps_year=day.year, chirps_month=day.month, chirps_day=day.day
         )
-        output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file[:-3]}"
+        output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file}"
         url = f"{CHIRPS_URL}{day.year}/{output_file}"
 
-        if fs.exists(output_path):
-            size_file = fs.du(output_path)
-            if size_file == 0:
-                logger.info(f"Redownloading {output_path}")
-                # Redownload incorrect files
-                download_chirps_data(fs, url, output_path)
-            if not overwrite:
-                logger.info(f"Skipping {output_path}")
-                continue  # Skip download if overwrite is False
+        storage.makedirs(os.path.dirname(output_path))
 
-        download_chirps_data(fs, url, output_path)
+        if (
+            storage.exists(output_path)
+            and storage.size(output_path) > 0
+            and not overwrite
+        ):
+            logger.info(f"Skipping {output_path}")
+            continue
 
-
-def rio_read_file(file, band=1, nodata=-9999):
-    """Read a raster band.
-
-    Parameters
-    ----------
-    file : str
-        Path to raster file.
-    band : int
-        Band number.
-    nodata : int or float, optional
-        Nodata value (default = -9999).
-
-    Returns
-    -------
-    ndarray
-        Band data with assigned nodata values.
-    """
-    with rasterio.open(file) as src:
-        ds = src.read(band)
-    return np.where(ds == nodata, np.nan, ds)
-
-
-def rio_get_affine(file):
-    """Get Affine transform for use with zonal_stats."""
-    with rasterio.open(file) as src:
-        return src.transform
+        download_chirps_data(url, output_path)
 
 
 def extract_sum_epi_week(files):
-    """Extract and sum the list of files.
+    """Get weekly precipitation sum from daily precipitation rasters.
 
-    Return summed array and affine transform.
+    Parameters
+    ----------
+    files : list of str
+        Daily rasters as a list of paths.
+
+    Return
+    ------
+    weekly : ndarray
+        Weekly precipitation sum as a 2D numpy array.
+    affine : Affine
+        Raster affine transformation.
     """
-    array_rain = [rio_read_file(f"s3://{file}") for file in files]
-    array_sum = np.nansum(array_rain, axis=0)
-    affine = rio_get_affine(f"s3://{files[0]}")
-    return (array_sum, affine)
+    with rasterio.open(files[0]) as src:
+        affine = src.transform
+
+    daily_rasters = []
+    for f in files:
+        with rasterio.open(f) as src:
+            daily_rasters.append(src.read(1))
+
+    weekly = np.nansum(daily_rasters, axis=0)
+    return weekly, affine
 
 
-def extract_chirps_data(fs, contours, input_dir, year_start, year_end):
+def extract_chirps_data(contours, input_dir, start, end):
     """Extract CHIRPS data.
 
     Parameters
     ----------
-    fs : s3fs.FileSystem
-        Instance of a remote filesystem.
     contours : GeoDataFrame
         Aggregation areas.
     input_dir : str
         Location of raw CHIRPS data.
-    year_start : int
+    start : int
         Start year.
-    year_end : int
+    end : int
         End year.
 
     Returns
@@ -371,13 +349,13 @@ def extract_chirps_data(fs, contours, input_dir, year_start, year_end):
     contours = contours.to_crs("EPSG:4326")
     data = pd.DataFrame()
 
-    for year in range(year_start, year_end + 1):
+    for year in range(start, end + 1):
 
-        for epi_week_dir in fs.glob(f"{input_dir}/{year}-*"):
+        for epi_week_dir in storage.glob(f"{input_dir}/{year}-*"):
 
             logger.info(f"Processing epi week {epi_week_dir.split('/')[-1]}")
 
-            files = fs.glob(f"{epi_week_dir}/*.tif")
+            files = storage.glob(f"{epi_week_dir}/*.tif")
 
             # Skip incomplete epi weeks
             if len(files) < 6:

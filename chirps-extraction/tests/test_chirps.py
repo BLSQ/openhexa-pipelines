@@ -9,7 +9,7 @@ import geopandas as gpd
 import pytest
 import rasterio
 import requests
-import s3fs
+from s3fs import S3FileSystem
 
 
 S3_ENDPOINT_URL = "http://127.0.0.1:3000"
@@ -82,32 +82,16 @@ def test_provide_time_range():
     assert drange[-1].date() == date(2014, 12, 31)
 
 
-def test_download_chirps_data(moto_server, monkeypatch):
-
-    # return empty bytes instead of the actual data
-    def mockreturn(self, chunk_size):
-        return [b"", b"", b""]
-
-    monkeypatch.setattr(requests.Response, "iter_content", mockreturn)
-
-    moto_create_bucket("test-bucket")
-    fs = s3fs.S3FileSystem(anon=False, client_kwargs={"endpoint_url": S3_ENDPOINT_URL})
-    url = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/2021/chirps-v2.0.2021.06.06.tif"
-    output_file = "s3://test-bucket/subfolder/raster.tif"
-    chirps.download_chirps_data(fs, url, output_file)
-    assert fs.exists(output_file)
-
-
 def test_download_chirps_daily(moto_server, monkeypatch):
-    def mockreturn(fs, url, output_path):
+    def mockreturn(url, output_path):
         return ""
 
     monkeypatch.setattr(chirps, "download_chirps_data", mockreturn)
 
     moto_create_bucket("test-bucket")
-    fs = s3fs.S3FileSystem(anon=False, client_kwargs={"endpoint_url": S3_ENDPOINT_URL})
     output_dir = "s3://test-bucket/africa/daily"
-    chirps.download_chirps_daily(fs, output_dir, 2012, 2013)
+    os.environ["AWS_S3_ENDPOINT"] = "http://localhost:3000"
+    chirps.download_chirps_daily(output_dir, 2012, 2013)
 
 
 def test__no_ending_slash():
@@ -116,50 +100,18 @@ def test__no_ending_slash():
     assert chirps._no_ending_slash("bucket/folder") == "bucket/folder"
 
 
-def test_rio_read_file(moto_server):
-
-    moto_put_test_data("bfa-raw-data")
-    with rasterio.Env(
-        AWS_HTTPS=False,
-        AWS_VIRTUAL_HOSTING=False,
-        AWS_NO_SIGN_REQUEST=False,
-        AWS_S3_ENDPOINT=S3_ENDPOINT_URL.replace("http://", ""),
-        AWS_DEFAULT_REGION="us-east-1",
-    ):
-        data = chirps.rio_read_file(
-            "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif"
-        )
-    assert data.min() >= 0
-
-
-def test_rio_get_affine(moto_server):
-
-    moto_put_test_data("bfa-raw-data")
-    with rasterio.Env(
-        AWS_HTTPS=False,
-        AWS_VIRTUAL_HOSTING=False,
-        AWS_NO_SIGN_REQUEST=False,
-        AWS_S3_ENDPOINT=S3_ENDPOINT_URL.replace("http://", ""),
-        AWS_DEFAULT_REGION="us-east-1",
-    ):
-        affine = chirps.rio_get_affine(
-            "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif"
-        )
-    assert isinstance(affine, rasterio.Affine)
-
-
 def test_extract_sum_epi_week(moto_server):
 
     moto_put_test_data("bfa-raw-data")
 
     files = [
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.01.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.02.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.03.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.04.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.05.tif",
-        "bfa-raw-data/2017-18/chirps-v2.0.2017.05.06.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.01.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.02.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.03.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.04.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.05.tif",
+        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.06.tif",
     ]
 
     with rasterio.Env(
@@ -178,7 +130,7 @@ def test_extract_chirps_data(moto_server):
 
     moto_put_test_data("bfa-raw-data")
 
-    fs = s3fs.S3FileSystem(anon=False, client_kwargs={"endpoint_url": S3_ENDPOINT_URL})
+    fs = S3FileSystem(anon=False, client_kwargs={"endpoint_url": S3_ENDPOINT_URL})
 
     contours = gpd.read_file("tests/bfa.geojson")
 
@@ -190,11 +142,10 @@ def test_extract_chirps_data(moto_server):
         AWS_DEFAULT_REGION="us-east-1",
     ):
         stats = chirps.extract_chirps_data(
-            fs=fs,
             contours=contours,
             input_dir="s3://bfa-raw-data",
-            year_start=2017,
-            year_end=2018,
+            start=2017,
+            end=2018,
         )
 
     assert len(stats) == 13
