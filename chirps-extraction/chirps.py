@@ -217,7 +217,7 @@ def download_chirps_data(
 
         # Write the GeoTIFF in a temporary file
         tmp_file = os.path.join(tmp_dir, "raster.tif")
-        r = requests.get(download_url, stream=True, timeout=2)
+        r = requests.get(download_url, stream=True, timeout=60)
         r.raise_for_status()
         with open(tmp_file, "wb") as f:
             if download_url.endswith(".gz"):
