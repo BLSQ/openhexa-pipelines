@@ -8,6 +8,7 @@ pandas
 geopandas
 rasterio
 rasterstats
+responses
 pytest
 moto[ecs,s3,server]
 boto3==1.17.106

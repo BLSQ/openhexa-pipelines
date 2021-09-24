@@ -12,4 +12,5 @@ COPY chirps.py .
 COPY storage.py .
 COPY tests ./tests
 
-ENTRYPOINT ["python", "-m"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["chirps"]
