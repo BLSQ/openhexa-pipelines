@@ -46,12 +46,6 @@ def cli():
 
 
 @cli.command()
-def test():
-    """Run test suite."""
-    return pytest.main(["-x", "tests"])
-
-
-@cli.command()
 @click.option("--output-dir", type=str, help="output directory")
 @click.option("--start", type=int, help="start year")
 @click.option("--end", type=int, help="end year")
@@ -273,7 +267,7 @@ def download_chirps_daily(
         output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file}"
         url = f"{CHIRPS_URL}{day.year}/{output_file}"
 
-        fs.makedirs(fs.dirname(output_path))
+        fs.makedirs(fs.dirname(output_path), exist_ok=True)
 
         if fs.exists(output_path) and fs.size(output_path) > 0 and not overwrite:
             logger.info(f"Skipping {output_path}")

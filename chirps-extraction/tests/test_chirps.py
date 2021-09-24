@@ -3,10 +3,10 @@ import re
 from datetime import date
 
 import botocore
+import fsspec
 import pandas as pd
 import pytest
 import responses
-from s3fs import S3FileSystem
 
 import chirps
 import rasterio
@@ -33,9 +33,21 @@ def bfa_raw_data(boto_client):
             )
 
 
-@pytest.fixture
-def download_bucket(boto_client):
-    boto_client.create_bucket(Bucket="chirps-download")
+@pytest.fixture(params=["s3", "file"])
+def download_location(boto_client, request):
+    if request.param == "s3":
+        dirname = "s3://chirps-download"
+        boto_client.create_bucket(Bucket="chirps-download")
+        storage_options = {
+            "client_kwargs": {"endpoint_url": os.environ["AWS_S3_ENDPOINT"]}
+        }
+    elif request.param == "file":
+        dirname = os.path.join(os.path.dirname(__file__), "chirps-download")
+        storage_options = {}
+    else:
+        raise NotImplementedError
+
+    return request.param, dirname, storage_options
 
 
 @pytest.fixture
@@ -66,36 +78,45 @@ def test_provide_time_range():
     assert drange[-1].date() == date(2014, 12, 31)
 
 
-def test_download_chirps_daily(moto_server, download_bucket, mocked_responses):
-    def get_callback(request):
-        file_name = (
-            "chirps-v2.0.2017.05.05.tif.gz"
-            if request.url.endswith(".gz")
-            else "chirps-v2.0.2017.05.05.tif"
+@pytest.fixture
+def mock_chc():
+    with responses.RequestsMock() as mocked_responses:
+
+        def get_callback(request):
+            file_name = (
+                "chirps-v2.0.2017.05.05.tif.gz"
+                if request.url.endswith(".gz")
+                else "chirps-v2.0.2017.05.05.tif"
+            )
+            with open(
+                os.path.join(os.path.dirname(__file__), "sample_tifs", file_name), "rb"
+            ) as f:
+                return 200, {"Content-Type": "application/x-gzip"}, f.read()
+
+        def head_callback(request):
+            return 200, {"Content-Type": "application/x-gzip"}, b""
+
+        mocked_responses.add_callback(
+            responses.GET,
+            re.compile("https://data.chc.ucsb.edu/(.*)"),
+            callback=get_callback,
         )
-        with open(
-            os.path.join(os.path.dirname(__file__), "sample_tifs", file_name), "rb"
-        ) as f:
-            return 200, {"Content-Type": "application/x-gzip"}, f.read()
+        mocked_responses.add_callback(
+            responses.HEAD,
+            re.compile("https://data.chc.ucsb.edu/(.*)"),
+            callback=head_callback,
+        )
+        yield
 
-    def head_callback(request):
-        return 200, {"Content-Type": "application/x-gzip"}, b""
 
-    mocked_responses.add_callback(
-        responses.GET,
-        re.compile("https://data.chc.ucsb.edu/(.*)"),
-        callback=get_callback,
-    )
-    mocked_responses.add_callback(
-        responses.HEAD,
-        re.compile("https://data.chc.ucsb.edu/(.*)"),
-        callback=head_callback,
+def test_download_chirps_daily(moto_server, mock_chc, download_location):
+    protocol, download_dir, storage_options = download_location
+    output_dir = os.path.join(download_dir, "africa/daily")
+    chirps.download_chirps_daily(
+        output_dir=output_dir, year_start=2012, year_end=2012, overwrite=True
     )
 
-    output_dir = "s3://chirps-download/africa/daily"
-    chirps.download_chirps_daily(output_dir=output_dir, year_start=2012, year_end=2012)
-
-    fs = S3FileSystem(client_kwargs={"endpoint_url": os.environ["AWS_S3_ENDPOINT"]})
+    fs = fsspec.filesystem(protocol, **storage_options)
     dirs = fs.ls(f"{output_dir}")
     assert len(dirs) == 53
     files = fs.glob(f"{output_dir}/*/*.tif")
