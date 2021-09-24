@@ -7,9 +7,22 @@ import fsspec
 import pandas as pd
 import pytest
 import responses
+from fsspec.implementations.http import HTTPFileSystem
+from fsspec.implementations.local import LocalFileSystem
+from gcsfs import GCSFileSystem
+from s3fs import S3FileSystem
 
 import chirps
 import rasterio
+
+
+def test_filesystem():
+    assert isinstance(chirps.filesystem("/tmp/file.txt"), LocalFileSystem)
+    assert isinstance(chirps.filesystem("http://example.com/"), HTTPFileSystem)
+    assert isinstance(chirps.filesystem("s3://bucket/dir"), S3FileSystem)
+    assert isinstance(chirps.filesystem("gcs://bucket/dir"), GCSFileSystem)
+    with pytest.raises(ValueError):
+        chirps.filesystem("bad://bucket/dir")
 
 
 @pytest.fixture
@@ -55,29 +68,6 @@ def bfa_output_data(boto_client):
     boto_client.create_bucket(Bucket="bfa-output-data")
 
 
-def test_provide_epi_week():
-    # epi_year == year
-    epi_week, epi_year, start, end = chirps.provide_epi_week(2012, 1, 12)
-    assert epi_week == 2
-    assert epi_year == 2012
-    assert start == date(2012, 1, 8)
-    assert end == date(2012, 1, 14)
-
-    # epi_year != year
-    epi_week, epi_year, start, end = chirps.provide_epi_week(2018, 12, 30)
-    assert epi_week == 1
-    assert epi_year == 2019
-    assert start == date(2018, 12, 30)
-    assert end == date(2019, 1, 5)
-
-
-def test_provide_time_range():
-    drange = chirps.provide_time_range(2012, 2014)
-    assert len(drange) == 1096
-    assert drange[0].date() == date(2012, 1, 1)
-    assert drange[-1].date() == date(2014, 12, 31)
-
-
 @pytest.fixture
 def mock_chc():
     with responses.RequestsMock() as mocked_responses:
@@ -107,6 +97,29 @@ def mock_chc():
             callback=head_callback,
         )
         yield
+
+
+def test_provide_epi_week():
+    # epi_year == year
+    epi_week, epi_year, start, end = chirps.provide_epi_week(2012, 1, 12)
+    assert epi_week == 2
+    assert epi_year == 2012
+    assert start == date(2012, 1, 8)
+    assert end == date(2012, 1, 14)
+
+    # epi_year != year
+    epi_week, epi_year, start, end = chirps.provide_epi_week(2018, 12, 30)
+    assert epi_week == 1
+    assert epi_year == 2019
+    assert start == date(2018, 12, 30)
+    assert end == date(2019, 1, 5)
+
+
+def test_provide_time_range():
+    drange = chirps.provide_time_range(2012, 2014)
+    assert len(drange) == 1096
+    assert drange[0].date() == date(2012, 1, 1)
+    assert drange[-1].date() == date(2014, 12, 31)
 
 
 def test_download_chirps_daily(moto_server, mock_chc, download_location):

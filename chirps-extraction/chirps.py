@@ -2,7 +2,7 @@
 Process them based on the contours of the countries provided.
 Results are aggregated by Epi week (CDC week).
 """
-
+import enum
 import os
 import gzip
 import typing
@@ -14,16 +14,16 @@ import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import pytest
 import rasterio
 import requests
 from affine import Affine
 from fsspec import AbstractFileSystem
-from geopandas import GeoDataFrame
+from fsspec.implementations.http import HTTPFileSystem
+from fsspec.implementations.local import LocalFileSystem
+from gcsfs import GCSFileSystem
+from pandas import DatetimeIndex
 from rasterstats import zonal_stats
-
-import storage
-
+from s3fs import S3FileSystem
 
 CHIRPS_VERSION = "2.0"
 CHIRPS_TIMELY = "daily"
@@ -39,6 +39,27 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+
+def filesystem(target_path: str) -> AbstractFileSystem:
+    """Guess filesystem based on path"""
+
+    client_kwargs = {}
+    if "://" in target_path:
+        target_protocol = target_path.split("://")[0]
+        if target_protocol == "s3":
+            fs_class = S3FileSystem
+            client_kwargs = {"endpoint_url": os.environ.get("AWS_S3_ENDPOINT")}
+        elif target_protocol == "gcs":
+            fs_class = GCSFileSystem
+        elif target_protocol == "http" or target_protocol == "https":
+            fs_class = HTTPFileSystem
+        else:
+            raise ValueError(f"Protocol {target_protocol} not supported.")
+    else:
+        fs_class = LocalFileSystem
+
+    return fs_class(client_kwargs=client_kwargs)
 
 
 @click.group()
@@ -82,7 +103,14 @@ def extract(start, end, contours, input_dir, output_file):
     )
 
 
-def provide_epi_week(year, month, day, system="CDC"):
+class EpiSystem(enum.Enum):
+    CDC = "CDC"
+    WHO = "WHO"
+
+
+def provide_epi_week(
+    year: int, month: int, day: int, system: EpiSystem = "CDC"
+) -> typing.Tuple[int, int, date, date]:
     """Provide epidemiological week from a date using either the CDC or WHO system.
 
     How do we define the first week of the year/January ?
@@ -110,28 +138,6 @@ def provide_epi_week(year, month, day, system="CDC"):
     Note
     ----
     WHO system not really tested (no reference calendar found).
-
-    Parameters
-    ----------
-    year : int
-        Year.
-    month : int
-        Month.
-    day : int
-        Day.
-    system : str, optional
-        Epidemiological week system, "CDC" or "WHO".
-
-    Returns
-    -------
-    epi_week : int
-        Epi week number.
-    epi_year : int
-        Year.
-    week_start_day : datetime
-        Start day of the epi week.
-    week_end_day : datetime
-        End day of the epi week.
 
     Raises
     ------
@@ -164,26 +170,13 @@ def provide_epi_week(year, month, day, system="CDC"):
     else:
         epi_year = week_start_day.year
 
-    return (epi_week, epi_year, week_start_day, week_end_day)
+    return epi_week, epi_year, week_start_day, week_end_day
 
 
-def provide_time_range(year_start, year_end, future=False):
-    """Get pandas date range from start and end year.
-
-    Parameters
-    ----------
-    year_start : int
-        Start year.
-    year_end : int
-        End year.
-    future : bool, optional
-        TODO.
-
-    Returns
-    -------
-    DatetimeIndex
-        Pandas fixed frequency time range.
-    """
+def provide_time_range(
+    year_start: int, year_end: int, future: bool = False
+) -> DatetimeIndex:
+    """Get pandas date range from start and end year."""
     start_period = date(year_start, 1, 1)
     _, _, start_epi_day, _ = provide_epi_week(
         date.today().year, date.today().month, date.today().day
@@ -256,7 +249,7 @@ def download_chirps_daily(
     """Download CHIRPS daily products for a given time range."""
 
     output_dir = output_dir.rstrip("/")
-    fs = storage.filesystem(output_dir)
+    fs = filesystem(output_dir)
     time_range = provide_time_range(year_start, year_end)
     time_serie = time_range.to_series().apply(
         lambda r: provide_epi_week(r.year, r.month, r.day)
@@ -294,6 +287,7 @@ def extract_sum_epi_week(
                 daily_rasters.append(src.read(1))
 
     weekly = np.nansum(daily_rasters, axis=0)
+
     return weekly, affine
 
 
@@ -310,8 +304,8 @@ def extract_chirps_data(
     input_dir = input_dir.rstrip("/")
     contours_df = gpd.read_file(contours_file)
 
-    input_fs = storage.filesystem(input_dir)
-    output_fs = storage.filesystem(output_file)
+    input_fs = filesystem(input_dir)
+    output_fs = filesystem(output_file)
 
     contours = contours_df.to_crs("EPSG:4326")
     data = pd.DataFrame()
