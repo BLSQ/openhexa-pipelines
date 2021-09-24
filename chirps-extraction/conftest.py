@@ -29,7 +29,7 @@ def moto_server():
             r = requests.get(os.environ["AWS_S3_ENDPOINT"])
             if r.ok:
                 break
-        except:
+        except requests.RequestException:
             pass
         timeout -= 0.1
         time.sleep(0.1)

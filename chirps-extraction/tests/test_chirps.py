@@ -3,17 +3,16 @@ import re
 from datetime import date
 
 import botocore
+import chirps
 import fsspec
 import pandas as pd
 import pytest
+import rasterio
 import responses
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
 from s3fs import S3FileSystem
-
-import chirps
-import rasterio
 
 
 def test_filesystem():

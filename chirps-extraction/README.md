@@ -107,3 +107,14 @@ Read by `rasterio` (via `GDAL`):
 * `AWS_VIRTUAL_HOSTING=TRUE`
 * `AWS_NO_SIGN_REQUEST=YES`
 * See [GDAL doc](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
+
+## Code style
+
+Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) 
+and [`autoflake`](https://github.com/myint/autoflake). We currently target the Python 3.9 syntax.
+
+We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is
+installed, and run `pre-commit install` the first time you check out the code. Linting will again be checked
+when submitting a pull request.
+
+You can run the lint tools manually using `pre-commit run --all`.

@@ -3,12 +3,12 @@ Process them based on the contours of the countries provided.
 Results are aggregated by Epi week (CDC week).
 """
 import enum
-import os
 import gzip
+import logging
+import os
+import tempfile
 import typing
 from datetime import date, timedelta
-import logging
-import tempfile
 
 import click
 import geopandas as gpd
