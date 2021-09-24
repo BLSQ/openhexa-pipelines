@@ -5,6 +5,7 @@ Results are aggregated by Epi week (CDC week).
 
 import os
 import gzip
+import typing
 from datetime import date, timedelta
 import logging
 import tempfile
@@ -16,6 +17,7 @@ import pandas as pd
 import pytest
 import rasterio
 import requests
+from affine import Affine
 from fsspec import AbstractFileSystem
 from geopandas import GeoDataFrame
 from rasterstats import zonal_stats
@@ -267,7 +269,7 @@ def download_chirps_daily(
         output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file}"
         url = f"{CHIRPS_URL}{day.year}/{output_file}"
 
-        fs.makedirs(fs.dirname(output_path), exist_ok=True)
+        fs.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         if fs.exists(output_path) and fs.size(output_path) > 0 and not overwrite:
             logger.info(f"Skipping {output_path}")
@@ -276,28 +278,20 @@ def download_chirps_daily(
         download_chirps_data(download_url=url, fs=fs, output_path=output_path)
 
 
-def extract_sum_epi_week(files):
-    """Get weekly precipitation sum from daily precipitation rasters.
+def extract_sum_epi_week(
+    fs: AbstractFileSystem, files: typing.Sequence[str]
+) -> typing.Tuple[np.ndarray, Affine]:
+    """Get weekly precipitation sum from daily precipitation rasters."""
 
-    Parameters
-    ----------
-    files : list of str
-        Daily rasters as a list of paths.
-
-    Return
-    ------
-    weekly : ndarray
-        Weekly precipitation sum as a 2D numpy array.
-    affine : Affine
-        Raster affine transformation.
-    """
-    with rasterio.open(files[0]) as src:
-        affine = src.transform
+    with fs.open(files[0]) as fp:
+        with rasterio.open(fp) as src:
+            affine = src.transform
 
     daily_rasters = []
     for f in files:
-        with rasterio.open(f) as src:
-            daily_rasters.append(src.read(1))
+        with fs.open(f) as fp:
+            with rasterio.open(fp) as src:
+                daily_rasters.append(src.read(1))
 
     weekly = np.nansum(daily_rasters, axis=0)
     return weekly, affine
@@ -324,13 +318,10 @@ def extract_chirps_data(
 
     for year in range(start_year, end_year + 1):
 
-        for epi_week_dir in input_fs.glob(
-            f"{input_dir}/{year}-*", re_add_protocol=True
-        ):
+        for epi_week_dir in input_fs.glob(f"{input_dir}/{year}-*"):
 
             logger.info(f"Processing epi week {epi_week_dir.split('/')[-1]}")
-
-            files = input_fs.glob(f"{epi_week_dir}/*.tif", re_add_protocol=True)
+            files = input_fs.glob(f"{epi_week_dir}/*.tif")
 
             # Skip incomplete epi weeks
             if len(files) < 6:
@@ -340,7 +331,7 @@ def extract_chirps_data(
                 continue
 
             epi_year, epi_week = epi_week_dir.split("/")[-1].split("-")
-            epi_array, epi_affine = extract_sum_epi_week(files)
+            epi_array, epi_affine = extract_sum_epi_week(input_fs, files)
 
             stats = zonal_stats(
                 contours,
@@ -363,7 +354,7 @@ def extract_chirps_data(
 
     data = data.reset_index(drop=True)
 
-    output_fs.makedirs(output_fs.dirname(output_file), exist_ok=True)
+    output_fs.makedirs(os.path.dirname(output_file), exist_ok=True)
     with output_fs.open(output_file, "w") as f:
         csv = data.to_csv(index=False)
         f.write(csv)

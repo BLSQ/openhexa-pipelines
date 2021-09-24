@@ -1,6 +1,8 @@
 import os
 import logging
+import typing
 
+from fsspec import AbstractFileSystem
 from s3fs import S3FileSystem
 from gcsfs import GCSFileSystem
 from fsspec.implementations.http import HTTPFileSystem
@@ -15,42 +17,26 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _no_protocol(path):
-    """Get path without protocol prefix.
+def add_logging(
+    fs: AbstractFileSystem, methods: typing.Sequence[str]
+) -> AbstractFileSystem:
+    for method_name in methods:
+        method = getattr(fs, method_name)
 
-    Most s3fs and gcsfs function expect it as input.
+        def method_with_logging(*args, **kwargs):
+            args_log = ", ".join(args)
+            kwargs_log = ", ".join([f"{k}: {v}" for k, v in kwargs.items()])
+            logger.info(
+                f"Calling {method} with args {args_log} and kwargs {kwargs_log}"
+            )
+            method(*args, **kwargs)
 
-    Parameters
-    ----------
-    path : str
-        Full path with or without protocol.
+        setattr(fs, method_name, method_with_logging)
 
-    Return
-    ------
-    str
-        Path without protocol prefix.
-    """
-    if "://" in path:
-        return path.split("://")[1]
-    return path
+    return fs
 
 
-def filesystem(target_path):
-    """Guess filesystem from path.
-
-    As of now 4 filesystems are supported: S3, GCS, HTTP, and local.
-
-    Parameters
-    ----------
-    path : str
-        Path to file or directory.
-
-    Return
-    ------
-    FileSystem
-        Appropriate FileSystem object.
-    """
-
+def filesystem(target_path: str) -> AbstractFileSystem:
     client_kwargs = {}
     if "://" in target_path:
         target_protocol = target_path.split("://")[0]
@@ -66,16 +52,5 @@ def filesystem(target_path):
     else:
         fs_class = LocalFileSystem
 
-    class LoggedFileSystem(fs_class):
-        def glob(self, path, *, re_add_protocol=False, **kwargs):
-            results = super().glob(path, **kwargs)
-            if re_add_protocol:
-                if "://" in path:
-                    protocol = path.split("://")[0]
-                    results = [f"{protocol}://{res}" for res in results]
-            return results
-
-        def dirname(self, path):
-            return os.path.dirname(self._strip_protocol(path))
-
-    return LoggedFileSystem(client_kwargs=client_kwargs)
+    return fs_class(client_kwargs=client_kwargs)
+    return add_logging(fs_class(client_kwargs=client_kwargs), ["glob", "put"])

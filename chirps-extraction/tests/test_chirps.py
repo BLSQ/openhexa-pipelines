@@ -141,8 +141,11 @@ def test_extract_sum_epi_week(moto_server, bfa_raw_data):
         AWS_S3_ENDPOINT=os.environ["AWS_S3_ENDPOINT"].replace("http://", ""),
         AWS_DEFAULT_REGION="us-east-1",
     ):
-        sum, affine = chirps.extract_sum_epi_week(files)
-    assert sum.min() >= 0
+        fs = fsspec.filesystem(
+            "s3", client_kwargs={"endpoint_url": os.environ["AWS_S3_ENDPOINT"]}
+        )
+        prec_sum, affine = chirps.extract_sum_epi_week(fs, files)
+    assert prec_sum.min() >= 0
     assert isinstance(affine, rasterio.Affine)
 
 

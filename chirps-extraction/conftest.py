@@ -17,7 +17,11 @@ def moto_server():
     if "AWS_S3_ENDPOINT" not in os.environ:
         os.environ["AWS_S3_ENDPOINT"] = "http://127.0.0.1:3000"
 
-    p = subprocess.Popen(["moto_server", "s3", "-p", "3000"])
+    p = subprocess.Popen(
+        ["moto_server", "s3", "-p", "3000"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     timeout = 5
     while timeout > 0:
