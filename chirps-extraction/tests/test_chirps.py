@@ -122,16 +122,6 @@ def test_download_chirps_daily(moto_server, mocked_responses):
     files = fs.glob(f"{output_dir}/*/*.tif")
     assert len(files) == 366
 
-    # TODO: finish
-    # with rasterio.open(f"s3://{files[0]}") as src:
-    #     foo = src.profile
-    #     bar = "baz"
-
-
-def test__no_ending_slash():
-    assert chirps._no_ending_slash("bucket/folder/") == "bucket/folder"
-    assert chirps._no_ending_slash("bucket/folder") == "bucket/folder"
-
 
 def test_extract_sum_epi_week(moto_server):
     moto_put_test_data("bfa-raw-data")

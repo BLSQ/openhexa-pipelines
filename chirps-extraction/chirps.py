@@ -259,7 +259,7 @@ def download_chirps_daily(
 ):
     """Download CHIRPS daily products for a given time range."""
 
-    output_dir = _no_ending_slash(output_dir)
+    output_dir = output_dir.rstrip("/")
     fs = storage.filesystem(output_dir)
     time_range = provide_time_range(year_start, year_end)
     time_serie = time_range.to_series().apply(
@@ -319,7 +319,7 @@ def extract_chirps_data(
 ):
     """Extract CHIRPS data."""
 
-    input_dir = _no_ending_slash(input_dir)
+    input_dir = input_dir.rstrip("/")
     contours_df = gpd.read_file(contours_file)
 
     input_fs = storage.filesystem(input_dir)
@@ -374,13 +374,6 @@ def extract_chirps_data(
         csv = data.to_csv(index=False)
         f.write(csv)
         logger.info(f"Aggregated statistics written to {output_file}.")
-
-
-def _no_ending_slash(path):
-    """Remove ending slash if needed."""
-    if path.endswith("/"):
-        return path[:-1]
-    return path
 
 
 if __name__ == "__main__":
