@@ -26,7 +26,7 @@ Commands:
 ## Data acquisition
 
 ```
-Usage: chirps download [OPTIONS]
+Usage: docker-compose run pipeline chirps download [OPTIONS]
 
   Download raw precipitation data.
 

@@ -2,7 +2,6 @@ import os
 import re
 from datetime import date
 
-import botocore
 import chirps
 import fsspec
 import pandas as pd
@@ -22,13 +21,6 @@ def test_filesystem():
     assert isinstance(chirps.filesystem("gcs://bucket/dir"), GCSFileSystem)
     with pytest.raises(ValueError):
         chirps.filesystem("bad://bucket/dir")
-
-
-@pytest.fixture
-def boto_client():
-    session = botocore.session.Session()
-
-    return session.create_client("s3", endpoint_url=os.environ["AWS_S3_ENDPOINT"])
 
 
 @pytest.fixture

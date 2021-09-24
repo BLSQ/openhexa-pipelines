@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 
+import botocore
 import pytest
 import requests
 
@@ -36,3 +37,10 @@ def moto_server():
     yield
     p.terminate()
     p.wait()
+
+
+@pytest.fixture
+def boto_client():
+    session = botocore.session.Session()
+
+    return session.create_client("s3", endpoint_url=os.environ["AWS_S3_ENDPOINT"])
