@@ -1,65 +1,46 @@
 import os
 import re
-import subprocess
-import time
 from datetime import date
 
 import botocore
 import pandas as pd
+import pytest
 import responses
 from s3fs import S3FileSystem
 
 import chirps
-import pytest
 import rasterio
-import requests
 
 
-@pytest.fixture()
-def moto_server():
-    if "AWS_SECRET_ACCESS_KEY" not in os.environ:
-        os.environ["AWS_SECRET_ACCESS_KEY"] = "foo"
-    if "AWS_ACCESS_KEY_ID" not in os.environ:
-        os.environ["AWS_ACCESS_KEY_ID"] = "foo"
-    if "AWS_S3_ENDPOINT" not in os.environ:
-        os.environ["AWS_S3_ENDPOINT"] = "http://127.0.0.1:3000"
-
-    p = subprocess.Popen(["moto_server", "s3", "-p", "3000"])
-
-    timeout = 5
-    while timeout > 0:
-        try:
-            r = requests.get(os.environ["AWS_S3_ENDPOINT"])
-            if r.ok:
-                break
-        except:
-            pass
-        timeout -= 0.1
-        time.sleep(0.1)
-    yield
-    p.terminate()
-    p.wait()
-
-
-def moto_put_test_data(bucket_name):
-    # put raw BFA data into a test bucket
+@pytest.fixture
+def boto_client():
     session = botocore.session.Session()
-    client = session.create_client("s3", endpoint_url=os.environ["AWS_S3_ENDPOINT"])
-    client.create_bucket(Bucket=bucket_name)
+
+    return session.create_client("s3", endpoint_url=os.environ["AWS_S3_ENDPOINT"])
+
+
+@pytest.fixture
+def bfa_raw_data(boto_client):
+    boto_client.create_bucket(Bucket="bfa-raw-data")
     for fname in os.listdir(
         os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017-18")
     ):
         with open(
             os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017-18", fname), "rb"
         ) as f:
-            client.put_object(Bucket=bucket_name, Key=f"2017-18/{fname}", Body=f.read())
+            boto_client.put_object(
+                Bucket="bfa-raw-data", Key=f"2017-18/{fname}", Body=f.read()
+            )
 
 
-def moto_create_bucket(bucket_name):
-    # create an empty writable bucket
-    session = botocore.session.Session()
-    client = session.create_client("s3", endpoint_url=os.environ["AWS_S3_ENDPOINT"])
-    client.create_bucket(Bucket=bucket_name)
+@pytest.fixture
+def download_bucket(boto_client):
+    boto_client.create_bucket(Bucket="chirps-download")
+
+
+@pytest.fixture
+def bfa_output_data(boto_client):
+    boto_client.create_bucket(Bucket="bfa-output-data")
 
 
 def test_provide_epi_week():
@@ -85,7 +66,7 @@ def test_provide_time_range():
     assert drange[-1].date() == date(2014, 12, 31)
 
 
-def test_download_chirps_daily(moto_server, mocked_responses):
+def test_download_chirps_daily(moto_server, download_bucket, mocked_responses):
     def get_callback(request):
         file_name = (
             "chirps-v2.0.2017.05.05.tif.gz"
@@ -111,9 +92,7 @@ def test_download_chirps_daily(moto_server, mocked_responses):
         callback=head_callback,
     )
 
-    moto_create_bucket("test-bucket")
-    output_dir = "s3://test-bucket/africa/daily"
-    os.environ["AWS_S3_ENDPOINT"] = "http://localhost:3000"
+    output_dir = "s3://chirps-download/africa/daily"
     chirps.download_chirps_daily(output_dir=output_dir, year_start=2012, year_end=2012)
 
     fs = S3FileSystem(client_kwargs={"endpoint_url": os.environ["AWS_S3_ENDPOINT"]})
@@ -123,9 +102,7 @@ def test_download_chirps_daily(moto_server, mocked_responses):
     assert len(files) == 366
 
 
-def test_extract_sum_epi_week(moto_server):
-    moto_put_test_data("bfa-raw-data")
-
+def test_extract_sum_epi_week(moto_server, bfa_raw_data):
     files = [
         "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif",
         "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.01.tif",
@@ -148,10 +125,7 @@ def test_extract_sum_epi_week(moto_server):
     assert isinstance(affine, rasterio.Affine)
 
 
-def test_extract_chirps_data(moto_server):
-    moto_put_test_data("bfa-raw-data")
-    moto_create_bucket("bfa-output-data")
-
+def test_extract_chirps_data(moto_server, bfa_raw_data, bfa_output_data):
     with rasterio.Env(
         AWS_HTTPS=False,
         AWS_VIRTUAL_HOSTING=False,
