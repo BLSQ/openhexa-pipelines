@@ -95,7 +95,7 @@ def extract(start, end, contours, input_dir, output_file):
     logger.info(f"Computing zonal statistics for {contours}")
 
     extract_chirps_data(
-        contours_file=gpd.read_file(contours),
+        contours_file=contours,
         input_dir=input_dir,
         output_file=output_file,
         start_year=start,
