@@ -1,7 +1,16 @@
-# Description
+# Chirps extraction
+
+The `chirps-extraction` pipeline downloads precipitation data from the [Climate Hazards Center (CHC)](https://www.chc.ucsb.edu/) through its [HTTP data repository](https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/) in order to aggregate zonal statistics based on contours provided by the user.
+
+The program supports S3, GCS, and local paths for both inputs and outputs.
+
+## Usage
+
+This pipeline is meant to be run within a Docker container. The examples below use `docker-compose.yaml`, which is the 
+recommended approach for local development.
 
 ```
-Usage: chirps.py [OPTIONS] COMMAND [ARGS]...
+Usage: docker-compose run pipeline chirps [OPTIONS] COMMAND [ARGS]...
 
   Download and process CHIRPS data.
 
@@ -11,17 +20,13 @@ Options:
 Commands:
   download  Download raw precipitation data.
   extract   Compute zonal statistics.
-  test      Run test suite.
 ```
 
-The `chirps-extraction` pipeline downloads precipitation data from the [Climate Hazards Center (CHC)](https://www.chc.ucsb.edu/) through its [HTTP data repository](https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/) in order to aggregate zonal statistics based on contours provided by the user.
-
-The program supports S3, GCS, and local paths for both inputs and outputs.
 
 ## Data acquisition
 
 ```
-Usage: chirps.py download [OPTIONS]
+Usage: docker-compose run pipeline chirps download [OPTIONS]
 
   Download raw precipitation data.
 
@@ -38,7 +43,7 @@ The `download` subcommand downloads daily precipitation rasters for the african 
 ### Example
 
 ``` sh
-chirps.py download \
+chirps download \
     --start 2017 \
     --end 2018 \
     --output-dir "s3://bucket/africa/daily"
@@ -47,7 +52,7 @@ chirps.py download \
 ## Zonal statistics
 
 ```
-Usage: chirps.py extract [OPTIONS]
+Usage: chirps extract [OPTIONS]
 
   Compute zonal statistics.
 
@@ -65,24 +70,18 @@ The `extract` subcommand compute zonal statistics based on a contours file provi
 ### Example
 
 ``` sh
-chirps.py extract --start 2017 --end 2018 \
+docker-compose run pipeline chirps extract --start 2017 --end 2018 \
     --contours "s3://bucket/contours/bfa.geojson" \
     --input-dir "s3://bucket/africa/daily" \
     --output-file "s3://bucket/precipitation/bfa/chirps.csv" \
 ```
 
-## Docker
-
-The script can be run through Docker:
-
-``` sh
-docker run chirps:latest chirps --help
-```
+## Testing
 
 Running pytest:
 
 ``` sh
-docker run chirps:latest pytest tests/
+docker-compose run pipeline pytest
 ```
 
 ## S3 credentials
@@ -108,3 +107,14 @@ Read by `rasterio` (via `GDAL`):
 * `AWS_VIRTUAL_HOSTING=TRUE`
 * `AWS_NO_SIGN_REQUEST=YES`
 * See [GDAL doc](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
+
+## Code style
+
+Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) 
+and [`autoflake`](https://github.com/myint/autoflake). We currently target the Python 3.9 syntax.
+
+We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is
+installed, and run `pre-commit install` the first time you check out the code. Linting will again be checked
+when submitting a pull request.
+
+You can run the lint tools manually using `pre-commit run --all`.

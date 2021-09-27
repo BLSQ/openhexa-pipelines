@@ -2,12 +2,13 @@
 Process them based on the contours of the countries provided.
 Results are aggregated by Epi week (CDC week).
 """
-
-import os
+import enum
 import gzip
-from datetime import date, timedelta
 import logging
+import os
 import tempfile
+import typing
+from datetime import date, timedelta
 
 import click
 import geopandas as gpd
@@ -15,10 +16,14 @@ import numpy as np
 import pandas as pd
 import rasterio
 import requests
+from affine import Affine
+from fsspec import AbstractFileSystem
+from fsspec.implementations.http import HTTPFileSystem
+from fsspec.implementations.local import LocalFileSystem
+from gcsfs import GCSFileSystem
+from pandas import DatetimeIndex
 from rasterstats import zonal_stats
-
-import storage
-
+from s3fs import S3FileSystem
 
 CHIRPS_VERSION = "2.0"
 CHIRPS_TIMELY = "daily"
@@ -36,6 +41,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def filesystem(target_path: str) -> AbstractFileSystem:
+    """Guess filesystem based on path"""
+
+    client_kwargs = {}
+    if "://" in target_path:
+        target_protocol = target_path.split("://")[0]
+        if target_protocol == "s3":
+            fs_class = S3FileSystem
+            client_kwargs = {"endpoint_url": os.environ.get("AWS_S3_ENDPOINT")}
+        elif target_protocol == "gcs":
+            fs_class = GCSFileSystem
+        elif target_protocol == "http" or target_protocol == "https":
+            fs_class = HTTPFileSystem
+        else:
+            raise ValueError(f"Protocol {target_protocol} not supported.")
+    else:
+        fs_class = LocalFileSystem
+
+    return fs_class(client_kwargs=client_kwargs)
+
+
 @click.group()
 def cli():
     """Download and process CHIRPS data."""
@@ -43,23 +69,18 @@ def cli():
 
 
 @cli.command()
-def test():
-    """Run test suite."""
-    pass
-
-
-@cli.command()
+@click.option("--output-dir", type=str, help="output directory")
 @click.option("--start", type=int, help="start year")
 @click.option("--end", type=int, help="end year")
-@click.option("--output-dir", type=str, help="output directory")
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing files"
 )
-def download(start, end, output_dir, overwrite):
+def download(output_dir: str, start: int, end: int, overwrite: bool):
     """Download raw precipitation data."""
     logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
-    output_dir = _no_ending_slash(output_dir)
-    download_chirps_daily(output_dir, start, end, overwrite)
+    download_chirps_daily(
+        output_dir=output_dir, year_start=start, year_end=end, overwrite=overwrite
+    )
 
 
 @cli.command()
@@ -70,25 +91,26 @@ def download(start, end, output_dir, overwrite):
 @click.option("--output-file", type=str, help="output directory")
 def extract(start, end, contours, input_dir, output_file):
     """Compute zonal statistics."""
-    input_dir = _no_ending_slash(input_dir)
-    contours_df = gpd.read_file(contours)
-    logger.info(f"Computing zonal statistics for {len(contours_df)} areas.")
 
-    stats = extract_chirps_data(
-        contours=gpd.read_file(contours),
+    logger.info(f"Computing zonal statistics for {contours}")
+
+    extract_chirps_data(
+        contours_file=contours,
         input_dir=input_dir,
-        start=start,
-        end=end,
+        output_file=output_file,
+        start_year=start,
+        end_year=end,
     )
 
-    storage.makedirs(os.path.dirname(output_file))
-    with storage.open(output_file, "w") as f:
-        csv = stats.to_csv(index=False)
-        f.write(csv)
-        logger.info(f"Aggregated statistics written to {output_file}.")
+
+class EpiSystem(enum.Enum):
+    CDC = "CDC"
+    WHO = "WHO"
 
 
-def provide_epi_week(year, month, day, system="CDC"):
+def provide_epi_week(
+    year: int, month: int, day: int, system: EpiSystem = "CDC"
+) -> typing.Tuple[int, int, date, date]:
     """Provide epidemiological week from a date using either the CDC or WHO system.
 
     How do we define the first week of the year/January ?
@@ -116,28 +138,6 @@ def provide_epi_week(year, month, day, system="CDC"):
     Note
     ----
     WHO system not really tested (no reference calendar found).
-
-    Parameters
-    ----------
-    year : int
-        Year.
-    month : int
-        Month.
-    day : int
-        Day.
-    system : str, optional
-        Epidemiological week system, "CDC" or "WHO".
-
-    Returns
-    -------
-    epi_week : int
-        Epi week number.
-    epi_year : int
-        Year.
-    week_start_day : datetime
-        Start day of the epi week.
-    week_end_day : datetime
-        End day of the epi week.
 
     Raises
     ------
@@ -170,26 +170,13 @@ def provide_epi_week(year, month, day, system="CDC"):
     else:
         epi_year = week_start_day.year
 
-    return (epi_week, epi_year, week_start_day, week_end_day)
+    return epi_week, epi_year, week_start_day, week_end_day
 
 
-def provide_time_range(year_start, year_end, future=False):
-    """Get pandas date range from start and end year.
-
-    Parameters
-    ----------
-    year_start : int
-        Start year.
-    year_end : int
-        End year.
-    future : bool, optional
-        TODO.
-
-    Returns
-    -------
-    DatetimeIndex
-        Pandas fixed frequency time range.
-    """
+def provide_time_range(
+    year_start: int, year_end: int, future: bool = False
+) -> DatetimeIndex:
+    """Get pandas date range from start and end year."""
     start_period = date(year_start, 1, 1)
     _, _, start_epi_day, _ = provide_epi_week(
         date.today().year, date.today().month, date.today().day
@@ -205,33 +192,30 @@ def provide_time_range(year_start, year_end, future=False):
     return pd.date_range(start_period, end_period)
 
 
-def download_chirps_data(url, output_path):
-    """Download .tif or .gzip file from URL.
+def download_chirps_data(
+    *, download_url: str, fs: AbstractFileSystem, output_path: str
+):
+    """Download .tif or .gzip file from URL."""
 
-    Parameters
-    ----------
-    url : str
-        Download URL.
-    output_path : str
-        Output path.
-    """
-    logger.info(f"Downloading {url}")
+    logger.info(f"Downloading {download_url}")
 
     # If a .tif file is requested but not available, the request will be
     # successfull (status code = 200) and the server will include the location
     # of the corresponding .tif.gz in the Content-Location header.
-    src_fname = url.split("/")[-1]
-    r = requests.head(url)
-    url = url.replace(src_fname, r.headers.get("content-location", src_fname))
+    src_fname = download_url.split("/")[-1]
+    r = requests.head(download_url)
+    download_url = download_url.replace(
+        src_fname, r.headers.get("content-location", src_fname)
+    )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         # Write the GeoTIFF in a temporary file
         tmp_file = os.path.join(tmp_dir, "raster.tif")
-        r = requests.get(url, stream=True, timeout=60)
+        r = requests.get(download_url, stream=True, timeout=60)
         r.raise_for_status()
         with open(tmp_file, "wb") as f:
-            if url.endswith(".gz"):
+            if download_url.endswith(".gz"):
                 f.write(gzip.decompress(r.content))
             else:
                 f.write(r.content)
@@ -252,110 +236,86 @@ def download_chirps_data(url, output_path):
             with rasterio.open(tmp_file_2, "w", **dst_profile) as dst:
                 dst.write(src.read(1), 1)
 
-        storage.put(tmp_file_2, output_path)
+        fs.put(tmp_file_2, output_path)
 
 
 def download_chirps_daily(
-    output_dir,
-    year_start,
-    year_end,
-    overwrite=False,
+    *,
+    output_dir: str,
+    year_start: int,
+    year_end: int,
+    overwrite: bool = False,
 ):
-    """Download CHIRPS daily products for a given time range.
+    """Download CHIRPS daily products for a given time range."""
 
-    Parameters
-    ----------
-    output_dir : str
-        CHIRPS download folder.
-    year_start : int
-        Start year.
-    year_end : int
-        End year.
-    overwrite : bool, optional
-        Overwrite existing files (default=False).
-    """
+    output_dir = output_dir.rstrip("/")
+    fs = filesystem(output_dir)
     time_range = provide_time_range(year_start, year_end)
     time_serie = time_range.to_series().apply(
         lambda r: provide_epi_week(r.year, r.month, r.day)
     )
 
     for day, (epi_week, year, _, _) in time_serie.items():
-
         output_file = CHIRPS_BASENAME.format(
             chirps_year=day.year, chirps_month=day.month, chirps_day=day.day
         )
         output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file}"
         url = f"{CHIRPS_URL}{day.year}/{output_file}"
 
-        storage.makedirs(os.path.dirname(output_path))
+        fs.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        if (
-            storage.exists(output_path)
-            and storage.size(output_path) > 0
-            and not overwrite
-        ):
+        if fs.exists(output_path) and fs.size(output_path) > 0 and not overwrite:
             logger.info(f"Skipping {output_path}")
             continue
 
-        download_chirps_data(url, output_path)
+        download_chirps_data(download_url=url, fs=fs, output_path=output_path)
 
 
-def extract_sum_epi_week(files):
-    """Get weekly precipitation sum from daily precipitation rasters.
+def extract_sum_epi_week(
+    fs: AbstractFileSystem, files: typing.Sequence[str]
+) -> typing.Tuple[np.ndarray, Affine]:
+    """Get weekly precipitation sum from daily precipitation rasters."""
 
-    Parameters
-    ----------
-    files : list of str
-        Daily rasters as a list of paths.
-
-    Return
-    ------
-    weekly : ndarray
-        Weekly precipitation sum as a 2D numpy array.
-    affine : Affine
-        Raster affine transformation.
-    """
-    with rasterio.open(files[0]) as src:
-        affine = src.transform
+    with fs.open(files[0]) as fp:
+        with rasterio.open(fp) as src:
+            affine = src.transform
 
     daily_rasters = []
     for f in files:
-        with rasterio.open(f) as src:
-            daily_rasters.append(src.read(1))
+        with fs.open(f) as fp:
+            with rasterio.open(fp) as src:
+                daily_rasters.append(src.read(1))
 
     weekly = np.nansum(daily_rasters, axis=0)
+
     return weekly, affine
 
 
-def extract_chirps_data(contours, input_dir, start, end):
-    """Extract CHIRPS data.
+def extract_chirps_data(
+    *,
+    contours_file: str,
+    input_dir: str,
+    output_file: str,
+    start_year: int,
+    end_year: int,
+):
+    """Extract CHIRPS data."""
 
-    Parameters
-    ----------
-    contours : GeoDataFrame
-        Aggregation areas.
-    input_dir : str
-        Location of raw CHIRPS data.
-    start : int
-        Start year.
-    end : int
-        End year.
+    input_dir = input_dir.rstrip("/")
+    contours_df = gpd.read_file(contours_file)
 
-    Returns
-    -------
-    data : GeoDataFrame
-        Extracted CHIRPS data.
-    """
-    contours = contours.to_crs("EPSG:4326")
+    input_fs = filesystem(input_dir)
+    output_fs = filesystem(output_file)
+
+    contours = contours_df.to_crs("EPSG:4326")
     data = pd.DataFrame()
 
-    for year in range(start, end + 1):
+    for year in range(start_year, end_year + 1):
 
-        for epi_week_dir in storage.glob(f"{input_dir}/{year}-*"):
+        for epi_week_dir in input_fs.glob(f"{input_dir}/{year}-*"):
 
             logger.info(f"Processing epi week {epi_week_dir.split('/')[-1]}")
-
-            files = storage.glob(f"{epi_week_dir}/*.tif")
+            files = input_fs.glob(f"{epi_week_dir}/*.tif")
 
             # Skip incomplete epi weeks
             if len(files) < 6:
@@ -365,7 +325,7 @@ def extract_chirps_data(contours, input_dir, start, end):
                 continue
 
             epi_year, epi_week = epi_week_dir.split("/")[-1].split("-")
-            epi_array, epi_affine = extract_sum_epi_week(files)
+            epi_array, epi_affine = extract_sum_epi_week(input_fs, files)
 
             stats = zonal_stats(
                 contours,
@@ -386,14 +346,13 @@ def extract_chirps_data(contours, input_dir, start, end):
 
             data = pd.concat([data, df], axis=0, copy=False)
 
-    return data.reset_index(drop=True)
+    data = data.reset_index(drop=True)
 
-
-def _no_ending_slash(path):
-    """Remove ending slash if needed."""
-    if path.endswith("/"):
-        return path[:-1]
-    return path
+    output_fs.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with output_fs.open(output_file, "w") as f:
+        csv = data.to_csv(index=False)
+        f.write(csv)
+        logger.info(f"Aggregated statistics written to {output_file}.")
 
 
 if __name__ == "__main__":
