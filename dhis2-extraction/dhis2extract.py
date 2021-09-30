@@ -110,6 +110,7 @@ def cli():
     help="Attribute option combo UID.",
 )
 @click.option("--program", "-prg", type=str, multiple=True, help="Program UID.")
+@click.option("--from-json", type=str, help="Load parameters from a JSON file.")
 @click.option(
     "--children/--no-children",
     is_flag=True,
@@ -151,6 +152,7 @@ def download(
     indicator_group: typing.Sequence[str],
     attribute_option_combo: typing.Sequence[str],
     program: typing.Sequence[str],
+    from_json: str,
     children: bool,
     aggregate: bool,
     analytics: bool,
@@ -158,6 +160,27 @@ def download(
     overwrite: bool,
 ):
     dhis = DHIS2(instance, username, password, timeout=30)
+
+    # Load dimension parameters from JSON file.
+    # If key is present in the JSON file, it overrides the
+    # CLI parameters.
+    if from_json:
+        fs = filesystem(from_json)
+        with fs.open(from_json) as f:
+            params = json.load(f)
+        period = params.get("period", period)
+        org_unit = params.get("org-unit", org_unit)
+        org_unit_group = params.get("org-unit-group", org_unit_group)
+        org_unit_level = params.get("org-unit-level", org_unit_level)
+        dataset = params.get("dataset", dataset)
+        data_element = params.get("data-element", data_element)
+        data_element_group = params.get("data-element-group", data_element_group)
+        indicator = params.get("indicator", indicator)
+        indicator_group = params.get("indicator-group", indicator_group)
+        attribute_option_combo = params.get(
+            "attribute-option-combo", attribute_option_combo
+        )
+        program = params.get("program", program)
 
     if start and end:
         if not _check_iso_date(start):
