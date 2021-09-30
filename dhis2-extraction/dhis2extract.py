@@ -582,7 +582,7 @@ def _dimension_param(
     indicators: typing.Sequence[str] = None,
     indicator_groups: typing.Sequence[str] = None,
     programs: typing.Sequence[str] = None,
-) -> list[str]:
+) -> typing.Sequence[str]:
     """Format dimension API parameter."""
     dimension = []
     if periods:
