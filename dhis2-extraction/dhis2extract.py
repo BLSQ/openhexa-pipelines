@@ -305,7 +305,7 @@ class DHIS2:
                     return dataset.get("id")
         return None
 
-    def org_units_per_lvl(self, level: int) -> list[str]:
+    def org_units_per_lvl(self, level: int) -> typing.Sequence[str]:
         """List org units from a given hierarchical level.
 
         Parameters
