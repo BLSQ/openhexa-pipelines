@@ -5,19 +5,22 @@ import re
 import typing
 
 import click
+import geopandas as gpd
+import pandas as pd
 from dhis2 import Api
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
+from period import Period, get_range
 from s3fs import S3FileSystem
+from shapely import shape
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
 logger = logging.getLogger(__name__)
 
 
@@ -69,8 +72,7 @@ def cli():
     envvar="DHIS2_PASSWORD",
     help="DHIS2 password.",
 )
-@click.option("--output", "-o", type=str, required=True, help="Output CSV file.")
-@click.option("--output-meta", "-m", type=str, help="Output JSON metadata.")
+@click.option("--output-dir", "-o", type=str, required=True, help="Output directory.")
 @click.option("--start", "-s", type=str, help="Start date in ISO format.")
 @click.option("--end", "-e", type=str, help="End date in ISO format.")
 @click.option("--period", "-pe", type=str, multiple=True, help="DHIS2 period.")
@@ -137,8 +139,7 @@ def download(
     instance: str,
     username: str,
     password: str,
-    output: str,
-    output_meta: str,
+    output_dir: str,
     start: str,
     end: str,
     period: typing.Sequence[str],
@@ -160,6 +161,10 @@ def download(
     overwrite: bool,
 ):
     dhis = DHIS2(instance, username, password, timeout=30)
+    output_dir = output_dir.rstrip("/")
+    fs = filesystem(output_dir)
+    output_dir_raw = f"{output_dir}/raw"
+    fs.mkdirs(output_dir_raw, exist_ok=True)
 
     # Load dimension parameters from JSON file.
     # If key is present in the JSON file, it overrides the
@@ -182,30 +187,16 @@ def download(
         )
         program = params.get("program", program)
 
-    if start and end:
-        if not _check_iso_date(start):
-            raise DHIS2ExtractError("Start date is not in ISO format.")
-        if not _check_iso_date(end):
-            raise DHIS2ExtractError("End date is not in ISO format.")
-
-    fs = filesystem(output_meta)
-    if output_meta:
-        if fs.exists(output_meta) and not overwrite:
-            logger.debug("Output metadata file already exists. Skipping.")
-        else:
-            with fs.open(output_meta) as f:
-                logger.debug(f"Writing metadata to {output_meta}.")
-                json.dump(dhis.metadata, f)
+    output_meta = f"{output_dir_raw}/metadata.json"
+    if fs.exists(output_meta) and not overwrite:
+        logger.debug("Output metadata file already exists. Skipping.")
+    else:
+        with fs.open(output_meta, "w") as f:
+            logger.debug(f"Writing metadata to {output_meta}.")
+            json.dump(dhis.metadata, f)
 
     if skip:
         return
-
-    # Get the list of all the org unit UIDs corresponding to the selected levels
-    if org_unit_level:
-        org_unit = []
-        for lvl in org_unit_level:
-            logger.debug(f"Adding org units of level {lvl}.")
-            org_unit.append(*dhis.org_units_per_lvl(lvl))
 
     # The dataValueSets endpoint does not support data elements UIDs as parameters,
     # only datasets.
@@ -217,11 +208,14 @@ def download(
             start_date=start,
             end_date=end,
             org_units=org_unit,
-            org_unit_groups=org_unit,
+            org_unit_groups=org_unit_group,
+            org_unit_levels=org_unit_level,
+            data_elements=data_element,
             data_element_groups=data_element_group,
             attribute_option_combos=attribute_option_combo,
             include_childrens=children,
         )
+        output_file = f"{output_dir_raw}/data_value_sets.csv"
 
     # When using the analytics API, two types of requests can be performed:
     # aggregated analytics tables, and raw analytics tables.
@@ -231,6 +225,8 @@ def download(
 
             csv = dhis.analytics(
                 periods=period,
+                start_date=start,
+                end_date=end,
                 org_units=org_unit,
                 org_unit_groups=org_unit_group,
                 org_unit_levels=org_unit_level,
@@ -240,6 +236,7 @@ def download(
                 indicator_groups=indicator_group,
                 programs=program,
             )
+            output_file = f"{output_dir_raw}/analytics.csv"
 
         else:
 
@@ -256,11 +253,11 @@ def download(
                 indicator_groups=indicator_group,
                 programs=program,
             )
+            output_file = f"{output_dir_raw}/analytics_raw_data.csv"
 
-    fs = filesystem(output)
-    if not fs.exists(output) or overwrite:
-        with fs.open(output) as f:
-            logger.debug(f"Writing CSV data to {output}.")
+    if not fs.exists(output_file) or overwrite:
+        with fs.open(output_file, "w") as f:
+            logger.debug(f"Writing CSV data to {output_file}.")
             f.write(csv)
     else:
         logger.debug("Output CSV file already exists. Skipping.")
@@ -282,7 +279,7 @@ class DHIS2:
             Default timeout for API calls (in seconds).
         """
         self.api = Api(instance, username, password)
-        self.metadata = self.get("metadata", timeout=timeout).json()
+        self.metadata = self.api.get("metadata", timeout=timeout).json()
         self.timeout = timeout
 
     def data_element_dataset(self, data_element_uid: str) -> str:
@@ -326,12 +323,14 @@ class DHIS2:
 
     def data_value_sets(
         self,
-        datasets: typing.Sequence[str],
+        datasets: typing.Sequence[str] = None,
         periods: typing.Sequence[str] = None,
         start_date: str = None,
         end_date: str = None,
         org_units: typing.Sequence[str] = None,
         org_unit_groups: typing.Sequence[str] = None,
+        org_unit_levels: typing.Sequence[str] = None,
+        data_elements: typing.Sequence[str] = None,
         data_element_groups: typing.Sequence[str] = None,
         attribute_option_combos: typing.Sequence[str] = None,
         include_childrens: bool = False,
@@ -342,9 +341,14 @@ class DHIS2:
         This request allows to extract data that is not yet stored in the
         analytics table.
 
+        Required parameters:
+            * Either `org_units` or `org_unit_groups`
+            * Either `periods` or `start_date` and `end_date`
+            * Either `datasets` or `data_element_groups`
+
         Parameters
         ----------
-        datasets : list of str
+        datasets : list of str, optional
             UID of the datasets of interest.
         periods : list of str, optional
             Periods of interest in DHIS2 format.
@@ -356,6 +360,10 @@ class DHIS2:
             UIDs of the organisation units of interest.
         org_unit_groups : list of str, optional
             UIDs of the organisation unit groups of interest.
+        org_unit_levels : list of int, optional
+            Org unit hierarchical levels of interest.
+        data_elements : list of str, optional
+            UIDs of the data elements of interest.
         data_element_groups : list of str, optional
             UIDs of the data element groups of interest.
         attribute_option_combos : list of str, optional
@@ -368,10 +376,16 @@ class DHIS2:
         str
             Output data in CSV format.
         """
-        if not org_units and not org_unit_groups:
-            raise DHIS2ExtractError("No org unit provided.")
+        if not org_units and not org_unit_groups and not org_unit_levels:
+            raise DHIS2ExtractError(
+                "Either org unit, org unit group or levels is required."
+            )
         if not periods and (not start_date or not end_date):
-            raise DHIS2ExtractError("No period provided.")
+            raise DHIS2ExtractError("Either period or start/end date is required.")
+        if not datasets and not data_element_groups and not data_elements:
+            raise DHIS2ExtractError(
+                "Either dataset, data element or data element group is required."
+            )
 
         if start_date and end_date:
             if not _check_iso_date(start_date):
@@ -379,7 +393,30 @@ class DHIS2:
             if not _check_iso_date(end_date):
                 raise DHIS2ExtractError("End date is not in ISO format.")
 
-        params = {"dataSet": datasets, "children": include_childrens}
+        # The dataValueSets endpoint does not support dataElements as a parameter,
+        # only dataSets. Here, we get the list of parent datasets required to cover
+        # the provided data elements.
+        # NB: As a result, the response will contain data elements that have not been
+        # requested.
+        # NB2: datasets parameter still takes precedence.
+        if not datasets and data_elements:
+            datasets = [self.data_element_dataset(de) for de in data_elements]
+            datasets = list(set(datasets))
+
+        # The dataValueSets endpoint does not support the "ou:LEVEL-n" dimension
+        # parameter. As an alternative, we request data for the parent org units
+        # and include data for the children org units in the response.
+        # NB: org_units parameter still takes precedence.
+        if not org_units and org_unit_levels:
+            org_units = []
+            for lvl in org_unit_levels:
+                org_units.append(self.org_units_per_lvl(lvl - 1))
+            include_childrens = True
+
+        params = {
+            "dataSet": datasets,
+            "children": include_childrens,
+        }
         if periods:
             params["period"] = periods
         if start_date and end_date:
@@ -496,7 +533,9 @@ class DHIS2:
 
     def analytics(
         self,
-        periods: typing.Sequence[str],
+        periods: typing.Sequence[str] = None,
+        start_date: str = None,
+        end_date: str = None,
         org_units: typing.Sequence[str] = None,
         org_unit_groups: typing.Sequence[str] = None,
         org_unit_levels: typing.Sequence[int] = None,
@@ -515,6 +554,10 @@ class DHIS2:
         ----------
         periods : list of str, optional
             Periods of interest in DHIS2 format.
+        start_date : str, optional
+            Start date in DHIS2 format.
+        end_date : str, optional
+            End date in DHIS2 format.
         org_units : list of str, optional
             UIDs of the organisation units of interest.
         org_unit_groups : list of str, optional
@@ -537,6 +580,10 @@ class DHIS2:
         str
             Output data in CSV format.
         """
+        if not periods and not (start_date and end_date):
+            raise DHIS2ExtractError(
+                "At least one period or start/end dates must be provided."
+            )
         if not org_units and not org_unit_groups and not org_unit_levels:
             raise DHIS2ExtractError(
                 "At least one org unit or org unit group must be provided."
@@ -548,8 +595,21 @@ class DHIS2:
             and not indicator_groups
         ):
             raise DHIS2ExtractError(
-                "At least on data element or indicator should be provided."
+                "At least one data element or indicator should be provided."
             )
+        if not _check_dhis2_period(start_date) or not _check_dhis2_period(end_date):
+            raise DHIS2ExtractError(
+                "Start and end dates must be in DHIS2 period format."
+            )
+
+        # The analytics API doesn't support start and end dates, only periods.
+        # Here, start and end dates are assumed to be in the DHIS2 format and
+        # are split into a period range according to the format identified, e.g.
+        # yearly, monthly, quarterly, etc.
+        # NB: The periods parameter still takes precedence over start and end dates,
+        # for consistency with the DHIS2 API.
+        if not periods and (start_date and end_date):
+            periods = get_range(Period(start_date), Period(end_date))
 
         dimension = _dimension_param(
             periods,
@@ -583,38 +643,280 @@ def _dimension_param(
     indicator_groups: typing.Sequence[str] = None,
     programs: typing.Sequence[str] = None,
 ) -> typing.Sequence[str]:
-    """Format dimension API parameter."""
+    """Format dimension API parameter.
+
+    See the DHIS2 docs for more info:
+    <https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-236/analytics.html#webapi_analytics_dimensions_and_items>
+    <https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-236/analytics.html#webapi_analytics_dx_dimension>
+    """
     dimension = []
     if periods:
-        dimension.append("pe:" + periods.join(";"))
+        dimension.append("pe:" + ";".join(periods))
     if org_units:
-        dimension.append("ou:" + org_units.join(";"))
+        dimension.append("ou:" + ";".join(org_units))
     if org_unit_groups:
         dimension.append(
-            "ou:" + [f"OU_GROUP-{uid}" for uid in org_unit_groups].join(";")
+            "ou:" + ";".join([f"OU_GROUP-{uid}" for uid in org_unit_groups])
         )
     if org_unit_levels:
-        dimension.append("ou:" + [f"LEVEL-{lvl}" for lvl in org_unit_levels].join(";"))
+        dimension.append("ou:" + ";".join([f"LEVEL-{lvl}" for lvl in org_unit_levels]))
     if data_elements:
-        dimension.append("dx:" + data_elements.join(";"))
+        dimension.append("dx:" + ";".join(data_elements))
     if data_element_groups:
         dimension.append(
-            "dx:" + [f"DE_GROUP-{uid}" for uid in data_element_groups].join(";")
+            "dx:" + ";".join([f"DE_GROUP-{uid}" for uid in data_element_groups])
         )
     if indicators:
-        dimension.append("dx:" + indicators.join(";"))
+        dimension.append("dx:" + ";".join(indicators))
     if indicator_groups:
         dimension.append(
-            "dx:" + [f"IN_GROUP-{uid}" for uid in indicator_groups].join(";")
+            "dx:" + ";".join([f"IN_GROUP-{uid}" for uid in indicator_groups])
         )
     if programs:
-        dimension.append("dx:" + programs.join(";"))
+        dimension.append("dx:" + ";".join(programs))
+    dimension.append("co:")  # empty to fetch all the category option combos
     return dimension
 
 
 def _check_iso_date(date: str) -> bool:
     """Check that date string is in ISO format."""
     return bool(re.match(r"^\d{4}-\d{2}-\d{2}$", date))
+
+
+def _check_dhis2_period(date: str) -> bool:
+    """Check that date string is in DHIS2 format."""
+    try:
+        Period(date)
+        return True
+    except NotImplementedError:
+        return False
+
+
+@cli.command()
+@click.option("--output-dir", "-o", type=str, help="Output directory.")
+@click.option(
+    "--overwrite", is_flag=True, default=False, help="Overwrite existing files."
+)
+def transform(output_dir, overwrite):
+    """Transform raw data from DHIS2 into formatted CSV files."""
+    output_dir = output_dir.rstrip("/")
+    fs = filesystem(output_dir)
+    raw_dir = f"{output_dir}/raw"
+
+    # metadata
+    filepath = f"{output_dir}/raw/metadata.json"
+    if fs.exists(filepath):
+
+        with fs.open(filepath) as f:
+            metadata = json.load(f)
+
+        # org units
+        output_file = f"{output_dir}/organisation_units.csv"
+        df = _transform_org_units(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # org unit geometries
+        output_file = f"{output_dir}/organisation_units.gpkg"
+        geodf = _transform_org_units_geo(df)
+        with fs.open(output_file, "w") as f:
+            geodf.to_file(output_file, driver="GPKG")
+
+        # org unit groups
+        output_file = f"{output_dir}/organisation_unit_groups.csv"
+        df = _transform_org_unit_groups(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # data elements
+        output_file = f"{output_dir}/data_elements.csv"
+        df = _transform_data_elements(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # datasets
+        output_file = f"{output_dir}/datasets.csv"
+        df = _transform_datasets(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # category option combos
+        output_file = f"{output_dir}/category_option_combos.csv"
+        df = _transform_coc(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # category combos
+        output_file = f"{output_dir}/category_combos.csv"
+        df = _transform_cat_combos(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # category options
+        output_file = f"{output_dir}/category_options.csv"
+        df = _transform_cat_options(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # categories
+        output_file = f"{output_dir}/categories.csv"
+        df = _transform_categories(metadata)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+    # analytics API output
+    filepath = f"{output_dir}/raw/analytics.csv"
+    if fs.exists(filepath):
+        output_file = f"{output_dir}/extract.csv"
+        with fs.open(filepath) as f:
+            df_raw = pd.read_csv(f)
+        df = _transform_analytics(df_raw)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+    # analytics/rawData API output
+    filepath = f"{output_dir}/raw/analytics_raw_data.csv"
+    if fs.exists(filepath):
+        output_file = f"{output_dir}/extract.csv"
+        with fs.open(filepath) as f:
+            df_raw = pd.read_csv(f)
+        df = _transform_analytics_raw_data(df_raw)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+    # dataValueSet API output
+    filepath = f"{output_dir}/raw/data_value_sets.csv"
+    if fs.exists(filepath):
+        output_file = f"{output_dir}/extract.csv"
+        with fs.open(filepath) as f:
+            df_raw = pd.read_csv(f)
+        df = _transform_data_value_sets(df_raw)
+        with fs.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+
+def _transform_org_units(metadata: dict) -> pd.DataFrame:
+    """Transform org units metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("organisationUnits"))
+    df = df[["id", "code", "shortName", "name", "path", "geometry"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "PATH", "GEOMETRY"]
+    return df
+
+
+def _transform_org_units_geo(org_units: pd.DataFrame) -> gpd.GeoDataFrame:
+    """Transform org units metadata dataframe into a GeoDataFrame."""
+    geodf = gpd.GeoDataFrame(
+        org_units,
+        crs="epsg:4326",
+        geometry=[
+            shape(geom) if not pd.isna(geom) else None for geom in org_units.GEOMETRY
+        ],
+    )
+    geodf = geodf.drop(["GEOMETRY"], axis=1)
+    return geodf
+
+
+def _transform_org_unit_groups(metadata: dict) -> pd.DataFrame:
+    """Transform org unit groups metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("organisationUnitGroups"))
+    df = df[["id", "code", "shortName", "name", "organisationUnits"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "ORG_UNITS"]
+    df["ORG_UNITS"] = df.ORG_UNITS.apply(lambda x: ";".join(ou.get("id") for ou in x))
+    return df
+
+
+def _transform_data_elements(metadata: dict) -> pd.DataFrame:
+    """Transform data elements metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("dataElements"))
+    df = df[["id", "code", "shortName", "name", "aggregationType", "zeroIsSignificant"]]
+    df.columns = [
+        "UID",
+        "CODE",
+        "SHORT_NAME",
+        "NAME",
+        "AGGREGATION_TYPE",
+        "ZERO_IS_SIGNIFICANT",
+    ]
+    return df
+
+
+def _transform_datasets(metadata: dict) -> pd.DataFrame:
+    """Transform datasets metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("dataSets"))
+    df = df[["id", "code", "shortName", "name"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME"]
+    return df
+
+
+def _transform_coc(metadata: dict) -> pd.DataFrame:
+    """Transform category option combos metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
+    df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "CATEGORY_COMBO", "CATEGORY_OPTIONS"]
+    df["CATEGORY_COMBO"] = df.CATEGORY_COMBO.apply(lambda x: x.get("id"))
+    df["CATEGORY_OPTIONS"] = df.CATEGORY_OPTIONS.apply(
+        lambda x: ";".join([co.get("id") for co in x])
+    )
+    return df
+
+
+def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
+    """Transform category combos metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("categoryCombos"))
+    df = df[["id", "code", "name", "dataDimensionType", "categories"]]
+    df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION_TYPE", "CATEGORIES"]
+    df["CATEGORIES"] = df.CATEGORIES.apply(
+        lambda x: ";".join([df.get("id") for df in x])
+    )
+    return df
+
+
+def _transform_cat_options(metadata: dict) -> pd.DataFrame:
+    """Transform category options metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("categoryOptions"))
+    df = df[["id", "code", "shortName", "name"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME"]
+    return df
+
+
+def _transform_categories(metadata: dict) -> pd.DataFrame:
+    """Transform categories metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("categories"))
+    df = df[["id", "code", "shortName", "name", "dataDimension"]]
+    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "DATA_DIMENSION"]
+    return df
+
+
+def _transform_analytics(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform analytics API output into a formatted DataFrame."""
+    df = data[["Data", "Category option combo", "Period", "Organisation unit", "Value"]]
+    df.columns = ["DX_UID", "COC_UID", "PERIOD", "OU_UID", "VALUE"]
+    return df
+
+
+def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform dataValueSets API output into a formatted DataFrame."""
+    df = data[
+        [
+            "dataelement",
+            "categoryoptioncombo",
+            "attributeoptioncombo",
+            "period",
+            "orgunit",
+            "value",
+        ]
+    ]
+    df.columns = ["DX_UID", "COC_UID", "AOC_UID", "PERIOD", "OU_UID", "VALUE"]
+    return df
+
+
+def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform analytics/rawData API output into a formatted DataFrame."""
+    df = data[
+        ["Data", "Category option combo", "Unnamed: 3", "Organisation unit", "Value"]
+    ]
+    df.columns = ["DX_UID", "COC_UID", "PERIOD", "OU_UID", "VALUE"]
+    return df
 
 
 if __name__ == "__main__":

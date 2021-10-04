@@ -112,7 +112,7 @@ class Period:
             self.datetime = datetime(int(self.period[:4]), 10, 1)
             self.length = relativedelta(years=1)
         else:
-            return NotImplementedError(f"Cannot parse DHIS2 period {self.period}.")
+            raise NotImplementedError(f"Cannot parse DHIS2 period {self.period}.")
 
 
 def get_range(start: Period, end: Period) -> typing.Sequence[Period]:
