@@ -160,6 +160,7 @@ def download(
     skip: bool,
     overwrite: bool,
 ):
+    """Download data from a DHIS2 instance via its web API."""
     dhis = DHIS2(instance, username, password, timeout=30)
     output_dir = output_dir.rstrip("/")
     fs = filesystem(output_dir)
