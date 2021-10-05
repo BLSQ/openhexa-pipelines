@@ -4,8 +4,6 @@ The `dhis2-extraction` pipeline downloads data from a DHIS2 instance via the API
 
 The program supports S3, GCS, and local paths for outputs.
 
-## Usage
-
 ```
 Usage: dhis2extract.py [OPTIONS] COMMAND [ARGS]...
 
@@ -17,7 +15,26 @@ Commands:
   transform  Transform raw data from DHIS2 into formatted CSV files.
 ```
 
-### Download metadata and raw data
+## Download metadata and raw data
+
+`dhis2extract download` downloads raw data from a DHIS2 instance for a given set of input parameters.
+
+### Usage
+
+The program uses the appropriate endpoint according to the `--aggregate` and `--analytics` flags:
+
+* If `--aggregate`, the Analytics API is used to aggregate data element values per hierarchical level and period ;
+* If `--no-analytics`, the Analytics API is avoided -- this can be useful to download data that have not been incoprated to the analytics data tables yet.
+
+At least one temporal dimension is required: either `period` or `start-date` and `end-date`.
+
+At least one data dimension is required: either `data-element`, `data-element-group`, `indicator`, or `indicator-group`. `dataset` can be used to fetch all the data elements belonging to a given DHIS2 dataset.
+
+At least one org unit dimension is required: either `org-unit`, `org-unit-group` or ´org-unit-level`.
+
+Dimension parameters (periods, org units, datasets, data elements, indicators, programs, etc) can be repeated any number of times.
+
+With the `--skip` flag, only the metadata tables are downloaded.
 
 ```
 Usage: dhis2extract.py download [OPTIONS]
@@ -53,7 +70,39 @@ Options:
   --help                          Show this message and exit.
 ```
 
-### Transform data into formatted CSV files
+### Examples
+
+```
+dhis2extract download \
+    --instance play.dhis2.org/2.34.7 \
+    --username <dhis2_username> \
+    --password <dhis2_password> \
+    --output-dir "s3://<bucket>/dhis2/extract" \
+    --start 2020-01-01 --end 2021-31-12 \
+    --org-unit-level 4 \
+    -de "kfN3vElj7in" -de "RTSp1yfraiu" -de "v2wejz8CGLb"
+```
+
+## Transform data into formatted CSV files
+
+`dhis2extract transform` processes the raw data downloaded with `dhis2extract transform` into formatted CSV files. The following files are created in `output-dir`:
+
+* Metadata tables
+    * `organisation_units.csv`
+    * `organisation_units.gpkg`
+    * `organisation_unit_groups.csv`
+    * `data_elements.csv`
+    * `datasets.csv`
+    * `category_option_combos.csv`
+    * `category_combos.csv`
+    * `category_options.csv`
+    * `categories.csv`
+* Data table
+    * `extract.csv`
+
+`extract.csv` is a table with the following columns: `DX_UID`, `COC_UID`, `AOC_UID`, `PERIOD`, `OU_UID` and `VALUE`.
+
+### Usage
 
 ```
 Usage: dhis2extract.py transform [OPTIONS]
@@ -64,4 +113,10 @@ Options:
   -o, --output-dir TEXT  Output directory.
   --overwrite            Overwrite existing files.
   --help                 Show this message and exit.
+```
+
+### Examples
+
+```
+dhis2extract transform -o "s3://<bucket>/dhis2/extract"
 ```
