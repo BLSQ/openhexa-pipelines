@@ -1,6 +1,7 @@
 name: Build CHIRPS extraction component image
 
-on: [push]
+on:
+  push
 
 jobs:
   build:
