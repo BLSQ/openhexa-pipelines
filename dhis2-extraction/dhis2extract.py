@@ -14,7 +14,7 @@ from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
 from period import Period, get_range
 from s3fs import S3FileSystem
-from shapely import shape
+from shapely.geometry import shape
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
