@@ -17,7 +17,7 @@ with DAG('chirps-extraction', description='CHIRPS Extraction', schedule_interval
         namespace="hexa-airflow",
         name="chirps-download-pod",
         image="blsq/chirps-extraction",
-        command="download --start 2021 --end 2021 --output-dir /tmp/chirps/",
+        arguments="download --start 2021 --end 2021 --output-dir /tmp/chirps/".split(" "),
         task_id="chirps-download",
         env_vars={"TEST_VAR": test_var},
     )
