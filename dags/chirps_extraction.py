@@ -2,14 +2,24 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.models import Variable
-from airflow.operators.bash import BashOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 
 
 test_var = Variable.get("SECRET_TEST_VAR")
 
 
 with DAG('chirps-extraction', description='CHIRPS Extraction', schedule_interval='30 * * * *', start_date=datetime(2021, 10, 1), catchup=False) as dag:
-    download = BashOperator(task_id='chirps-download', bash_command="echo docker run download $TEST_VAR", env={"TEST_VAR": " ".join(str(test_var))})
-    extract = BashOperator(task_id='chirps-extract', bash_command="echo docker run extract")
+    download = DockerOperator(
+        image="blsq/chirps-extraction",
+        command="download --start 2021 --end 2021 --output-dir /tmp/chirps/",
+        task_id='chirps-download',
+        environment={"TEST_VAR": test_var},
+    )
+    extract = DockerOperator(
+        image="blsq/chirps-extraction",
+        command="extract --start 2021 --end 2021",
+        task_id='chirps-extract',
+        environment={"TEST_VAR": test_var},
+    )
 
     download >> extract
