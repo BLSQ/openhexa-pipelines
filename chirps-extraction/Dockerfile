@@ -9,6 +9,7 @@ COPY requirements.txt .
 RUN pip install -r /app/requirements.txt
 
 COPY chirps.py .
+COPY docker-entrypoint.sh .
 COPY tests ./tests
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

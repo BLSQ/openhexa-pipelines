@@ -8,7 +8,7 @@ show_help() {
   echo """
   Available commands:
 
-  chirps           : start django server using gunicorn
+  chirps           : start chips subsystem
   tests            : generate a django migration
   python           : run arbitrary python code
   bash             : launch bash session
