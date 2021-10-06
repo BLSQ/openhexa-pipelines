@@ -30,7 +30,7 @@ At least one temporal dimension is required: either `period` or `start-date` and
 
 At least one data dimension is required: either `data-element`, `data-element-group`, `indicator`, or `indicator-group`. `dataset` can be used to fetch all the data elements belonging to a given DHIS2 dataset.
 
-At least one org unit dimension is required: either `org-unit`, `org-unit-group` or ´org-unit-level`.
+At least one org unit dimension is required: either `org-unit`, `org-unit-group` or `org-unit-level`.
 
 Dimension parameters (periods, org units, datasets, data elements, indicators, programs, etc) can be repeated any number of times.
 
@@ -51,7 +51,7 @@ Options:
   -pe, --period TEXT              DHIS2 period.
   -ou, --org-unit TEXT            Organisation unit UID.
   -oug, --org-unit-group TEXT     Organisation unit group UID.
-  -lvl, --org_unit_level INTEGER  Organisation unit level.
+  -lvl, --org-unit-level INTEGER  Organisation unit level.
   -ds, --dataset TEXT             Dataset UID.
   -de, --data-element TEXT        Data element UID.
   -deg, --data-element-group TEXT
