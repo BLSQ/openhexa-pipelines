@@ -87,7 +87,7 @@ def cli():
     help="Organisation unit group UID.",
 )
 @click.option(
-    "--org_unit_level", "-lvl", type=int, multiple=True, help="Organisation unit level."
+    "--org-unit-level", "-lvl", type=int, multiple=True, help="Organisation unit level."
 )
 @click.option("--dataset", "-ds", type=str, multiple=True, help="Dataset UID.")
 @click.option(
