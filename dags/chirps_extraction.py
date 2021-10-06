@@ -36,4 +36,4 @@ with DAG('chirps-extraction', description='CHIRPS Extraction', schedule_interval
         get_logs=True,
     )
 
-    extract
+    download >> extract
