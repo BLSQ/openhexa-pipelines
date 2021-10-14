@@ -25,6 +25,13 @@ from pandas import DatetimeIndex
 from rasterstats import zonal_stats
 from s3fs import S3FileSystem
 
+# comon is a script to set parameters on production
+try:
+    import common
+except ImportError:
+    # ignore import error -> work anyway
+    pass
+
 CHIRPS_VERSION = "2.0"
 CHIRPS_TIMELY = "daily"
 CHIRPS_ZONE = "africa"
