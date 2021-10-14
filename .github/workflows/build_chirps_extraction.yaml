@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
         with:
           push: true
-          context: chirps-extraction
+          context: ./chirps-extraction
           file: Dockerfile
           tags: |
             blsq/openhexa-chirps-extraction:latest
