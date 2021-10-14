@@ -26,6 +26,5 @@ jobs:
         with:
           push: true
           context: ./chirps-extraction/
-          file: Dockerfile
           tags: |
             blsq/openhexa-chirps-extraction:latest
