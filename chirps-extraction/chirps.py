@@ -25,11 +25,21 @@ from pandas import DatetimeIndex
 from rasterstats import zonal_stats
 from s3fs import S3FileSystem
 
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
+
 # comon is a script to set parameters on production
 try:
     import common
+    logger.info("IMPORT COMMON OK")
 except ImportError:
     # ignore import error -> work anyway
+    logger.info("IMPORT COMMON ERROR")
     pass
 
 CHIRPS_VERSION = "2.0"
@@ -38,14 +48,6 @@ CHIRPS_ZONE = "africa"
 # Year folder added on the fly by the download_chirps_daily function.
 CHIRPS_URL = f"https://data.chc.ucsb.edu/products/CHIRPS-{CHIRPS_VERSION}/{CHIRPS_ZONE}_{CHIRPS_TIMELY}/tifs/p05/"
 CHIRPS_BASENAME = "chirps-v2.0.{chirps_year}.{chirps_month:0>2d}.{chirps_day:0>2d}.tif"
-
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-logger = logging.getLogger(__name__)
 
 
 def filesystem(target_path: str) -> AbstractFileSystem:
