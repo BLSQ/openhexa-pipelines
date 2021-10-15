@@ -86,7 +86,7 @@ def cli():
 )
 def download(output_dir: str, start: int, end: int, overwrite: bool):
     """Download raw precipitation data."""
-    logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
+    logger.info(f"XXXDownloading CHIRPS data from {start} to {end} into {output_dir}.")
     download_chirps_daily(
         output_dir=output_dir, year_start=start, year_end=end, overwrite=overwrite
     )
