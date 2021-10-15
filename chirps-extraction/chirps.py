@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 
 # comon is a script to set parameters on production
 try:
-    import common
+    import common  # noqa: F401
+
     logger.info("IMPORT COMMON OK")
 except ImportError:
     # ignore import error -> work anyway
@@ -277,7 +278,12 @@ def download_chirps_daily(
             logger.info(f"Skipping {output_path}")
             continue
 
-        download_chirps_data(download_url=url, fs=fs, output_path=output_path)
+        r = requests.head(url)
+        if r.status_code == 404:
+            logger.info(f"No raster found at {url}. Stopping download.")
+            break
+        else:
+            download_chirps_data(download_url=url, fs=fs, output_path=output_path)
 
 
 def extract_sum_epi_week(
