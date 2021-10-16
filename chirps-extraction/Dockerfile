@@ -11,6 +11,7 @@ RUN pip install -r /app/requirements.txt
 COPY chirps.py .
 COPY docker-entrypoint.sh .
 COPY tests ./tests
+COPY common.py .
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["chirps"]
