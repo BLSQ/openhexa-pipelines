@@ -11,5 +11,5 @@ logger = getLogger(__name__)
 
 logger.info("EXEC COMMON")
 import os
-    for k in os.environ.keys():
-        logger.info("ENV", k)
+for k in os.environ.keys():
+    logger.info("ENV", k)
