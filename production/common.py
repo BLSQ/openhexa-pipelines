@@ -5,11 +5,46 @@
 #   instead of crashing everything.
 # - pipelines should work without it. So please import it in pipelines in try/except ImportError.
 
-from logging import getLogger
-
-logger = getLogger(__name__)
-
-logger.info("EXEC COMMON")
+import logging
 import os
-for k in os.environ.keys():
-    logger.info("ENV", k)
+
+logger = logging.getLogger(__name__)
+logger.info("Execute common AAA")
+
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "formatters": {
+            "standard": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"},
+        },
+        "handlers": {
+            "default": {
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "formatter": "standard",
+            },
+        },
+        "loggers": {
+            "": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
+)
+
+if "SENTRY_DSN" in os.environ:
+    import sentry_sdk
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    # inject sentry into logging config. set level to ERROR, we don't really want the rest?
+    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
+    sentry_sdk.init(
+        dsn=os.environ["SENTRY_DSN"],
+        integrations=[sentry_logging],
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1")),
+        send_default_pii=True,
+        environment=os.environ.get("SENTRY_ENVIRONMENT"),
+    )

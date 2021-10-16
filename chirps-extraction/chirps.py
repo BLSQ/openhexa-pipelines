@@ -25,20 +25,18 @@ from pandas import DatetimeIndex
 from rasterstats import zonal_stats
 from s3fs import S3FileSystem
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-logger = logging.getLogger(__name__)
-
 # comon is a script to set parameters on production
 try:
     import common  # noqa: F401
 except ImportError:
-    # ignore import error -> work anyway
-    pass
+    # ignore import error -> work anyway (but define logging)
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+logger = logging.getLogger(__name__)
 
 CHIRPS_VERSION = "2.0"
 CHIRPS_TIMELY = "daily"
@@ -84,7 +82,7 @@ def cli():
 )
 def download(output_dir: str, start: int, end: int, overwrite: bool):
     """Download raw precipitation data."""
-    logger.info(f"XXADownloading CHIRPS data from {start} to {end} into {output_dir}.")
+    logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
     download_chirps_daily(
         output_dir=output_dir, year_start=start, year_end=end, overwrite=overwrite
     )
