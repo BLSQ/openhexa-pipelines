@@ -36,11 +36,8 @@ logger = logging.getLogger(__name__)
 # comon is a script to set parameters on production
 try:
     import common  # noqa: F401
-
-    logger.info("IMPORT COMMON OK")
 except ImportError:
     # ignore import error -> work anyway
-    logger.info("IMPORT COMMON ERROR")
     pass
 
 CHIRPS_VERSION = "2.0"
