@@ -17,7 +17,7 @@ logging.config.dictConfig(
         "version": 1,
         "disable_existing_loggers": True,
         "formatters": {
-            "standard": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"},
+            "standard": {"format": "%(asctime)s %(levelname)s: %(message)s"},
         },
         "handlers": {
             "default": {
