@@ -6,6 +6,7 @@
 # - pipelines should work without it. So please import it in pipelines in try/except ImportError.
 
 import logging
+import logging.config
 import os
 
 logger = logging.getLogger(__name__)
