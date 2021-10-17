@@ -16,11 +16,17 @@ from period import Period, get_range
 from s3fs import S3FileSystem
 from shapely.geometry import shape
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s",
-    level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+# comon is a script to set parameters on production
+try:
+    import common  # noqa: F401
+except ImportError:
+    # ignore import error -> work anyway (but define logging)
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
 logger = logging.getLogger(__name__)
 
 

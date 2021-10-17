@@ -10,7 +10,7 @@ import logging.config
 import os
 
 logger = logging.getLogger(__name__)
-logger.info("Execute common AAA")
+logger.info("Execute common")
 
 logging.config.dictConfig(
     {
