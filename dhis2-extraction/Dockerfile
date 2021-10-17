@@ -8,9 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r /app/requirements.txt
 
-COPY dhis2extract.py .
-COPY period.py .
-COPY docker-entrypoint.sh .
+COPY dhis2extract.py period.py docker-entrypoint.sh common.py? .
 COPY tests ./tests
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
