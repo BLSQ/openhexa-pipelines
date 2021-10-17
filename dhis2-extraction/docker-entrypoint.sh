@@ -9,7 +9,6 @@ show_help() {
   Available commands:
 
   dhis2extraction  : start dhis2extraction subsystem
-  tests            : generate a django migration
   python           : run arbitrary python code
   bash             : launch bash session
 
@@ -20,9 +19,6 @@ show_help() {
 case "$command" in
 "dhis2extraction")
   python -m dhis2extraction $arguments
-  ;;
-"test")
-  pytest tests/
   ;;
 "python")
   python $arguments

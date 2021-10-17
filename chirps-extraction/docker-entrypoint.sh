@@ -8,8 +8,8 @@ show_help() {
   echo """
   Available commands:
 
-  chirps           : start chips subsystem
-  tests            : generate a django migration
+  chirps           : start chirps subsystem
+  tests            : start tests of chirps pipeline
   python           : run arbitrary python code
   bash             : launch bash session
 
