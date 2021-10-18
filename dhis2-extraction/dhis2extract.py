@@ -710,6 +710,7 @@ def transform(input_dir, output_dir, overwrite):
     input_dir = input_dir.rstrip("/")
     fs_input = filesystem(input_dir)
     fs_output = filesystem(output_dir)
+    fs_output.mkdirs(output_dir, exist_ok=True)
 
     # metadata
     filepath = f"{input_dir}/metadata.json"
@@ -727,8 +728,7 @@ def transform(input_dir, output_dir, overwrite):
         # org unit geometries
         output_file = f"{output_dir}/organisation_units.gpkg"
         geodf = _transform_org_units_geo(df)
-        with fs_output.open(output_file, "w") as f:
-            geodf.to_file(output_file, driver="GPKG")
+        geodf.to_file(output_file, driver="GPKG")
 
         # org unit groups
         output_file = f"{output_dir}/organisation_unit_groups.csv"
