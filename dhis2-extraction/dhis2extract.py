@@ -700,105 +700,107 @@ def _check_dhis2_period(date: str) -> bool:
 
 
 @cli.command()
+@click.option("--input-dir", "-i", type=str, help="Input directory.")
 @click.option("--output-dir", "-o", type=str, help="Output directory.")
 @click.option(
     "--overwrite", is_flag=True, default=False, help="Overwrite existing files."
 )
-def transform(output_dir, overwrite):
+def transform(input_dir, output_dir, overwrite):
     """Transform raw data from DHIS2 into formatted CSV files."""
     output_dir = output_dir.rstrip("/")
-    fs = filesystem(output_dir)
-    raw_dir = f"{output_dir}/raw"
+    input_dir = input_dir.rstrip("/")
+    fs_input = filesystem(input_dir)
+    fs_output = filesystem(output_dir)
 
     # metadata
-    filepath = f"{output_dir}/raw/metadata.json"
-    if fs.exists(filepath):
+    filepath = f"{input_dir}/metadata.json"
+    if fs_input.exists(filepath):
 
-        with fs.open(filepath) as f:
+        with fs_input.open(filepath) as f:
             metadata = json.load(f)
 
         # org units
         output_file = f"{output_dir}/organisation_units.csv"
         df = _transform_org_units(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # org unit geometries
         output_file = f"{output_dir}/organisation_units.gpkg"
         geodf = _transform_org_units_geo(df)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             geodf.to_file(output_file, driver="GPKG")
 
         # org unit groups
         output_file = f"{output_dir}/organisation_unit_groups.csv"
         df = _transform_org_unit_groups(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # data elements
         output_file = f"{output_dir}/data_elements.csv"
         df = _transform_data_elements(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # datasets
         output_file = f"{output_dir}/datasets.csv"
         df = _transform_datasets(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # category option combos
         output_file = f"{output_dir}/category_option_combos.csv"
         df = _transform_coc(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # category combos
         output_file = f"{output_dir}/category_combos.csv"
         df = _transform_cat_combos(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # category options
         output_file = f"{output_dir}/category_options.csv"
         df = _transform_cat_options(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
         # categories
         output_file = f"{output_dir}/categories.csv"
         df = _transform_categories(metadata)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
     # analytics API output
-    filepath = f"{output_dir}/raw/analytics.csv"
-    if fs.exists(filepath):
+    filepath = f"{input_dir}/analytics.csv"
+    if fs_input.exists(filepath):
         output_file = f"{output_dir}/extract.csv"
-        with fs.open(filepath) as f:
+        with fs_input.open(filepath) as f:
             df_raw = pd.read_csv(f)
         df = _transform_analytics(df_raw)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
     # analytics/rawData API output
-    filepath = f"{output_dir}/raw/analytics_raw_data.csv"
-    if fs.exists(filepath):
+    filepath = f"{input_dir}/analytics_raw_data.csv"
+    if fs_input.exists(filepath):
         output_file = f"{output_dir}/extract.csv"
-        with fs.open(filepath) as f:
+        with fs_input.open(filepath) as f:
             df_raw = pd.read_csv(f)
         df = _transform_analytics_raw_data(df_raw)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
     # dataValueSet API output
-    filepath = f"{output_dir}/raw/data_value_sets.csv"
-    if fs.exists(filepath):
+    filepath = f"{input_dir}/data_value_sets.csv"
+    if fs_input.exists(filepath):
         output_file = f"{output_dir}/extract.csv"
-        with fs.open(filepath) as f:
+        with fs_input.open(filepath) as f:
             df_raw = pd.read_csv(f)
         df = _transform_data_value_sets(df_raw)
-        with fs.open(output_file, "w") as f:
+        with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
 
