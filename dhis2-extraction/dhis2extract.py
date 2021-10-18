@@ -170,8 +170,7 @@ def download(
     dhis = DHIS2(instance, username, password, timeout=30)
     output_dir = output_dir.rstrip("/")
     fs = filesystem(output_dir)
-    output_dir_raw = f"{output_dir}/raw"
-    fs.mkdirs(output_dir_raw, exist_ok=True)
+    fs.mkdirs(output_dir, exist_ok=True)
 
     # Load dimension parameters from JSON file.
     # If key is present in the JSON file, it overrides the
@@ -194,7 +193,7 @@ def download(
         )
         program = params.get("program", program)
 
-    output_meta = f"{output_dir_raw}/metadata.json"
+    output_meta = f"{output_dir}/metadata.json"
     if fs.exists(output_meta) and not overwrite:
         logger.debug("Output metadata file already exists. Skipping.")
     else:
@@ -222,7 +221,7 @@ def download(
             attribute_option_combos=attribute_option_combo,
             include_childrens=children,
         )
-        output_file = f"{output_dir_raw}/data_value_sets.csv"
+        output_file = f"{output_dir}/data_value_sets.csv"
 
     # When using the analytics API, two types of requests can be performed:
     # aggregated analytics tables, and raw analytics tables.
@@ -243,7 +242,7 @@ def download(
                 indicator_groups=indicator_group,
                 programs=program,
             )
-            output_file = f"{output_dir_raw}/analytics.csv"
+            output_file = f"{output_dir}/analytics.csv"
 
         else:
 
@@ -260,7 +259,7 @@ def download(
                 indicator_groups=indicator_group,
                 programs=program,
             )
-            output_file = f"{output_dir_raw}/analytics_raw_data.csv"
+            output_file = f"{output_dir}/analytics_raw_data.csv"
 
     if not fs.exists(output_file) or overwrite:
         with fs.open(output_file, "w") as f:
