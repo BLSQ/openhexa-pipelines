@@ -2,8 +2,14 @@ name: Build DHIS2 extraction component image
 
 on:
   pull_request:
+    paths:
+      - 'dhis2-extraction/*'
+      - 'production/common.py'
   push:
     branches: [main]
+    paths:
+      - 'dhis2-extraction/*'
+      - 'production/common.py'
 
 jobs:
   build:
