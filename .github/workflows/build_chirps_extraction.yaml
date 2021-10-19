@@ -2,8 +2,14 @@ name: Build CHIRPS extraction component image
 
 on:
   pull_request:
+    paths:
+      - 'chirps-extraction/*'
+      - 'production/common.py'
   push:
     branches: [main]
+    paths:
+      - 'chirps-extraction/*'
+      - 'production/common.py'
 
 jobs:
   build:
