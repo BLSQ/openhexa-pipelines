@@ -118,5 +118,3 @@ installed, and run `pre-commit install` the first time you check out the code. L
 when submitting a pull request.
 
 You can run the lint tools manually using `pre-commit run --all`.
-
-bump
