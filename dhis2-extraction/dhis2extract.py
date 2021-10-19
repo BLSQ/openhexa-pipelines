@@ -743,6 +743,18 @@ def transform(input_dir, output_dir, overwrite):
         with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
+        # indicators
+        output_file = f"{output_dir}/indicators.csv"
+        df = _transform_indicators(metadata)
+        with fs_output.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
+        # indicator groups
+        output_file = f"{output_dir}/indicator_groups.csv"
+        df = _transform_indicator_groups(metadata)
+        with fs_output.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
         # datasets
         output_file = f"{output_dir}/datasets.csv"
         df = _transform_datasets(metadata)
@@ -846,6 +858,35 @@ def _transform_data_elements(metadata: dict) -> pd.DataFrame:
         "AGGREGATION_TYPE",
         "ZERO_IS_SIGNIFICANT",
     ]
+    return df
+
+
+def _transform_indicators(metadata: dict) -> pd.DataFrame:
+    """Transform indicators metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("indicators"))
+    df = df[
+        ["id", "code", "shortName", "name", "numerator", "denominator", "annualized"]
+    ]
+    df.columns = [
+        "IN_UID",
+        "IN_CODE",
+        "IN_SHORT_NAME",
+        "IN_NAME",
+        "IN_NUMERATOR",
+        "IN_DENOMINATOR",
+        "IN_ANNUALIZED",
+    ]
+    return df
+
+
+def _transform_indicator_groups(metadata: dict) -> pd.DataFrame:
+    """Transform indicator groups metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("indicatorGroups"))
+    df = df[["id", "name", "indicators"]]
+    df.columns = ["ING_ID", "ING_NAME", "INDICATORS"]
+    df["INDICATORS"] = df.INDICATORS.apply(
+        lambda x: ";".join(indicator.get("id") for indicator in x)
+    )
     return df
 
 
