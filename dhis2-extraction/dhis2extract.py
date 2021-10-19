@@ -728,7 +728,7 @@ def transform(input_dir, output_dir, overwrite):
         # org unit geometries
         output_file = f"{output_dir}/organisation_units.gpkg"
         geodf = _transform_org_units_geo(df)
-        with fs_output.open(output_file, "w") as f:
+        with fs_output.open(output_file, "wb") as f:
             geodf.to_file(f, driver="GPKG")
 
         # org unit groups
