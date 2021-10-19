@@ -8,7 +8,7 @@ show_help() {
   echo """
   Available commands:
 
-  dhis2extraction  : start dhis2extraction subsystem
+  dhis2extract     : start dhis2extraction subsystem
   python           : run arbitrary python code
   bash             : launch bash session
 
@@ -18,7 +18,7 @@ show_help() {
 
 case "$command" in
 "dhis2extraction")
-  python -m dhis2extraction $arguments
+  python -m dhis2extract $arguments
   ;;
 "python")
   python $arguments
