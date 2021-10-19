@@ -761,6 +761,12 @@ def transform(input_dir, output_dir, overwrite):
         with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
+        # programs
+        output_file = f"{output_dir}/programs.csv"
+        df = _transform_programs(metadata)
+        with fs_output.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
         # category option combos
         output_file = f"{output_dir}/category_option_combos.csv"
         df = _transform_coc(metadata)
@@ -895,6 +901,14 @@ def _transform_datasets(metadata: dict) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(metadata.get("dataSets"))
     df = df[["id", "code", "shortName", "name"]]
     df.columns = ["UID", "CODE", "SHORT_NAME", "NAME"]
+    return df
+
+
+def _transform_programs(metadata: dict) -> pd.DataFrame:
+    """Transform programs metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("programs"))
+    df = df[["id", "shortName", "name"]]
+    df.columns = ["PROGRAM_UID", "PROGRAM_SHORT_NAME", "PROGRAM_NAME"]
     return df
 
 
