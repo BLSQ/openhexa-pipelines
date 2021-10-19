@@ -890,8 +890,8 @@ def _transform_cat_options(metadata: dict) -> pd.DataFrame:
 def _transform_categories(metadata: dict) -> pd.DataFrame:
     """Transform categories metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categories"))
-    df = df[["id", "code", "shortName", "name", "dataDimension"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "DATA_DIMENSION"]
+    df = df[["id", "code", "name", "dataDimension"]]
+    df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION"]
     return df
 
 
