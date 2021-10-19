@@ -785,6 +785,12 @@ def transform(input_dir, output_dir, overwrite):
         with fs_output.open(output_file, "w") as f:
             df.to_csv(f, index=False)
 
+        # category option combos
+        output_file = f"{output_dir}/category_option_combos.csv"
+        df = _transform_category_option_combos(metadata)
+        with fs_output.open(output_file, "w") as f:
+            df.to_csv(f, index=False)
+
         # categories
         output_file = f"{output_dir}/categories.csv"
         df = _transform_categories(metadata)
@@ -930,7 +936,7 @@ def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
     df = df[["id", "code", "name", "dataDimensionType", "categories"]]
     df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION_TYPE", "CATEGORIES"]
     df["CATEGORIES"] = df.CATEGORIES.apply(
-        lambda x: ";".join([df.get("id") for df in x])
+        lambda x: ";".join([cc.get("id") for cc in x])
     )
     return df
 
@@ -948,6 +954,24 @@ def _transform_categories(metadata: dict) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(metadata.get("categories"))
     df = df[["id", "code", "name", "dataDimension"]]
     df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION"]
+    return df
+
+
+def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
+    """Transform category option combos into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
+    df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
+    df.columns = [
+        "COC_UID",
+        "COC_CODE",
+        "COC_NAME",
+        "CATEGORY_COMBO",
+        "CATEGORY_OPTIONS",
+    ]
+    df["CATEGORY_COMBO"] = df.CATEGORY_COMBO.apply(lambda x: x.get("id"))
+    df["CATEGORY_OPTIONS"] = df.CATEGORY_OPTIONS.apply(
+        lambda x: ";".join([co.get("id") for co in x])
+    )
     return df
 
 
