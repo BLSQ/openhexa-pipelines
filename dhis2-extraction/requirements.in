@@ -5,7 +5,7 @@ fsspec
 pytest
 click
 python-dateutil
-dhis2
+dhis2.py
 moto[ecs,s3,server]
 boto3==1.17.106
 botocore==1.20.106
