@@ -48,19 +48,19 @@ Options:
   -o, --output-dir TEXT           Output directory.  [required]
   -s, --start TEXT                Start date in ISO format.
   -e, --end TEXT                  End date in ISO format.
-  -pe, --period TEXT              DHIS2 period.
-  -ou, --org-unit TEXT            Organisation unit UID.
-  -oug, --org-unit-group TEXT     Organisation unit group UID.
-  -lvl, --org-unit-level INTEGER  Organisation unit level.
-  -ds, --dataset TEXT             Dataset UID.
-  -de, --data-element TEXT        Data element UID.
+  -pe, --period TEXT              DHIS2 period. *
+  -ou, --org-unit TEXT            Organisation unit UID. *
+  -oug, --org-unit-group TEXT     Organisation unit group UID. *
+  -lvl, --org-unit-level INTEGER  Organisation unit level. *
+  -ds, --dataset TEXT             Dataset UID. *
+  -de, --data-element TEXT        Data element UID. *
   -deg, --data-element-group TEXT
-                                  Data element group UID.
-  -in, --indicator TEXT           Indicator UID.
-  -ing, --indicator-group TEXT    Indicator group UID.
+                                  Data element group UID. *
+  -in, --indicator TEXT           Indicator UID. *
+  -ing, --indicator-group TEXT    Indicator group UID. *
   -aoc, --attribute-option-combo TEXT
-                                  Attribute option combo UID.
-  -prg, --program TEXT            Program UID.
+                                  Attribute option combo UID. *
+  -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
   --children / --no-children      Include childrens of selected org units.
   --aggregate / --no-aggregate    Aggregate using Analytics API.
@@ -68,6 +68,8 @@ Options:
   --skip                          Only download metadata.
   --overwrite                     Overwrite existing file.
   --help                          Show this message and exit.
+
+  (*) Can be provided multiple times.
 ```
 
 ### Examples
@@ -110,6 +112,7 @@ Usage: dhis2extract.py transform [OPTIONS]
   Transform raw data from DHIS2 into formatted CSV files.
 
 Options:
+  -i, --input-dir TEXT   Input directory.
   -o, --output-dir TEXT  Output directory.
   --overwrite            Overwrite existing files.
   --help                 Show this message and exit.
@@ -118,5 +121,7 @@ Options:
 ### Examples
 
 ```
-dhis2extract transform -o "s3://<bucket>/dhis2/extract"
+dhis2extract transform \
+    -i "s3://<bucket>/dhis2/extract/raw" \
+    -o "s3://<bucket>/dhis2/extract"
 ```
