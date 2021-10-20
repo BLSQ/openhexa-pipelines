@@ -832,7 +832,7 @@ def _transform_org_units(metadata: dict) -> pd.DataFrame:
     """Transform org units metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("organisationUnits"))
     df = df[["id", "code", "shortName", "name", "path", "geometry"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "PATH", "GEOMETRY"]
+    df.columns = ["ou_uid", "ou_code", "ou_shortname", "ou_name", "path", "geometry"]
     return df
 
 
@@ -842,10 +842,9 @@ def _transform_org_units_geo(org_units: pd.DataFrame) -> gpd.GeoDataFrame:
         org_units,
         crs="epsg:4326",
         geometry=[
-            shape(geom) if not pd.isna(geom) else None for geom in org_units.GEOMETRY
+            shape(geom) if not pd.isna(geom) else None for geom in org_units.geometry
         ],
     )
-    geodf = geodf.drop(["GEOMETRY"], axis=1)
     return geodf
 
 
@@ -853,8 +852,8 @@ def _transform_org_unit_groups(metadata: dict) -> pd.DataFrame:
     """Transform org unit groups metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("organisationUnitGroups"))
     df = df[["id", "code", "shortName", "name", "organisationUnits"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME", "ORG_UNITS"]
-    df["ORG_UNITS"] = df.ORG_UNITS.apply(lambda x: ";".join(ou.get("id") for ou in x))
+    df.columns = ["oug_uid", "oug_code", "oug_shortname", "oug_name", "org_units"]
+    df["org_units"] = df.org_units.apply(lambda x: ";".join(ou.get("id") for ou in x))
     return df
 
 
@@ -863,12 +862,12 @@ def _transform_data_elements(metadata: dict) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(metadata.get("dataElements"))
     df = df[["id", "code", "shortName", "name", "aggregationType", "zeroIsSignificant"]]
     df.columns = [
-        "UID",
-        "CODE",
-        "SHORT_NAME",
-        "NAME",
-        "AGGREGATION_TYPE",
-        "ZERO_IS_SIGNIFICANT",
+        "dx_uid",
+        "dx_code",
+        "dx_shortname",
+        "dx_name",
+        "aggregation_type",
+        "zero_is_significant",
     ]
     return df
 
@@ -880,13 +879,13 @@ def _transform_indicators(metadata: dict) -> pd.DataFrame:
         ["id", "code", "shortName", "name", "numerator", "denominator", "annualized"]
     ]
     df.columns = [
-        "IN_UID",
-        "IN_CODE",
-        "IN_SHORT_NAME",
-        "IN_NAME",
-        "IN_NUMERATOR",
-        "IN_DENOMINATOR",
-        "IN_ANNUALIZED",
+        "dx_uid",
+        "dx_code",
+        "dx_shortname",
+        "dx_name",
+        "numerator",
+        "denominator",
+        "annualized",
     ]
     return df
 
@@ -895,8 +894,8 @@ def _transform_indicator_groups(metadata: dict) -> pd.DataFrame:
     """Transform indicator groups metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("indicatorGroups"))
     df = df[["id", "name", "indicators"]]
-    df.columns = ["ING_ID", "ING_NAME", "INDICATORS"]
-    df["INDICATORS"] = df.INDICATORS.apply(
+    df.columns = ["ing_uid", "ing_name", "indicators"]
+    df["indicators"] = df.indicators.apply(
         lambda x: ";".join(indicator.get("id") for indicator in x)
     )
     return df
@@ -941,7 +940,7 @@ def _transform_programs(metadata: dict) -> pd.DataFrame:
     """Transform programs metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("programs"))
     df = df[["id", "shortName", "name"]]
-    df.columns = ["PROGRAM_UID", "PROGRAM_SHORT_NAME", "PROGRAM_NAME"]
+    df.columns = ["program_uid", "program_shortname", "program_name"]
     return df
 
 
@@ -949,9 +948,15 @@ def _transform_coc(metadata: dict) -> pd.DataFrame:
     """Transform category option combos metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
     df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "CATEGORY_COMBO", "CATEGORY_OPTIONS"]
-    df["CATEGORY_COMBO"] = df.CATEGORY_COMBO.apply(lambda x: x.get("id"))
-    df["CATEGORY_OPTIONS"] = df.CATEGORY_OPTIONS.apply(
+    df.columns = [
+        "coc_uid",
+        "coc_code",
+        "coc_shortname",
+        "category_combo",
+        "category_options",
+    ]
+    df["category_combo"] = df.category_combo.apply(lambda x: x.get("id"))
+    df["category_options"] = df.category_options.apply(
         lambda x: ";".join([co.get("id") for co in x])
     )
     return df
@@ -961,8 +966,8 @@ def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
     """Transform category combos metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categoryCombos"))
     df = df[["id", "code", "name", "dataDimensionType", "categories"]]
-    df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION_TYPE", "CATEGORIES"]
-    df["CATEGORIES"] = df.CATEGORIES.apply(
+    df.columns = ["cc_uid", "cc_code", "cc_name", "data_dimension_type", "categories"]
+    df["categories"] = df.categories.apply(
         lambda x: ";".join([cc.get("id") for cc in x])
     )
     return df
@@ -972,7 +977,7 @@ def _transform_cat_options(metadata: dict) -> pd.DataFrame:
     """Transform category options metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categoryOptions"))
     df = df[["id", "code", "shortName", "name"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME"]
+    df.columns = ["co_uid", "co_code", "co_shortname", "co_name"]
     return df
 
 
@@ -980,7 +985,7 @@ def _transform_categories(metadata: dict) -> pd.DataFrame:
     """Transform categories metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categories"))
     df = df[["id", "code", "name", "dataDimension"]]
-    df.columns = ["UID", "CODE", "NAME", "DATA_DIMENSION"]
+    df.columns = ["cat_uid", "cat_code", "cat_name", "data_dimension"]
     return df
 
 
@@ -989,14 +994,14 @@ def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
     df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
     df.columns = [
-        "COC_UID",
-        "COC_CODE",
-        "COC_NAME",
-        "CATEGORY_COMBO",
-        "CATEGORY_OPTIONS",
+        "coc_uid",
+        "coc_code",
+        "coc_name",
+        "category_combo",
+        "category_options",
     ]
-    df["CATEGORY_COMBO"] = df.CATEGORY_COMBO.apply(lambda x: x.get("id"))
-    df["CATEGORY_OPTIONS"] = df.CATEGORY_OPTIONS.apply(
+    df["category_combo"] = df.category_combo.apply(lambda x: x.get("id"))
+    df["category_options"] = df.category_options.apply(
         lambda x: ";".join([co.get("id") for co in x])
     )
     return df
@@ -1005,7 +1010,7 @@ def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
 def _transform_analytics(data: pd.DataFrame) -> pd.DataFrame:
     """Transform analytics API output into a formatted DataFrame."""
     df = data[["Data", "Category option combo", "Period", "Organisation unit", "Value"]]
-    df.columns = ["DX_UID", "COC_UID", "PERIOD", "OU_UID", "VALUE"]
+    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
     return df
 
 
@@ -1015,13 +1020,12 @@ def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
         [
             "dataelement",
             "categoryoptioncombo",
-            "attributeoptioncombo",
             "period",
             "orgunit",
             "value",
         ]
     ]
-    df.columns = ["DX_UID", "COC_UID", "AOC_UID", "PERIOD", "OU_UID", "VALUE"]
+    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
     return df
 
 
@@ -1030,7 +1034,7 @@ def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
     df = data[
         ["Data", "Category option combo", "Unnamed: 3", "Organisation unit", "Value"]
     ]
-    df.columns = ["DX_UID", "COC_UID", "PERIOD", "OU_UID", "VALUE"]
+    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
     return df
 
 
