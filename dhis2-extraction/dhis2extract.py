@@ -905,8 +905,35 @@ def _transform_indicator_groups(metadata: dict) -> pd.DataFrame:
 def _transform_datasets(metadata: dict) -> pd.DataFrame:
     """Transform datasets metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("dataSets"))
-    df = df[["id", "code", "shortName", "name"]]
-    df.columns = ["UID", "CODE", "SHORT_NAME", "NAME"]
+    df = df[
+        [
+            "id",
+            "code",
+            "shortName",
+            "name",
+            "periodType",
+            "dataSetElements",
+            "organisationUnits",
+            "indicators",
+        ]
+    ]
+    df.columns = [
+        "ds_uid",
+        "ds_code",
+        "ds_short_name",
+        "ds_name",
+        "period_type",
+        "data_elements",
+        "org_units",
+        "indicators",
+    ]
+    df["data_elements"] = df.data_elements.apply(
+        lambda x: ";".join([dx.get("dataElement").get("id") for dx in x])
+    )
+    df["indicators"] = df.indicators.apply(
+        lambda x: ";".join([dx.get("id") for dx in x])
+    )
+    df["org_units"] = df.org_units.apply(lambda x: ";".join([ou.get("id") for ou in x]))
     return df
 
 
