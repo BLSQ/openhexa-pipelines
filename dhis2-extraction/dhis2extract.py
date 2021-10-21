@@ -712,120 +712,94 @@ def transform(input_dir, output_dir, overwrite):
     fs_output = filesystem(output_dir)
     fs_output.mkdirs(output_dir, exist_ok=True)
 
-    # metadata
-    filepath = f"{input_dir}/metadata.json"
-    if fs_input.exists(filepath):
+    fpath_metadata = f"{input_dir}/metadata.json"
+    if not fs_input.exists(fpath_metadata):
+        raise DHIS2ExtractError(f"Metadata file not found at {fpath_metadata}.")
 
-        with fs_input.open(filepath) as f:
-            metadata = json.load(f)
+    with fs_input.open(fpath_metadata) as f:
+        metadata = json.load(f)
 
-        # org units
-        output_file = f"{output_dir}/organisation_units.csv"
-        df = _transform_org_units(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+    # Output file names and corresponding transform function
+    # for each metadata table.
+    transform_functions = [
+        ("organisation_units.csv", _transform_org_units),
+        ("organisation_unit_groups.csv", _transform_org_unit_groups),
+        ("data_elements.csv", _transform_data_elements),
+        ("indicators.csv", _transform_indicators),
+        ("indicator_groups.csv", _transform_indicator_groups),
+        ("datasets.csv", _transform_datasets),
+        ("programs.csv", _transform_programs),
+        ("category_option_combos.csv", _transform_category_option_combos),
+        ("category_options.csv", _transform_cat_options),
+        ("category_combos.csv", _transform_cat_combos),
+        ("categories.csv", _transform_categories),
+    ]
 
-        # org unit geometries
-        output_file = f"{output_dir}/organisation_units.gpkg"
-        geodf = _transform_org_units_geo(df)
-        with fs_output.open(output_file, "wb") as f:
+    for fname, transform in transform_functions:
+
+        fpath = f"{output_dir}/{fname}"
+
+        # Transform metadata and write output dataframe to disk
+        if not fs_output.exists(fpath) or overwrite:
+            logger.info(f"Creating metadata table {fname}.")
+            df = transform(metadata)
+            with fs_output.open(fpath, "w") as f:
+                df.to_csv(f, index=False)
+
+        # Skip if output file already exists and --overwrite is not set
+        else:
+            logger.info(f"{fname} already exists. Skipping.")
+            continue
+
+    # Create a GPKG with all org units for which we have geometries
+    fpath = f"{output_dir}/organisation_units.gpkg"
+    if not fs_output.exists(fpath) or overwrite:
+        logger.info("Creating org units geopackage.")
+        with fs_output.open(f"{output_dir}/organisation_units.csv") as f:
+            df = pd.read_csv(f)
+            geodf = _transform_org_units_geo(df)
+        with fs_output.open(f"{output_dir}/organisation_units.gpkg", "wb") as f:
             geodf.to_file(f, driver="GPKG")
+    else:
+        logger.info(f"{os.path.basename(fpath)} already exists. Skipping.")
 
-        # org unit groups
-        output_file = f"{output_dir}/organisation_unit_groups.csv"
-        df = _transform_org_unit_groups(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+    # These metadata tables are needed to join element names and full org unit
+    # hierarchy into the final extract.
+    org_units = pd.read_csv(f"{output_dir}/organisation_units.csv", index_col=0)
+    data_elements = pd.read_csv(f"{output_dir}/data_elements.csv", index_col=0)
+    indicators = pd.read_csv(f"{output_dir}/indicators.csv", index_col=0)
+    coc = pd.read_csv(f"{output_dir}/category_option_combos.csv", index_col=0)
 
-        # data elements
-        output_file = f"{output_dir}/data_elements.csv"
-        df = _transform_data_elements(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+    # Transform API response
+    transform_functions = [
+        ("analytics.csv", _transform_analytics),
+        ("analytics_raw_data.csv", _transform_analytics_raw_data),
+        ("data_value_sets", _transform_data_value_sets),
+    ]
 
-        # indicators
-        output_file = f"{output_dir}/indicators.csv"
-        df = _transform_indicators(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+    for fname, transform in transform_functions:
 
-        # indicator groups
-        output_file = f"{output_dir}/indicator_groups.csv"
-        df = _transform_indicator_groups(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        fpath_input = f"{input_dir}/{fname}"
+        fpath_output = f"{output_dir}/extract.csv"
 
-        # datasets
-        output_file = f"{output_dir}/datasets.csv"
-        df = _transform_datasets(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        if not fs_input.exists(fpath_input):
+            continue
 
-        # programs
-        output_file = f"{output_dir}/programs.csv"
-        df = _transform_programs(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        if fs_input.exists(fpath_output) and not overwrite:
+            logger.info(f"{os.path.basename(fpath_output)} already exists. Skipping.")
+            continue
 
-        # category option combos
-        output_file = f"{output_dir}/category_option_combos.csv"
-        df = _transform_coc(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        logger.info(f"Processing API response {fpath_input}.")
 
-        # category combos
-        output_file = f"{output_dir}/category_combos.csv"
-        df = _transform_cat_combos(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        with fs_input.open(fpath_input) as f:
+            api_response = pd.read_csv(f)
+        extract = transform(api_response)
+        extract = _join_from_metadata(
+            extract, data_elements, indicators, coc, org_units
+        )
 
-        # category options
-        output_file = f"{output_dir}/category_options.csv"
-        df = _transform_cat_options(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
-
-        # category option combos
-        output_file = f"{output_dir}/category_option_combos.csv"
-        df = _transform_category_option_combos(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
-
-        # categories
-        output_file = f"{output_dir}/categories.csv"
-        df = _transform_categories(metadata)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
-
-    # analytics API output
-    filepath = f"{input_dir}/analytics.csv"
-    if fs_input.exists(filepath):
-        output_file = f"{output_dir}/extract.csv"
-        with fs_input.open(filepath) as f:
-            df_raw = pd.read_csv(f)
-        df = _transform_analytics(df_raw)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
-
-    # analytics/rawData API output
-    filepath = f"{input_dir}/analytics_raw_data.csv"
-    if fs_input.exists(filepath):
-        output_file = f"{output_dir}/extract.csv"
-        with fs_input.open(filepath) as f:
-            df_raw = pd.read_csv(f)
-        df = _transform_analytics_raw_data(df_raw)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
-
-    # dataValueSet API output
-    filepath = f"{input_dir}/data_value_sets.csv"
-    if fs_input.exists(filepath):
-        output_file = f"{output_dir}/extract.csv"
-        with fs_input.open(filepath) as f:
-            df_raw = pd.read_csv(f)
-        df = _transform_data_value_sets(df_raw)
-        with fs_output.open(output_file, "w") as f:
-            df.to_csv(f, index=False)
+        with fs_output.open(fpath_output, "w") as f:
+            extract.to_csv(f, index=False)
 
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
@@ -842,7 +816,8 @@ def _transform_org_units_geo(org_units: pd.DataFrame) -> gpd.GeoDataFrame:
         org_units,
         crs="epsg:4326",
         geometry=[
-            shape(geom) if not pd.isna(geom) else None for geom in org_units.geometry
+            shape(json.loads(geom.replace("'", '"'))) if not pd.isna(geom) else None
+            for geom in org_units.geometry
         ],
     )
     return geodf
@@ -944,24 +919,6 @@ def _transform_programs(metadata: dict) -> pd.DataFrame:
     return df
 
 
-def _transform_coc(metadata: dict) -> pd.DataFrame:
-    """Transform category option combos metadata into a formatted DataFrame."""
-    df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
-    df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
-    df.columns = [
-        "coc_uid",
-        "coc_code",
-        "coc_shortname",
-        "category_combo",
-        "category_options",
-    ]
-    df["category_combo"] = df.category_combo.apply(lambda x: x.get("id"))
-    df["category_options"] = df.category_options.apply(
-        lambda x: ";".join([co.get("id") for co in x])
-    )
-    return df
-
-
 def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
     """Transform category combos metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("categoryCombos"))
@@ -1036,6 +993,101 @@ def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
     ]
     df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
     return df
+
+
+def _dx_type(dx_uid: str, data_elements: pd.DataFrame, indicators: pd.DataFrame) -> str:
+    """Get the data type corresponding to an UID (data element or indicator).
+
+    Examples
+    --------
+    >>> _dx_type("vI2csg55S9C", data_elements, indicators)
+    'Data Element'
+    """
+    if dx_uid in data_elements.index:
+        return "Data Element"
+    elif dx_uid in indicators.index:
+        return "Indicator"
+    else:
+        raise DHIS2ExtractError(
+            f"DX {dx_uid} not found in data elements or indicators metadata."
+        )
+
+
+def _dx_name(dx_uid: str, data_elements: pd.DataFrame, indicators: pd.DataFrame) -> str:
+    """Get the name of a data element or indicator.
+
+    Examples
+    --------
+    >>> _dx_name("vI2csg55S9C", data_elements, indicators)
+    'OPV3 doses given'
+    """
+    if _dx_type(dx_uid, data_elements, indicators) == "Data Element":
+        return data_elements.at[dx_uid, "dx_name"]
+    elif _dx_type(dx_uid, data_elements, indicators) == "Indicator":
+        return indicators.at[dx_uid, "dx_name"]
+    else:
+        raise DHIS2ExtractError(
+            f"DX {dx_uid} not found in data elements or indicators metadata."
+        )
+
+
+def _level_uid(ou_path: str, level: int) -> str:
+    """Get the org unit UID corresponding to a given hierarchical level.
+
+    Examples
+    --------
+    >>> _level_uid("/ImspTQPwCqd/O6uvpzGd5pu/vWbkYPRmKyS", 2)
+    'O6uvpzGd5pu'
+    """
+    hierarchy = [ou for ou in ou_path.split("/") if ou]
+    if level <= len(hierarchy):
+        return hierarchy[level - 1]
+    else:
+        return None
+
+
+def _join_from_metadata(
+    extract: pd.DataFrame,
+    data_elements: pd.DataFrame,
+    indicators: pd.DataFrame,
+    category_option_combos: pd.DataFrame,
+    organisation_units: pd.DataFrame,
+) -> pd.DataFrame:
+    """Join fields from the metadata tables into the extract.
+
+    More specifically, the following columns are added to the dataframe:
+        * dx_name (name of the data element/indicator)
+        * dx_type ('Data Element' or 'Indicator')
+        * coc_name (name of the category option combo)
+        * level_<lvl>_uid (UID of the org unit for each hierarchical level)
+        * level_<lvl>_name (name of the org unit for each hierarchical level)
+    """
+    extract = extract.copy()
+    extract["dx_name"] = extract.dx_uid.apply(
+        lambda uid: _dx_name(uid, data_elements, indicators)
+    )
+    extract["dx_type"] = extract.dx_uid.apply(
+        lambda uid: _dx_type(uid, data_elements, indicators)
+    )
+    extract["coc_name"] = extract.coc_uid.apply(
+        lambda uid: category_option_combos.at[uid, "coc_name"]
+    )
+
+    # Max number of hierarchical levels in the instance
+    levels = len(organisation_units.path.max().split("/"))
+
+    # Add UID and name for each hierarchical level
+    for level in range(1, levels + 1):
+        column_uid = f"level_{level}_uid"
+        column_name = f"level_{level}_name"
+        extract[column_uid] = extract.ou_uid.apply(
+            lambda uid: _level_uid(organisation_units.at[uid, "path"], level)
+        )
+        extract[column_name] = extract[column_uid].apply(
+            lambda uid: organisation_units.at[uid, "ou_name"] if uid else None
+        )
+
+    return extract
 
 
 if __name__ == "__main__":
