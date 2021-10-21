@@ -269,6 +269,22 @@ def download(
         logger.debug("Output CSV file already exists. Skipping.")
 
 
+# Metadata tables and fields to extract from the DHIS2 instance
+METADATA_TABLES = {
+    "organisationUnits": "id,code,shortName,name,path,geometry",
+    "organisationUnitGroups": "id,code,shortName,name,organisationUnits",
+    "dataElements": "id,code,shortName,name,aggregationType,zeroIsSignificant",
+    "indicators": "id,code,shortName,name,numerator,denominator,annualized",
+    "indicatorGroups": "id,name,indicators",
+    "dataSets": "id,code,shortName,name,periodType,dataSetElements,organisationUnits,indicators",
+    "programs": "id,shortName,name",
+    "categoryCombos": "id,code,name,dataDimensionType,categories",
+    "categoryOptions": "id,code,shortName,name",
+    "categories": "id,code,name,dataDimension",
+    "categoryOptionCombos": "id,code,name,categoryCombo,categoryOptions",
+}
+
+
 class DHIS2:
     def __init__(self, instance: str, username: str, password: str, timeout=30):
         """Connect to a DHIS2 instance API.
@@ -284,9 +300,37 @@ class DHIS2:
         timeout : int
             Default timeout for API calls (in seconds).
         """
-        self.api = Api(instance, username, password)
-        self.metadata = self.api.get("metadata", timeout=timeout).json()
+        self.api = Api(
+            instance,
+            username,
+            password,
+            user_agent="openhexa-pipelines/dhis2-extraction",
+        )
         self.timeout = timeout
+        self.metadata = self.get_metadata()
+
+    def get_metadata(self) -> dict:
+        """Pull main metadata tables from the instance.
+
+        Return a dict with metadata for the following types:
+            - organisationUnits
+            - organisationUnitGroups
+            - dataElements
+            - indicators
+            - indicatorGroups
+            - dataSets
+            - programs
+            - categoryCombos
+            - categoryOptions
+            - categories
+            - categoryOptionCombos
+        """
+        meta = {}
+        for name, fields in METADATA_TABLES.items():
+            params = {name: True, f"{name}:fields": fields}
+            r = self.api.get("metadata", params=params, timeout=self.timeout)
+            meta[name] = r.json().get(name)
+        return meta
 
     def data_element_dataset(self, data_element_uid: str) -> str:
         """Identify the dataset of a data element.
