@@ -1074,7 +1074,7 @@ def _join_from_metadata(
     )
 
     # Max number of hierarchical levels in the instance
-    levels = len(organisation_units.path.max().split("/"))
+    levels = len(organisation_units.path.max().split("/")) - 1
 
     # Add UID and name for each hierarchical level
     for level in range(1, levels + 1):
