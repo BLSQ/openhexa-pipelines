@@ -117,6 +117,13 @@ def cli():
     multiple=True,
     help="Attribute option combo UID.",
 )
+@click.option(
+    "--category-option-combo",
+    "-coc",
+    type=str,
+    multiple=True,
+    help="Category option combo UID.",
+)
 @click.option("--program", "-prg", type=str, multiple=True, help="Program UID.")
 @click.option("--from-json", type=str, help="Load parameters from a JSON file.")
 @click.option(
@@ -158,6 +165,7 @@ def download(
     indicator: typing.Sequence[str],
     indicator_group: typing.Sequence[str],
     attribute_option_combo: typing.Sequence[str],
+    category_option_combo: typing.Sequence[str],
     program: typing.Sequence[str],
     from_json: str,
     children: bool,
@@ -190,6 +198,9 @@ def download(
         indicator_group = params.get("indicator-group", indicator_group)
         attribute_option_combo = params.get(
             "attribute-option-combo", attribute_option_combo
+        )
+        category_option_combo = params.get(
+            "category-option-combo", category_option_combo
         )
         program = params.get("program", program)
 
@@ -240,6 +251,7 @@ def download(
                 data_element_groups=data_element_group,
                 indicators=indicator,
                 indicator_groups=indicator_group,
+                category_option_combos=category_option_combo,
                 programs=program,
             )
             output_file = f"{output_dir}/analytics.csv"
@@ -257,6 +269,7 @@ def download(
                 data_element_groups=data_element_group,
                 indicators=indicator,
                 indicator_groups=indicator_group,
+                category_option_combos=category_option_combo,
                 programs=program,
             )
             output_file = f"{output_dir}/analytics_raw_data.csv"
@@ -271,7 +284,7 @@ def download(
 
 # Metadata tables and fields to extract from the DHIS2 instance
 METADATA_TABLES = {
-    "organisationUnits": "id,code,shortName,name,path,geometry",
+    "organisationUnits": "id,code,shortName,name,path,level,geometry",
     "organisationUnitGroups": "id,code,shortName,name,organisationUnits",
     "dataElements": "id,code,shortName,name,aggregationType,zeroIsSignificant",
     "indicators": "id,code,shortName,name,numerator,denominator,annualized",
@@ -498,6 +511,7 @@ class DHIS2:
         data_element_groups: typing.Sequence[str] = None,
         indicators: typing.Sequence[str] = None,
         indicator_groups: typing.Sequence[str] = None,
+        category_option_combos: typing.Sequence[str] = None,
         programs: typing.Sequence[str] = None,
     ) -> str:
         """Extract non-aggregated raw data stored in the analytics data tables.
@@ -527,6 +541,8 @@ class DHIS2:
             UIDs of the indicators of interest.
         indicator_groups : list of str, optional
             UIDs of the indicator groups of interest.
+        category_option_combos : list of str, optional
+            UIDs of the category option combos of interest.
         programs : list of str, optional
             UIDs of the programs of interest.
 
@@ -565,6 +581,7 @@ class DHIS2:
             data_element_groups,
             indicators,
             indicator_groups,
+            category_option_combos,
             programs,
         )
 
@@ -593,6 +610,7 @@ class DHIS2:
         data_element_groups: typing.Sequence[str] = None,
         indicators: typing.Sequence[str] = None,
         indicator_groups: typing.Sequence[str] = None,
+        category_option_combos: typing.Sequence[str] = None,
         programs: typing.Sequence[str] = None,
     ) -> str:
         """Extract aggregated data values from a DHIS2 instance.
@@ -622,6 +640,8 @@ class DHIS2:
             UIDs of the indicators of interest.
         indicator_groups : list of str, optional
             UIDs of the indicator groups of interest.
+        category_option_combos : list of str, optional
+            UIDs of the category option combos of interest.
         programs : list of str, optional
             UIDs of the programs of interest.
 
@@ -647,7 +667,9 @@ class DHIS2:
             raise DHIS2ExtractError(
                 "At least one data element or indicator should be provided."
             )
-        if not _check_dhis2_period(start_date) or not _check_dhis2_period(end_date):
+        if (start_date and not _check_dhis2_period(start_date)) or (
+            end_date and not _check_dhis2_period(end_date)
+        ):
             raise DHIS2ExtractError(
                 "Start and end dates must be in DHIS2 period format."
             )
@@ -670,6 +692,7 @@ class DHIS2:
             data_element_groups,
             indicators,
             indicator_groups,
+            category_option_combos,
             programs,
         )
 
@@ -691,6 +714,7 @@ def _dimension_param(
     data_element_groups: typing.Sequence[str] = None,
     indicators: typing.Sequence[str] = None,
     indicator_groups: typing.Sequence[str] = None,
+    category_option_combos: typing.Sequence[str] = None,
     programs: typing.Sequence[str] = None,
 ) -> typing.Sequence[str]:
     """Format dimension API parameter.
@@ -724,7 +748,8 @@ def _dimension_param(
         )
     if programs:
         dimension.append("dx:" + ";".join(programs))
-    dimension.append("co:")  # empty to fetch all the category option combos
+    if category_option_combos:
+        dimension.append("co:" + ";".join(category_option_combos))
     return dimension
 
 
