@@ -750,6 +750,9 @@ def _dimension_param(
         dimension.append("dx:" + ";".join(programs))
     if category_option_combos:
         dimension.append("co:" + ";".join(category_option_combos))
+    else:
+        # Always add at least an empty coc argument to get COC UIDs in output
+        dimension.append("co:")
     return dimension
 
 
