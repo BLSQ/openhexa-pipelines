@@ -1,0 +1,1037 @@
+dx_uid,dx_code,dx_shortname,dx_name,aggregation_type,zero_is_significant
+FTRrcoaog83,DE_1148614,Accute Flaccid Paral (Deaths < 5 yrs),Accute Flaccid Paralysis (Deaths < 5 yrs),SUM,False
+P3jJH5Tu5VC,DE_359049,AFP follow-up,Acute Flaccid Paralysis (AFP) follow-up,SUM,False
+FQ2o8UBlcrS,DE_388,AFP new,Acute Flaccid Paralysis (AFP) new,SUM,False
+M62VHgYT2n0,DE_358943,AFP referrals,Acute Flaccid Paralysis (AFP) referrals,SUM,False
+WO8yRIZb7nb,,Additional medication,Additional medication,NONE,False
+uF1DLnZNlWe,DE_1152329,Additional notes related to facility,Additional notes related to facility,SUM,False
+eMyVanycQSC,DE_3000005,Admission Date,Admission Date,AVERAGE,False
+qrur9Dvnyt5,DE_3000003,Age in years,Age in years,AVERAGE,False
+JuTpJ2Ywq5b,,Age of LLINs,Age of LLINs,SUM,False
+hCVSHjcml9g,DE_359602,Albendazole at ANC,Albendazole given at ANC (2nd trimester),SUM,False
+rxt7nvPyRUi,DE_1151441,All access routes are clearly marked,All access routes are clearly marked and safe,SUM,False
+RUv0hqER0zV,DE_359067,All other follow-ups,All other follow-ups,SUM,False
+A2VfEfPflHV,DE_399,Others new,All other new,SUM,False
+laZLQdnucV1,DE_358961,All other referrals,All other referrals,SUM,False
+U7v0q0amJqi,DE_1151442,All sterilisation equipment is validated,All sterilisation equipment is validated / licensed,SUM,False
+jmWyJFtE7Af,DE_359044,Anaemia follow-up,Anaemia follow-up,SUM,False
+HLPuaFB7Frw,DE_358909,Anaemia new,Anaemia new,SUM,False
+yqBkn9CWKih,DE_358938,Anaemia referrals,Anaemia referrals,SUM,False
+sPQgYGhXnXI,DE_1151443,An alternative to communicate available,An alternative to communicate if telephone line is off is always available,SUM,False
+fbfJHSPpUQD,DE_359596,ANC 1st visit,ANC 1st visit,SUM,False
+cYeuwXTCPkU,DE_359597,ANC 2nd visit,ANC 2nd visit,SUM,False
+Jtf34kNZhzP,DE_359598,ANC 3rd visit,ANC 3rd visit,SUM,False
+hfdmMSPBgLG,DE_359599,ANC 4th or more,ANC 4th or more visits,SUM,False
+LjNlMTl9Nq9,DE_1148615,Animal Bites - Rabid (Deaths < 5 yrs),Animal Bites - Rabid (Deaths < 5 yrs),SUM,False
+a57FmdPj3Zl,DE_1151447,Appropriate hand washing facilities,Appropriate hand washing facilities are available,SUM,False
+FHD3wiSM7Sn,DE_359042,ARI/Pneumonia f-u,ARI treated with antibiotics (pneumonia) follow-up,SUM,False
+iKGjnOOaPlE,DE_358929,ARI/Pneumonia new,ARI treated with antibiotics (pneumonia) new,SUM,False
+XTqOHygxDj5,DE_358936,ARI/Pneumonia ref.,ARI treated with antibiotics (pneumonia) referrals,SUM,False
+RF4VFVGdFRO,DE_359041,ARI wo antibio. f-u,ARI treated without antibiotics (cough) follow-up,SUM,False
+Cm4XUw6VAxv,DE_358928,ARI/Cough new,ARI treated without antibiotics (cough) new,SUM,False
+oLfWYAJhZb2,DE_358935,ARI/Cough referrals,ARI treated without antibiotics (cough) referrals,SUM,False
+NJnhOzjaLYk,DE_8253,ART.CnewAdv.Clin.Ev.,ART clients with new adverse clinical event,SUM,False
+aIJZ2d2QgVV,DE_365336,ART defaulters,ART defaulters,SUM,False
+BOSZApCrBni,DE_8240,ART No stage 1,ART enrollment stage 1,SUM,False
+dGdeotKpRed,DE_8241,ART No stage 2,ART enrollment stage 2,SUM,False
+eRwOwCpMzyP,DE_8242,ART No stage 3,ART enrollment stage 3,SUM,False
+zYkwbCBALhn,DE_8243,ART No stage 4,ART enrollment stage 4,SUM,False
+I5MLuG16arn,DE_8244,ARTdiag.testing,ART entry point: No diagnostic testing,SUM,False
+LVaUdM3CERi,DE_8247,ART.E.P:oldPatient,ART entry point: No old patients,SUM,False
+vJSPn2R6gVe,DE_8248,ART.E.P:other,ART entry point: No other,SUM,False
+kVOiLDV4OC6,DE_8246,ART.E.P:PMTCT,ART entry point: No PMTCT,SUM,False
+HDZOFvdXsqE,DE_8249,ART.E.P:transferIn,ART entry point: No transfer in,SUM,False
+soACnRV9gOI,DE_8250,ART.E.P:transferOut,ART entry point: No transfer out,SUM,False
+FTy5pcJZ3yX,DE_8245,ART No walk in,ART entry point: No walk in,SUM,False
+Yf4u4QOIdsi,DE_374586,ART entry point: TB,ART entry point: TB,SUM,False
+QrhlrvV6Xs8,DE_8252,ARTnewC.startedARV,ART new clients started on ARV,SUM,False
+wfKKFhBn0Q0,DE_8257,ARTstop.TRT.Adv.Clin,ART No clients who stopped TRT due to adverse clinical status/event,SUM,False
+GMd99K8gVut,DE_8255,ARTStop.TRTdueFailur,ART No clients who stopped TRT due to TRT failure,SUM,False
+F53rTVTmSuF,DE_8254,ARTChangeRegDrugToxi,ART No clients with change of regimen due to drug toxicity,SUM,False
+rNEpbBxSyu7,DE_8297,ARTnewAdv.DrugReact.,ART No clients with new adverse drug reaction,SUM,False
+CxlYcbqio4v,DE_8251,ART.OI.prophylaxis,ART No started Opportunist Infection prophylaxis,SUM,False
+ibL7BD2vn2C,DE_8256,ARTStop.TRTdueDeath,ART treatment stopped due to death,SUM,False
+TyQ1vOHM6JO,DE_8258,ARTstop.LossFollowup,ART treatment stopped due to loss to follow-up,SUM,False
+s46m5MS0hxu,DE_359706,BCG doses given,BCG doses given,SUM,False
+uf3svrmp8Oj,DE_424405,Birth certificate,Birth certificate,SUM,False
+nzl75uHiWQO,DE_1151448,"Blood pressure monitor, electronic avail","Blood pressure monitor, electronic or manual available",SUM,False
+yO0ZIegEsDk,,Blood Transfusion < 3 months,Blood transfusion within 3 months before onset of symptoms,COUNT,False
+QYBJk7sqc1I,DE_359054,Burns follow-up,Burns follow-up,SUM,False
+zMGEd921xd3,DE_358911,Burns new,Burns new,SUM,False
+BHvVPwWrrLC,DE_358948,Burns referrals,Burns referrals,SUM,False
+A21lT9x7pmc,DE_239586,Cabin fever,Cabin fever,SUM,False
+fazCI2ygYkq,,Case detection,Case detection,COUNT,False
+eYApmORDKgx,,CA Investigation Conducted By,Case Investigation Conducted By,NONE,False
+lvx6qda7SN0,,Case species classification,Case species classification,NONE,False
+hhevl49MXyA,DE_374570,Child GPW HIV test,Children from Gen.Paed. ward tested for HIV,SUM,False
+HL77Pems4Cv,DE_374571,Child GPW HIV-test +,Children from Gen.Paed. ward with positive HIV result,SUM,False
+ydvyXLhIbTn,DE_374566,Child TBw HIV test,Children from TB ward tested for HIV,SUM,False
+AKJvJehDSb6,DE_374567,Child TBw HIV-test +,Children from TB ward with positive HIV result,SUM,False
+xFpppWvT43s,DE_374568,Child TFC HIV test,Children from TFC tested for HIV,SUM,False
+KWzP8OWYQL7,DE_374569,Child TFC HIV-test +,Children from TFC with positive HIV result,SUM,False
+qw2sIef52Fu,DE_359738,Child thera. feeding,Children getting therapeutic feeding,SUM,False
+e73QxJpd88B,DE_374574,Child HIV1&2 + test,Children HIV 1&2 positive test,SUM,False
+EnsFXKU7LEW,DE_374572,Child HIV1 + test,Children HIV 1 positive test,SUM,False
+GhsYeB89HaL,DE_374573,Child HIV2 + test,Children HIV 2 positive test,SUM,False
+MWEGBw0pmgU,DE_374579,Child init. ARV TRT,Children initiated ARV treatment,SUM,False
+SMrE2ByiyZp,DE_374575,Child excl. breastf.,Children on exclusive breastfeeding (HIV Paed.),SUM,False
+UMexg4VGfaY,DE_374576,Child repl. feeding,Children on replacement feeding (HIV Paed.),SUM,False
+Y53Jcc9LBYh,DE_359737,Child food suppl.,Children supplied with food supplemements,SUM,False
+LSJ5mKpyEv1,DE_360527,CHO,CHO,AVERAGE_SUM_ORG_UNIT,False
+eY5ehpbEsB7,DE_1148616,Cholera (Deaths < 5 yrs),Cholera (Deaths < 5 yrs),SUM,False
+mxc1T932aWM,DE_239771,Cholera (Deaths < 5 yrs) Narrative,Cholera (Deaths < 5 yrs) Narrative,SUM,False
+HJulLfnIAE3,DE_359043,Clinic. Malnutr. f-u,Clinical Malnutrition follow-up,SUM,False
+TBbCcJfZ91x,DE_390,Malnutriti new,Clinical Malnutrition new,SUM,False
+oNyB0VOXIM8,DE_358937,Clinic. Malnutr. ref,Clinical Malnutrition referrals,SUM,False
+SzVk2KvkSSd,CS016,Clinical status,Clinical status,NONE,False
+LHXqz53TmPe,DE_217099,CMC Clients offered information on range of met,CMC Clients offered information on range of methods exist,SUM,False
+OJSkJXzhdU1,DE_217107,CMC COPE has been introduced at the facility and,CMC COPE has been introduced at the facility and staff conducted a COPE exercise during the past quarter,SUM,False
+DF0B07U2lPZ,DE_217092,CMC Counseling rooms in FP and CAC service units,CMC Counseling rooms in FP and CAC service units ensure client privacy and confidentiality,SUM,False
+rkAZZFGFEQ7,DE_217020,CMC Date of clinical monitoring visit,CMC Date of clinical monitoring visit,SUM,False
+wokFPoIO3NK,DE_217105,CMC Facility part of health care finance (HCF) bo,CMC Facility part of health care finance (HCF) board scheme,SUM,False
+rTYZHPHVULr,DE_217074,CMC Facility receives FP referrals from CHW,CMC Facility receives FP referrals from community health workers,SUM,False
+rZiGA1lv7Ah,DE_217089,CMC FP and CAC commodity requests correctly,CMC FP and CAC commodity requests correctly based on previous consumption / stock at hand,SUM,False
+EonDTYTVXxM,DE_217094,CMC FP and CAC procedure rooms have adequate lig,CMC FP and CAC procedure rooms have adequate lighting for the performance of all procedures,SUM,False
+LadMythncw2,DE_217106,CMC FP and CAC service units have dedicated hours,CMC FP and CAC service units have dedicated hours or space for youth clients,SUM,False
+UysSLXGhwrC,DE_217032,CMC FP services - Contraceptive pills,CMC FP services available - Contraceptive pills,SUM,False
+ZVqZ600pgzC,DE_217035,CMC FP services - Female condoms,CMC FP services available - Female condoms,SUM,False
+X4SRfUAnrHD,DE_217037,CMC FP services - Female Sterilization,CMC FP services available - Female Sterilization,SUM,False
+xqlapchAEVR,DE_217031,CMC FP services - Implanon,CMC FP services available - Implanon,SUM,False
+NKoGfjnFWcE,DE_217033,CMC FP services - Injectables (DMPA),CMC FP services available - Injectables (DMPA),SUM,False
+XPyixxRoRFF,DE_217029,CMC FP services available - IUD,CMC FP services available - IUD,SUM,False
+k7vxGJER2SH,DE_217030,CMC FP services - Jadelle or Sino-Implant,CMC FP services available - Jadelle or Sino-Implant,SUM,False
+FNa6RHwtpuV,DE_217034,CMC FP services - Male condoms,CMC FP services available - Male condoms,SUM,False
+dupnnRrJB9g,DE_217036,CMC FP services - Male Sterilization,CMC FP services available - Male Sterilization,SUM,False
+tY33H1Xmbiq,DE_217096,CMC Functioning set-up for decontamination in bo,CMC Functioning set-up for decontamination in both FP and CAC service units exist,SUM,False
+VEsHW11Ee9u,DE_217110,CMC IMPLANT INSERTION KITS (functional and in good,CMC IMPLANT INSERTION KITS (functional and in good condition) available,SUM,False
+x7UR3a7PnFC,DE_217111,CMC IMPLANT REMOVAL KITS (functional and in good c,CMC IMPLANT REMOVAL KITS (functional and in good condition) available,SUM,False
+eDO63WfftUO,DE_217101,CMC Incentives for staff in the FP or CAC service,CMC Incentives for staff in the FP or CAC service units to provide FP exist,SUM,False
+e4r6eLK76M9,DE_217095,CMC Infection prevention protocol charts are post,CMC Infection prevention protocol charts are posted in both FP and CAC service units,SUM,False
+jhz73zxjuuy,DE_217108,CMC IUD KITS (functional and in good condition) av,CMC IUD KITS (functional and in good condition) available,SUM,False
+ozL7F7k4l0S,DE_217109,CMC IUD REMOVAL KITS (functional and in good condi,CMC IUD REMOVAL KITS (functional and in good condition) available,SUM,False
+ShRC4KSdfcw,DE_217098,CMC Leak-proof and puncture-proof containers in,CMC Leak-proof and puncture-proof containers in FP and CAC exist,SUM,False
+W87PJK0RlJa,DE_217113,CMC MINILAPAROTOMY KITS (functional and in good co,CMC MINILAPAROTOMY KITS (functional and in good condition) available,SUM,False
+sjir9Ki2vuA,DE_217090,CMC Most recent delivery of FP and CAC,CMC Most recent delivery of FP and CAC commodities match the request made through the RRF,SUM,False
+Els0dBuHtWJ,DE_217112,CMC MVA KITS (functional and in good condition) av,CMC MVA KITS (functional and in good condition) available,SUM,False
+AX2JjzrU0oU,DE_217103,CMC National guidelines and standards for FP and,CMC National guidelines and standards for FP and CAC service provision available,SUM,False
+KKEYwCcGvfl,DE_217114,CMC NSV KITS (functional and in good condition) av,CMC NSV KITS (functional and in good condition) available,SUM,False
+A4R8Ns0wtJk,DE_217053,CMC Post-abortion FP in CAC unit - Contraceptive p,CMC Post-abortion FP methods provided in CAC unit - Contraceptive pills,SUM,False
+H5q0J5EeytP,DE_217056,CMC Post-abortion FP in CAC unit - Female condoms,CMC Post-abortion FP methods provided in CAC unit - Female condoms,SUM,False
+lLl7dD5jRhg,DE_217052,CMC Post-abortion FP in CAC unit - Implanon,CMC Post-abortion FP methods provided in CAC unit - Implanon,SUM,False
+R8X9WHD6Ta9,DE_217054,CMC Post-abortion FP in CAC unit - Injectables (DM,CMC Post-abortion FP methods provided in CAC unit - Injectables (DMPA),SUM,False
+J6KG9poh1WL,DE_217050,CMC Post-abortion FP in CAC unit - IUD,CMC Post-abortion FP methods provided in CAC unit - IUD,SUM,False
+HcQqfCPHC79,DE_217051,CMC Post-abortion FP in CAC unit - Jadelle or Sino,CMC Post-abortion FP methods provided in CAC unit - Jadelle or Sino-Implant,SUM,False
+MqeQ222wxN8,DE_217055,CMC Post-abortion FP in CAC unit - Male condoms,CMC Post-abortion FP methods provided in CAC unit - Male condoms,SUM,False
+otxWZ2s0Iyg,DE_217057,CMC Post-abortion FP in CAC unit - Other (specify),CMC Post-abortion FP methods provided in CAC unit - Other (specify),SUM,False
+aEgcSZrUD1j,DE_217061,CMC Post-abortion FP through referrals - Contracep,CMC Post-abortion FP methods provided through referrals - Contraceptive pills,SUM,False
+wpEO1pvc4oS,DE_217064,CMC Post-abortion FP through referrals - Female co,CMC Post-abortion FP methods provided through referrals - Female condoms,SUM,False
+yEPjrf4pvLF,DE_217060,CMC Post-abortion FP through referrals - Implanon,CMC Post-abortion FP methods provided through referrals - Implanon,SUM,False
+weKxnsPrnTB,DE_217062,CMC Post-abortion FP through referrals - Injectabl,CMC Post-abortion FP methods provided through referrals - Injectables (DMPA),SUM,False
+sIZsJrOtJ8S,DE_217058,CMC Post-abortion FP through referrals - IUD,CMC Post-abortion FP methods provided through referrals - IUD,SUM,False
+aponpM6fnJe,DE_217059,CMC Post-abortion FP through referrals - Jadelle o,CMC Post-abortion FP methods provided through referrals - Jadelle or Sino-Implant,SUM,False
+VX6qaS9JEGv,DE_217063,CMC Post-abortion FP through referrals - Male cond,CMC Post-abortion FP methods provided through referrals - Male condoms,SUM,False
+XktwbHEcOZ5,DE_217065,CMC Post-abortion FP through referrals - Other (sp,CMC Post-abortion FP methods provided through referrals - Other (specify),SUM,False
+TD9EmYHnJcZ,DE_217069,CMC Post-abortion FP referred - Contraceptive pill,CMC Post-abortion FP referred other facility - Contraceptive pills,SUM,False
+nECT8BcbdF6,DE_217072,CMC Post-abortion FP referred - Female condoms,CMC Post-abortion FP referred other facility - Female condoms,SUM,False
+A1wdvOOktNI,DE_217068,CMC Post-abortion FP referred - Implanon,CMC Post-abortion FP referred other facility - Implanon,SUM,False
+OutJUTjR21E,DE_217070,CMC Post-abortion FP referred - Injectables (DMPA),CMC Post-abortion FP referred other facility - Injectables (DMPA),SUM,False
+PNAudHvnC29,DE_217066,CMC Post-abortion FP referred - IUD,CMC Post-abortion FP referred other facility - IUD,SUM,False
+GvSDEPwzn1l,DE_217067,CMC Post-abortion FP referred - Jadelle or Sino-Im,CMC Post-abortion FP referred other facility - Jadelle or Sino-Implant,SUM,False
+aPRMs8ZWoQe,DE_217071,CMC Post-abortion FP referred - Male condoms,CMC Post-abortion FP referred other facility - Male condoms,SUM,False
+x6Cc96XcRjT,DE_217073,CMC Post-abortion FP referred - Other (specify),CMC Post-abortion FP referred other facility - Other (specify),SUM,False
+XcP6HTlP7Nt,DE_217046,CMC Post abortion services - E&C/D&C Abortion,CMC Post abortion related services available - E&C/D&C Abortion,SUM,False
+x3cG1nQrV0d,DE_217049,CMC Post abortion services - E&C/D&C Post-abortion,CMC Post abortion related services available - E&C/D&C Post-abortion,SUM,False
+FAZsjrqfaYk,DE_217045,CMC Post abortion services - MA Abortion,CMC Post abortion related services available - MA Abortion,SUM,False
+GaDscQKVYrw,DE_217048,CMC Post abortion services - MA Post-abortion,CMC Post abortion related services available - MA Post-abortion,SUM,False
+lFEc4Weo8Uw,DE_217044,CMC Post abortion services - MVA Abortion,CMC Post abortion related services available - MVA Abortion,SUM,False
+Fo8lG6JORup,DE_217047,CMC Post abortion services - MVA Post-abortion,CMC Post abortion related services available - MVA Post-abortion,SUM,False
+ylTxB8pDdW6,DE_217093,CMC Procedure rooms in FP and CAC service units,CMC Procedure rooms in FP and CAC service units ensure client privacy and confidentiality,SUM,False
+mrCQ760kGUu,DE_217077,CMC Providers trained and certified both CAC and C,CMC Providers trained and certified both CAC and CC,SUM,False
+mU3ywrD2d24,DE_217076,CMC Providers trained and certified CAC,CMC Providers trained and certified comprehensive abortion care (CAC),SUM,False
+c30icyuh08j,DE_217075,CMC Providers trained and certified CC,CMC Providers trained and certified comprehensive contraception (CC),SUM,False
+J6hufb5lO0k,DE_217079,CMC Providers trained and certified postpartum IUD,CMC Providers trained and certified postpartum IUD insertion,SUM,False
+ILtncREADfd,DE_217080,CMC Providers trained in youth-friendly services i,CMC Providers trained in youth-friendly services in addition to CC or CAC services,SUM,False
+OZGgl38Z7tC,DE_217078,CMC Provider teams trained and certified PMs,CMC Provider teams trained and certified PMs,SUM,False
+xN2F50KrWOs,DE_217040,CMC Safe abortion services - E&C/D&C Abortion,CMC Safe abortion related services available - E&C/D&C Abortion,SUM,False
+edTAupzSt8B,DE_217043,CMC Safe abortion services - E&C/D&C Post-abortion,CMC Safe abortion related services available - E&C/D&C Post-abortion,SUM,False
+MYVHFFkdTYi,DE_217039,CMC Safe abortion services - MA Abortion,CMC Safe abortion related services available - MA Abortion,SUM,False
+fmQ8ORZ0eaz,DE_217042,CMC Safe abortion services - MA Post-abortion,CMC Safe abortion related services available - MA Post-abortion,SUM,False
+EQbayB0ysYj,DE_217038,CMC Safe abortion services - MVA Abortion,CMC Safe abortion related services available - MVA Abortion,SUM,False
+QxYJoKrJTZx,DE_217041,CMC Safe abortion services - MVA Post-abortion,CMC Safe abortion related services available - MVA Post-abortion,SUM,False
+nC6ZrPp6F7B,DE_217102,CMC Signed consent forms for all PM and CAC proce,CMC Signed consent forms for all PM and CAC procedures conducted during the past two months,SUM,False
+s5gk8w06vif,DE_217104,CMC Staff in FP/CAC units received a facilitative,CMC Staff in FP/CAC units received a facilitative supervision visit from supervisor past six months,SUM,False
+P7jdTXzh4ut,DE_217091,"CMC Staff in the FP, CAC and pharmacy units have","CMC Staff in the FP, CAC and pharmacy units have been oriented on use of the IPLS for FP and CAC",SUM,False
+iyLG1s9EAQ8,DE_217097,"CMC Sterilization/HLD mechanism in place, such as ","CMC Sterilization/HLD mechanism in place, such as sterilizer, boiler, autoclave available in FP and CAC",SUM,False
+bZgd4FWFsQI,DE_217084,CMC Stock-out - Contraceptive pills,CMC Stock-out - Contraceptive pills,SUM,False
+SDQMvEIFZJH,DE_217087,CMC Stock-out - Female condoms,CMC Stock-out - Female condoms,SUM,False
+CsORyrmcScJ,DE_217083,CMC Stock-out - Implanon,CMC Stock-out - Implanon,SUM,False
+lZEg2kLmHnz,DE_217085,CMC Stock-out - Injectables (DMPA),CMC Stock-out - Injectables (DMPA),SUM,False
+wwh5ng6o81Z,DE_217081,CMC Stock-out - IUD,CMC Stock-out - IUD,SUM,False
+fuhMFSpMGzx,DE_217082,CMC Stock-out - Jadelle or Sino-Implant,CMC Stock-out - Jadelle or Sino-Implant,SUM,False
+h0RS9WyBGPh,DE_217086,CMC Stock-out - Male condoms,CMC Stock-out - Male condoms,SUM,False
+es9P4K9xRCF,DE_217088,CMC Stock-out - Other (specify),CMC Stock-out - Other (specify),SUM,False
+xV8nAovXuOF,DE_217022,CMC Support provided ABRI - CC and CAC support,CMC Support provided ABRI III - CC and CAC support,SUM,False
+KPxUIT1OtGW,DE_217027,CMC Support provided ABRI - Community referral lin,CMC Support provided ABRI III - Community referral linkages,SUM,False
+heGCGPwVxfU,DE_217028,"CMC Support provided ABRI - Others, specify","CMC Support provided ABRI III - Others, specify",SUM,False
+xxgP9Pbe70o,DE_217023,CMC Support provided ABRI - PM (FS & NSV),CMC Support provided ABRI III - PM (FS & NSV),SUM,False
+uCSDy69GLVl,DE_217024,CMC Support provided ABRI - PPIUD,CMC Support provided ABRI III - PPIUD,SUM,False
+sgcewfdjRRq,DE_217025,CMC Support provided ABRI - Service integration,CMC Support provided ABRI III - Service integration,SUM,False
+drDdShUJJzi,DE_217026,CMC Support provided ABRI - Youth-friendly service,CMC Support provided ABRI III - Youth-friendly services,SUM,False
+k5YaukDVwcu,DE_217100,CMC Targets or quotas for service providers in th,CMC Targets or quotas for service providers in the FP or CAC exist,SUM,False
+o5USc1zH5mA,DE_217021,CMC Visiting team members (name and organization),CMC Visiting team members (name and organization),SUM,False
+Boy3QwztgeZ,DE_1153706,Commodities - Amoxicillin,Commodities - Amoxicillin,SUM,False
+d9vZ3HOlzAd,DE_1153703,Commodities - Antenatal Corticosteroids,Commodities - Antenatal Corticosteroids,SUM,False
+WjDoIR27f31,DE_1153704,Commodities - Chlorhexidine,Commodities - Chlorhexidine,SUM,False
+BXgDHhPdFVU,DE_1153698,Commodities - Emergency Contraception,Commodities - Emergency Contraception,SUM,False
+dY4OCwl0Y7Y,DE_1153696,Commodities - Female Condoms,Commodities - Female Condoms,SUM,False
+Dkapzovo8Ll,DE_1153697,Commodities - Implants,Commodities - Implants,SUM,False
+JIazHXNSnFJ,DE_1153702,Commodities - Injectable Antibiotics,Commodities - Injectable Antibiotics,SUM,False
+o15CyZiTvxa,DE_1153701,Commodities - Magnesium Sulfate,Commodities - Magnesium Sulfate,SUM,False
+f27B1G7B3m3,DE_1153700,Commodities - Misoprostol,Commodities - Misoprostol,SUM,False
+Lz8MM2Y9DNh,DE_1153707,Commodities - Oral Rehydration Salts,Commodities - Oral Rehydration Salts,SUM,False
+hJNC4Bu2Mkv,DE_1153699,Commodities - Oxytocin,Commodities - Oxytocin,SUM,False
+W1XtQhP6BGd,DE_1153705,Commodities - Resuscitation Equipment,Commodities - Resuscitation Equipment,SUM,False
+TCfIC3NDgQK,DE_1153708,Commodities - Zinc,Commodities - Zinc,SUM,False
+vBu1MTGwcZh,DE_360535,CHA,Community Health Assistant (CHA),AVERAGE_SUM_ORG_UNIT,False
+tn3p7vIxoKY,DE_406919,Compl. del comm live,Complicated deliveries in community live birth,SUM,False
+FE82N2sA0YI,DE_359648,Compl. del com still,Complicated deliveries in community still births,SUM,False
+R1WAv9bVXff,DE_406918,Compl. del PHU live,Complicated deliveries in PHU live birth,SUM,False
+ncEnqRPHFvk,DE_359647,Compl. del PHU still,Complicated deliveries in PHU still births,SUM,False
+f9xYwUwrHq9,,Country name,Country traveled to,NONE,False
+gomyQh3Z4Uy,,Coverage ,Coverage (Response to clear/interrupt transmission and prevent onward infection),NONE,False
+A2iV932tYAo,,Date carried out,Date carried out,NONE,False
+zDDHyXrJkCi,DE_240542,Date of assessment,Date of assessment,SUM,False
+Ah29MGrnVjJ,,Date of previous classification,Date of previous classification,NONE,False
+Urz28endlF6,,Date of previous malaria episode,Date of previous malaria episode,COUNT,False
+AZLp9Shoab9,,Date onset of Symptoms,Date onset of Symptoms,COUNT,False
+V9bT6YUTrMZ,DE_239454,Deaths due to tuberculosis among HIV-negative peop,Deaths due to tuberculosis among HIV-negative people (per 100 000 population),SUM,False
+DgnwZliJuh5,DE_1151454,Debriefing sessions are part of session,Debriefing sessions are part of each resuscitation protocol,SUM,False
+Tj642rK34Qf,,Development activity present,Development activity present,NONE,False
+jzksn7lA2ac,,Development activity type,Development activity type,NONE,False
+K6uUAvq500H,DE_3000010,Diagnosis (ICD-10),Diagnosis (ICD-10),AVERAGE,False
+vLA3KVFcZIw,DE_359040,Diarrh. w blood f-u,Diarrhoea with blood (Dysentery) follow-up,SUM,False
+nymNRxmnj4z,DE_370,Dysentry new,Diarrhoea with blood (Dysentery) new,SUM,False
+HQv1p570ldT,DE_358934,Diarrhoea w blood r.,Diarrhoea with blood (Dysentery) referrals,SUM,False
+nvkbuPrYmDd,DE_359038,Diarrh. wo s deh f-u,Diarrhoea without severe dehydration follow-up,SUM,False
+U3jd8zVFKxY,DE_358926,Diarrhoea wo s deh n,Diarrhoea without severe dehydration new,SUM,False
+ndb4fIRrQbM,DE_359039,Diarrh. sev deh f-u,Diarrhoea with severe dehydration follow-up,SUM,False
+UfZcabJUVcZ,DE_358927,Diarrhoea s deh new ,Diarrhoea with severe dehydration new,SUM,False
+HpM1I5qc3Pb,DE_358933,Diarrh. sev deh ref,Diarrhoea with severe dehydration referrals,SUM,False
+msodh3rEMJa,DE_3000006,Discharge Date,Discharge Date,AVERAGE,False
+EzR5Y2V0JF9,DE_360536,Dispenser,Dispenser,AVERAGE_SUM_ORG_UNIT,False
+okV7juK4t4M,,Distance of inhabitants from breeding site,Distance of inhabitants (with malaria) from breeding site,NONE,False
+xPs1qQeCRmq,,"District, block",District/block/sub-block,NONE,False
+nlQztbooKAj,DE_360526,Doctor,Doctor,AVERAGE_SUM_ORG_UNIT,False
+ulD2zW0TIy2,DE_424404,Documentation,Documentation,SUM,False
+iI24WVP95js,CS018,DOT 3 days,DOT 3 days,COUNT,False
+TvHTb93pu7v,,Dropdown list,Dropdown list,NONE,False
+Ix2HsbDMLea,DE_1148617,Dysentery (Deaths < 5 yrs),Dysentery (Deaths < 5 yrs),SUM,False
+zSl1hUZBDHY,DE_360538,EDC Unit Assitant,EDC Unit Assitant,AVERAGE_SUM_ORG_UNIT,False
+NiF6K3MXHsi,,Effectiveness of response,Effectiveness of response,NONE,False
+kFmyXB7IYrK,DE_360530,EHO,EHO,AVERAGE_SUM_ORG_UNIT,False
+uZJkd96hYCm,DE_1151440,Equipment is placed appropriate,Equipment is placed in appropriate reachable areas,SUM,False
+w1G4l0cSxOi,,Census reports produced,ER Census reports produced,SUM,False
+KFnFpbqDqji,,Children trained on key survival skills,ER Children trained on key survival skills,SUM,False
+AcXiLSABIOe,,Teacher accommodation constructed,ER Teacher accommodation constructed,SUM,False
+EX2jDbKe4Yq,,Teachers trained,ER Teachers trained,SUM,False
+zFFb3bar4Ct,,Teacher training programs designed,ER Teacher training programs designed,SUM,False
+l8gZXKhwawK,,Teaching materials improved,ER Teaching materials improved,SUM,False
+DCSDJH4IFUG,,Technical support visits,ER Technical support visits,SUM,False
+oI6YtDaVFcw,,Visits in schools,ER Visits in schools,SUM,False
+LCmAJHuXaoG,,Vulnerable families receiving follow-up visits,ER Vulnerable families receiving follow-up visits,SUM,False
+qiaHMoI3bjA,,Workshops conducted,ER Workshops conducted,SUM,False
+PILB3GtIwiJ,,Evidence,Evidence,NONE,False
+cG4A76jrZmp,DE_1151449,Examination table with pad,Examination table with pad,SUM,False
+BDuY694ZAFa,EXP_CARS,Cars Expense,EXP Cars Expense,SUM,False
+ixDKJGrGtFg,EXP_DRUGS,Drugs Expense,EXP Drugs Expense,SUM,False
+h0xKKjijTdI,DE_20899,Expected pregnancies,Expected pregnancies,AVERAGE_SUM_ORG_UNIT,False
+M3anTdbJ7iJ,EXP_SALARY,Salary Expense,EXP Salary Expense,SUM,False
+dHrtL2a4EcD,EXP_SEC,Security Expense,EXP Security Expense,SUM,False
+RR538iV9G1X,EXP_SHEETS,Sheets Expense,EXP Sheets Expense,SUM,False
+QV7HsRncdCz,DE_359057,Eye infection f-u,Eye infection follow-up,SUM,False
+BQI18TPLR7W,DE_358913,Eye infection new,Eye infection new,SUM,False
+XfsVSt4zciP,DE_358951,Eye infection ref.,Eye infection referrals,SUM,False
+TLSChlBcw7L,DE_216998,Facility has access to running water,Facility has access to running water,SUM,False
+UMJym1vYPSu,DE_216996,Facility has access to stable electrical power,Facility has access to stable electrical power,SUM,False
+MJYalhqFsHK,DE_216997,Facility has access to stable Internet connectivit,Facility has access to stable Internet connectivity,SUM,False
+rzhHSqK3lQq,,Fever,Fever,SUM,False
+JmZ0m8Q3gwh,,Foci malaria positive,Foci malaria positive,SUM,False
+rFQNCGMYud2,,Foci malaria test,Foci malaria test,NONE,False
+bl7EMKxJIIT,,Focus date of classification,Focus date of classification,NONE,False
+fjdU9F6EngS,,Focus final classification,Focus final classification,NONE,False
+BbE5wGi3gZl,DE_1151452,Foetal heart recorded hourly,Foetal heart recorded hourly,SUM,False
+UfCjMVB4gFT,,Follow-up diagnosis actions,Follow-up diagnosis actions,NONE,False
+ErApFcbWNtV,,Follow-up treatment actions,Follow-up treatment actions,NONE,False
+zgnTlAH4ZOk,,Vector control action details,Follow-up vector control action details,NONE,False
+Y14cBKFUsg4,,Vector control action details 2,Follow-up vector control action details 2,NONE,False
+pKj8YrNKVda,,Vector control action details 3,Follow-up vector control action details 3,NONE,False
+E09G4giWspB,,Vector control action details 4,Follow-up vector control action details 4,NONE,False
+nrVAe60NnBJ,,Vector control action details 5,Follow-up vector control action details 5,NONE,False
+TOxArSXVv3E,,Follow-up vector control actions,Follow-up vector control actions,NONE,False
+wNvEmaLLGE2,,Follow-up vector control actions 2,Follow-up vector control actions 2,NONE,False
+h0w2rWQVRsQ,,Follow-up vector control actions 3,Follow-up vector control actions 3,NONE,False
+fHRsTEml7pq,,Follow-up vector control actions 4,Follow-up vector control actions 4,NONE,False
+Qvb7NExMqjZ,,Follow-up vector control actions 5,Follow-up vector control actions 5,NONE,False
+UOlfIjgN8X6,DE_36,Fully Immunized Child,Fully Immunized child,SUM,False
+oZg33kd9taw,DE_3000004,Gender,Gender,AVERAGE,False
+sJWqKsx0ghX,DE_1152328,General state of facility,General state of facility,SUM,False
+SaHE38QFFwZ,,Geographical features,Geographical features,NONE,False
+y3S3a9e4ugi,DE_1151450,Glucometer is present,Glucometer is present,SUM,False
+GyJHQUWZ9Rl,,GPS DataElement,GPS DataElement,NONE,False
+Kjvr9TNOmC1,DE_1151453,Grounds are maintained and are safe and ,Grounds are maintained and are safe and clean,SUM,False
+GieVkTxp4HH,DE_240794,Height in cm,Height in cm,AVERAGE,False
+o0fOD1HLuv8,HIV_CNS,HIV counseling,HIV: counseling,SUM,False
+ZwrIPRUiHEB,HIV_CARE,HIV currently on care,HIV: currently on care,SUM,False
+ESGq1GV8YEE,DE_374562,Child test HIV 12m,HIV exposed children tested at 12 months,SUM,False
+ECYnLIh3IdU,DE_374564,Child test HIV 18m,HIV exposed children tested at 18 months,SUM,False
+ifTgszmp25q,DE_374563,HIV test+ 12m child,HIV exposed children with positive result at 12 months,SUM,False
+cxkB6Csdae7,DE_374565,HIV test+ 18m child,HIV exposed children with positive result at 18 months,SUM,False
+dL7MKVOSCUf,DE_374577,Inf. on cotrim 6w,HIV exposed infants initiated cotrim from age 6 wks,SUM,False
+ofqavN7bUXQ,DE_374578,HIV ch cotrim prof.,HIV infected children given cotrim prophylaxis (18m-18y),SUM,False
+veW7w0xDDOQ,HIV_NEW_CARE,HIV new on care,HIV: new on care,SUM,False
+PwAOGo407Kq,DE_374580,HIV+ child lost f-up,HIV positive children lost to follow-up,SUM,False
+u6yhzgWPIsj,DE_363639,HIV+ w ART CD4,HIV positive women assessed for ART eligibility by CD4 counting,SUM,False
+CwnEqKR0ebt,DE_363640,HIV+ w. ART staging,HIV positive women assessed for ART eligibility by clinical staging,SUM,False
+pN3V4jZeCmU,DE_374581,HIV rel. deaths ch.,HIV related deaths (children),SUM,False
+R4KStuS8qt7,HIV_TEST,HIV testing,HIV: testing,SUM,False
+VGASkvkD2Vf,,HH Investigation Conducted By,Household Investigation Conducted By,NONE,False
+F3ogKBuviRA,DE_862575,Household location,Household location,NONE,False
+rIjZnxmjGpg,,HH members fever past month,Household members fever past month,SUM,False
+qxWAgIAfZAh,,HH members malaria positive,Household members malaria positive,SUM,False
+y57kkdyw35d,,HH members Malaria tested ,Household members tested for malaria,SUM,False
+VNM6zoPECqd,,Households,Households,NONE,False
+k0rev4WSffi,,Households included,Households included,NONE,False
+fPPOb4St6ea,,Households in neighbourhood,Households in neighbourhood,SUM,False
+VOIXEuqBTBI,,Households in neighbourhood case detected,Households in neighbourhood where a case was detected,SUM,False
+AeVEKN0zwJJ,,HH sprayed in past 6m,Household sprayed in the past 6 months,COUNT,False
+p2NvDm7mWM3,,Households screened,Households screened,SUM,False
+h0BwBQO9XUf,DE_359064,Hypertension f-u,Hypertension follow-up,SUM,False
+UXW5hWW8dE1,DE_358917,Hypertension new,Hypertension new,SUM,False
+X5GbcxQCasr,DE_358958,Hypertension ref.,Hypertension referrals,SUM,False
+f3Rn9XPEQuv,DE_223562,IC Activity,IC Activity,AVERAGE,False
+Dv7iIitX44Y,DE_223563,IC Age,IC Age,AVERAGE,False
+UuL3eX8KJHY,DE_223560,IC Group Type,IC Group Type,AVERAGE,False
+lsJCUffec9h,DE_223565,IC People reached,IC People reached,AVERAGE,False
+deQEw93Vr4j,DE_223564,IC Topic,IC Topic,AVERAGE,False
+DvrjjquRrvF,DE_223561,IC Venue,IC Venue,AVERAGE,False
+UsSUX0cpKsH,,Cholera,IDSR Cholera,SUM,False
+vq2qO3eTrNi,,Malaria,IDSR Malaria,SUM,False
+YazgqXbizv1,,Measles,IDSR Measles,SUM,False
+HS9zqaBdOQ4,,Plague,IDSR Plague,SUM,False
+noIzB569hTM,,Yellow fever,IDSR Yellow fever,SUM,False
+QBrhoanBAV5,,Index case,Index case,SUM,False
+XB4uzhs4Is4,DE_374561,HIV exposed infants,Infants born to HIV Positive mothers (exposed),SUM,False
+avs8Dhz3OoG,DE_374560,Inf delivered PHU F,Infants delivered in the health facility female,SUM,False
+N9vniUuCcqY,DE_374559,Inf delivered PHU M,Infants delivered in the health facility male,SUM,False
+WHBtsCMZVAE,DE_1151060,Inpatient cases,Inpatient cases,SUM,False
+ZRVfMoPKK05,DE_1151061,Inpatient deaths,Inpatient deaths,SUM,False
+p4K11MFEWtw,DE_1151062,Inpatient malaria cases,Inpatient malaria cases,SUM,False
+wWy5TE9cQ0V,DE_1151063,Inpatient malaria deaths,Inpatient malaria deaths,SUM,False
+S33cRBsnXPo,DE_862347,Inpatient Place of Infection,Inpatient Place of Infection,NONE,False
+IyAKwL6Zjkl,DE_3000007,Insured patient,Insured patient,AVERAGE,False
+bqK6eSIwo3h,DE_359603,IPT 1st at PHU,IPT 1st dose given at PHU,SUM,False
+yTHydhurQQU,DE_359605,IPT 1st by TBA,IPT 1st dose given by TBA,SUM,False
+V37YqbqpEhV,DE_359604,IPT 2nd at PHU,IPT 2nd dose given at PHU,SUM,False
+SA7WeFZnUci,DE_359606,IPT 2nd by TBA,IPT 2nd dose given by TBA,SUM,False
+rbkr8PL0rwM,DE_359601,Iron Folate at ANC 3,Iron Folate given at ANC 3rd,SUM,False
+Pm5sXfeRbzp,,IRS coverage (%),IRS coverage (%),AVERAGE,False
+eizakNwF2ep,DE_360533,Lab Assistant,Laboratory Assistant,AVERAGE_SUM_ORG_UNIT,False
+v0Shu9zrSh0,DE_360532,Lab Tech,Laboratory Technician,AVERAGE_SUM_ORG_UNIT,False
+dVdxnTNL2jZ,DE_359050,Lassa fever f-u,Lassa fever follow-up,SUM,False
+NCteyX2xpMf,DE_392,Lassa feve new,Lassa fever new,SUM,False
+uz8dqEzuxyc,DE_358944,Lassa fever ref.,Lassa fever referrals,SUM,False
+kqqgh0EOlcA,DE_359059,Leprosy follow-up,Leprosy follow-up,SUM,False
+zAW6b5Owalk,DE_394,Leprosy new,Leprosy new,SUM,False
+KAXjpSLFlhB,DE_358953,Leprosy referrals,Leprosy referrals,SUM,False
+X0rTbbFpRTO,DE_1151455,Lighting and ventilation is adequate,Lighting and ventilation is observed to be adequate,SUM,False
+gQNFkFkObU8,DE_359657,Live births,Live births,SUM,False
+fADIatyOu2g,,LLIN coverage (%),LLIN coverage (%),AVERAGE,False
+JhpYDsTUfi2,,LLINs displayed,LLINs displayed,SUM,False
+g6tH05ItHEm,,LLIN usage (%),LLIN usage (%),NONE,False
+ntzmpYRSKGg,DE_359651,LLITN after delivery,LLITN given after delivery,SUM,False
+ybzlGLjWwnK,DE_359600,LITTN at ANC 1st,LLITN given at ANC 1st,SUM,False
+z7duEFcpApd,DE_359709,LLITN at Penta3,LLITN given at Penta3,SUM,False
+doBYriW7P5a,,Local Case Classification,Local Case Classification,NONE,False
+NpJtsQkMTm3,DE_1148618,Louse Borne Typhus (Deaths < 5 yrs),Louse Borne Typhus - Relapsing fever (Deaths < 5 yrs),SUM,False
+Ce6kAvaHsxR,DE_192,NoLowBirthWeig<2.5.O,Low birth weight in community,SUM,False
+DvEF1SdMORa,DE_65,NoLowBirthWeig<2.5.F,Low birth weight in PHU,SUM,False
+bW5ZTqkCTHy,,Main breeding site,Main breeding site,NONE,False
+Vbv4EDAeXJl,,Main breeding sites,Main breeding sites,NONE,False
+ElxhP9pTTP6,,Malaria case classification,Malaria case classification,NONE,False
+HUPFagklWaN,,Malaria confirmed mixed (CI),Malaria confirmed mixed (CI),SUM,False
+vYH71AeWNQK,,Malaria confirmed mixed (foci),Malaria confirmed mixed (foci),SUM,False
+jt8mzqlDEjd,,Malaria Pf (CI),Malaria confirmed Pf (CI),SUM,False
+Xh63x0mfF5o,,Malaria confirmed Pf (foci),Malaria confirmed Pf (foci),SUM,False
+ZB8ZUUsxqsd,,Malaria confirmed Pk (CI),Malaria confirmed Pk (CI),SUM,False
+NMtyvCDiGxh,,Malaria confirmed Pk (foci),Malaria confirmed Pk (foci),SUM,False
+sJ23PICb6Fy,,Malaria confirmed Pm (CI),Malaria confirmed Pm (CI),SUM,False
+qYaI3TszPET,,Malaria confirmed Pm (foci),Malaria confirmed Pm (foci),SUM,False
+E2K6KluoF7L,,Malaria confirmed Po (CI),Malaria confirmed Po (CI),SUM,False
+PaliV83bIb9,,Malaria confirmed Po (foci),Malaria confirmed Po (foci),SUM,False
+ImgnHPhcNYE,,Malaria confirmed Pv (CI),Malaria confirmed Pv (CI),SUM,False
+XjcDg2kOmqf,,Malaria confirmed Pv (foci),Malaria confirmed Pv (foci),SUM,False
+r6nrJANOqMw,DE_1153190,Malaria (Deaths < 5 yrs),Malaria (Deaths < 5 yrs),SUM,False
+a0WhmKHnZ6J,DE_239772,Malaria (Deaths < 5 yrs) Narrative,Malaria (Deaths < 5 yrs) Narrative,SUM,False
+cpXwLgQTLeO,,Malaria history,Malaria history,COUNT,False
+E0W0ZTTosXK,CS015,Services,Malaria inpatient/outpatient,NONE,False
+nTMP8Aj1rYA,CS017,Malaria Medication,Malaria Medication,NONE,False
+uYreHlUd6RL,,Malaria medication completed,Malaria medication completed,COUNT,False
+nXJJZNVAy0Y,DE_860030,Malaria Outbreak Threshold,Malaria Outbreak Threshold,SUM,False
+LvJ1d1ytjfb,,Malaria positive (neighbourhood),Malaria positive (people in neighbourhood),SUM,False
+vGxpKVMkmaW,CS011,Malaria +ve species,Malaria positive species,NONE,False
+hnwWyM4gDSg,DE_358932,Malaria referrals,Malaria referrals,SUM,False
+qdjVZojEK8S,,Malaria test,Malaria test,NONE,False
+r9O7yJrA41g,,Malaria tested (neighbourhood),Malaria tested (people in neighbourhood),SUM,False
+aY4kB8kS521,CS010,Malaria result,Malaria test result,NONE,False
+CecywZWejT3,DE_359243,Malaria PHU wACT<24f,Malaria treated at PHU with ACT < 24 hrs f-up,SUM,False
+bVkFujnp3F2,DE_359244,Malaria PHU wACT>24f,Malaria treated at PHU with ACT > 24 hrs f-up,SUM,False
+AFM5H0wNq3t,DE_358920,Malaria PHU wACT<24n,Malaria treated at PHU with ACT < 24 hrs new,SUM,False
+d92E7cpMvdl,DE_358921,Malaria PHU wACT>24n,Malaria treated at PHU with ACT > 24 hrs new,SUM,False
+iIBbZPAqnMt,DE_359245,MalariaPHU woACT<24f,Malaria treated at PHU without ACT < 24 hrs f-up,SUM,False
+pgi981WXhas,DE_359246,MalariaPHU woACT>24f,Malaria treated at PHU without ACT > 24 hrs f-up,SUM,False
+nmh0BSu3vaV,DE_358922,MalariaPHU woACT<24n,Malaria treated at PHU without ACT < 24 hrs new,SUM,False
+EGUJY3jQdJ6,DE_358923,MalariaPHU woACT>24n,Malaria treated at PHU without ACT > 24 hrs new,SUM,False
+TQnDEASFsVH,DE_359247,Malaria com wAC<24f,Malaria treated in community with ACT <24 hrs f-up,SUM,False
+vzcahelbU5s,DE_359248,Malaria com wACT>24f,Malaria treated in community with ACT >24 hrs f-up,SUM,False
+x8gsvCKjGdZ,DE_358924,Malaria com wAC<24n,Malaria treated in community with ACT <24 hrs new,SUM,False
+kcbTUfABUck,DE_358925,Malaria com wACT>24n,Malaria treated in community with ACT >24 hrs new,SUM,False
+FUrCpcvMAmC,DE_359821,Maternal death,Maternal death,SUM,False
+q7QXzNnSstn,DE_360534,Aide,MCH Aide,AVERAGE_SUM_ORG_UNIT,False
+g9eOBujte1U,DE_2005735,ANC Visit,MCH ANC Visit,AVERAGE,False
+H6uSAMO5WLD,DE_391382,Apgar comment,MCH Apgar comment,SUM,False
+a3kGcGDCuk6,DE_2006098,Apgar Score,MCH Apgar Score,AVERAGE,False
+wQLfBvPrXqq,DE_2008294,ARV at birth,MCH ARV at birth,AVERAGE,False
+NALlPhMmMTQ,DE_2005739,ARVs,MCH ARVs,AVERAGE,False
+bx6fsa0t90x,DE_2006101,BCG dose,MCH BCG dose,SUM,False
+KVQpGEjHluk,DE_2008153,BP,MCH Blood Pressure,AVERAGE,False
+thO0LN2i2OJ,DE_2006095,Status of the brest,MCH Breast Status,AVERAGE,False
+XorIxxprsOp,DE_2006092,CD4 Count,MCH CD4 count,AVERAGE,False
+DWcWXE0xO2b,DE_2006096,Status of the cervix,MCH Cervix Status,AVERAGE,False
+sj3j9Hwc7so,DE_2006100,Child ARVs,MCH Child ARVs,AVERAGE,False
+PuakB9BOtIV,DE_2008176,Condition of baby on discharge,MCH Condition of baby on discharge,AVERAGE,False
+Rbv6wcblbxe,DE_2008177,Condition of mother on discharge,MCH Condition of mother on discharge,AVERAGE,False
+ihOp58eRcG3,DE_2006097,CTX,MCH CTX,AVERAGE,False
+uxRgo9bGWhX,DE_2006093,Date of Delivery,MCH Date of Delivery,AVERAGE,False
+tLn2UVJJ9kO,DE_2008167,Delivery Comment,MCH Delivery Comment,AVERAGE,False
+pOe0ogW4OWd,DE_2006105,DPT dose,MCH DPT dose,AVERAGE,False
+DBFcMGod0Wy,DE_2006094,Family Planning,MCH Family Planning,AVERAGE,False
+xjTklbpY6oG,DE_2005741,HB,MCH HB,AVERAGE,False
+hDZbpskhqDd,DE_2006108,HIV Test Type,MCH HIV Test Type,AVERAGE,False
+X8zyunlgUfM,DE_2006103,Infant Feeding,MCH Infant Feeding,AVERAGE,False
+cYGaxwK615G,DE_2006107,Infant HIV Test Result,MCH Infant HIV Test Result,AVERAGE,False
+GQY2lXrypjO,DE_2006099,Infant Weight (g),MCH Infant Weight  (g),AVERAGE,False
+lNNb3truQoi,DE_2005744,IPT dose,MCH IPT dose,AVERAGE,False
+EzMxXuVww2z,DE_2008144,Iron/Folic,MCH Iron/Folic,AVERAGE,False
+sMspMpbvDYI,DE_2005745,ITN,MCH ITN,AVERAGE,False
+pB5sL7Ts4fb,DE_2008154,Mabendazole,MCH Mabendazole,AVERAGE,False
+gvrK6CxWTcp,DE_2008166,3rd stage mgt,MCH Management of 3rd stage,AVERAGE,False
+FqlgKAG8HOu,DE_2006125,Measles dose,MCH Measles dose,SUM,False
+fIy3fOtkbdS,DE_2008164,Mode of Delivery,MCH Mode of Delivery,AVERAGE,False
+utliJZmDeeC,DE_2008125,MUAC,MCH MUAC,AVERAGE,False
+ebaJjqltK5N,DE_2006104,OPV dose,MCH OPV dose,AVERAGE,False
+vTUhAUZFoys,DE_347311,Penta dose,MCH Penta dose,AVERAGE,False
+SMo8UtuSF5p,DE_2005738,PMTCT P,MCH PMTCT P,AVERAGE,False
+jkKCVlLRsFD,DE_2005737,PMTCT W,MCH PMTCT W,AVERAGE,False
+uRYRt4fs52Q,DE_2006102,Polio dose,MCH Polio dose,AVERAGE,False
+BeynU4L6VCQ,DE_2006110,Results given to caretake,MCH Results given to caretaker,AVERAGE,False
+aei1xRjSU2l,DE_2006109,Septrin Given,MCH Septrin Given,AVERAGE,False
+L9G6ZtxbfjG,DE_2008194,baby status PNC,MCH Status of the Baby (PNC),AVERAGE,False
+r0VOslrt2RP,DE_2005742,Syphilis Test,MCH Syphilis Test,AVERAGE,False
+wpKRnvM14KO,DE_2005740,TB Status,MCH TB Status,AVERAGE,False
+gAbD3uDVHHh,DE_2005743,Tetanus,MCH Tetatus,AVERAGE,False
+OuJ6sgPyAbC,DE_2008126,Visit Comment,MCH Visit Comment,AVERAGE,False
+HLmTEmupdX0,DE_2006106,Vit A,MCH Vit A,SUM,False
+UXz7xuGCEhU,DE_2005736,Weight (g),MCH Weight (g),AVERAGE,False
+DRGELgdyWk9,DE_2006091,WHO Stage,MCH WHO Stage,AVERAGE,False
+rxBfISxXS2U,DE_2006126,Yellow fever dose,MCH Yellow fever dose,SUM,False
+f7n9E0hX8qk,DE_1148619,Measles (Deaths < 5 yrs),Measles (Deaths < 5 yrs),SUM,False
+FaVPxpiCab5,DE_239773,Measles (Deaths < 5 yrs) Narrative,Measles (Deaths < 5 yrs) Narrative,SUM,False
+YtbsuPPo010,DE_34,Measles doses given,Measles doses given,SUM,False
+uCVKV6PGGNB,DE_359046,Measles follow-up,Measles follow-up,SUM,False
+GCvqIM3IzN0,DE_385,Measles new,Measles new,SUM,False
+eomLLbWJfcx,DE_358940,Measles referrals,Measles referrals,SUM,False
+d5xTg3WR3DP,DE_359732,De-worming 12-59m,Mebendazole/Albendazole (for children 12-59 months),SUM,False
+MSZuQ1mTsia,DE_1148620,Meningitis (Deaths < 5 yrs),Meningitis (Deaths < 5 yrs),SUM,False
+bBiAGF9UhUy,DE_359045,Meningitis follow-up,Meningitis/severe bacterial infection follow-up,SUM,False
+JFFUt8yR2iW,DE_384,Meningitis new,Meningitis/severe bacterial infection new,SUM,False
+hfuTiKOkuKs,DE_358939,Meningitis referrals,Meningitis/severe bacterial infection referrals,SUM,False
+UheAxQgiyyE,CS013,Microscopy Result,Microscopy Result,NONE,False
+BRqksRYCj8a,CS014,Micro +ve species,Micro +ve species,NONE,False
+OKj6vV8hmTP,DE_360528,Midwife,Midwife,AVERAGE_SUM_ORG_UNIT,False
+WQSdEl9xUMA,DE_1151035,MNCH ANC Attendance,MNCH ANC Attendance,SUM,False
+iYCGteGcr6Q,DE_1151034,MNCH ANC registrants,MNCH ANC registrants,SUM,False
+ijIsjbvXFJL,DE_1151041,MNCH Breech/shoulder delivery,MNCH Breech/shoulder delivery,SUM,False
+DosHq4vnsYv,DE_1151040,MNCH Caesarean section deliveries,MNCH Caesarean section deliveries,SUM,False
+QhKQD2wHowC,DE_1151037,MNCH Cases of anaemia during ANC,MNCH Cases of anaemia during ANC,SUM,False
+Q8lOv2CAUjf,DE_1151043,MNCH Destructive operations delivery,MNCH Destructive operations delivery,SUM,False
+aLF5wmCZrKF,DE_1151036,MNCH Heamoglobin checks performed,MNCH Heamoglobin checks performed during ANC,SUM,False
+SqvCDfGBFzM,DE_1151039,MNCH Normal deliveries,MNCH Normal deliveries,SUM,False
+g9Tso8plX88,DE_1151042,MNCH vacuum/forceps delivery,MNCH vacuum/forceps delivery,SUM,False
+fWIAEtYVEGk,DE_3000009,Mode of Discharge,Mode of Discharge,AVERAGE,False
+Y4EkaFzzGLY,CS005,Pregnancy months,Months pregnant,SUM,False
+sFMVaj1mHBk,DE_359048,NNT follow-up,Neonatal Tetanus follow-up,SUM,False
+wcwbN1jR0ar,DE_386,NNT new,Neonatal Tetanus new,SUM,False
+HFw6q0jUFKI,DE_358942,NNT referrals,Neonatal Tetanus referrals,SUM,False
+DUSpd8Jq3M7,DE_359710,Newborn protected,Newborn protected at birth against tetanus (TT2+),SUM,False
+PxT44IblPCq,DE_374622,New ABC300ddI200IDV400,New on ABC 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+la1f7sqY9sb,DE_374623,New ABC300_ddI200_LPV,New on ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg,SUM,False
+lmj0xtl5P6C,DE_374631,New ART other regimen,New on ART other regimen,SUM,False
+xrbIG3L9DdO,DE_374628,New AZT10_3TC10_NVP10,New on AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml,SUM,False
+xETRo03ZfOM,DE_374618,New AZT300_3TC150_ABC300,New on AZT 300mg + 3TC 150mg + ABC 300mg ,SUM,False
+tZLjsE0VXrL,DE_374617,New AZT300_3TC150_EFV600,New on AZT 300mg /  3TC 150mg + EFV 600mg,SUM,False
+YX1MQLgAD92,DE_374616,New AZT300_3TC150_NVP200,New on AZT 300mg / 3TC 150mg + NVP 200mg,SUM,False
+wIQ5ugpWYUH,DE_374619,New AZT300_3TC150_TDF300,New on AZT 300mg + 3TC 150mg + TDF 300mg ,SUM,False
+GgsWqA0YETj,DE_374629,New AZT 300mg at 28w,New on AZT 300mg at 28 wks,SUM,False
+GNY9KvEmRjy,DE_374634,New AZT+3TC_300+150for7d,New on AZT + 3TC 300mg + 150mg for 7 days,SUM,False
+nvsNqhfSSxd,DE_475164,NewAZT3TC3001507d36w,New on AZT + 3TC 300mg + 150mg for 7 days after 36 weeks,SUM,False
+ozmEltb5V8d,DE_374632,New AZT_3TC_300_150 lab,New on AZT + 3TC 300mg + 150mg on labour,SUM,False
+pVImQlMAla4,DE_374633,New AZT3TCNVP300+150+200,New on AZT + 3TC + NVP 300mg + 150mg + 200mg,SUM,False
+hoj1wTJT6ZW,DE_374620,New d4T30_3TC100_ABC 300,New on d4T 30mg + 3TC 100mg + ABC 300mg,SUM,False
+SLcj0Swq8rD,DE_374621,New d4T30_3TC100_TDF300,New on d4T 30mg + 3TC 100mg + TDF 300mg ,SUM,False
+x98jMXibptT,DE_374614,New d4T30_3TC150_EFV600,New on d4T 30mg + 3TC 150mg + EFV 600mg,SUM,False
+o44j6gPqFlA,DE_374612,New d4T30_3TC150_NVP200,New on d4T 30mg / 3TC 150mg / NVP 200mg,SUM,False
+YIDKw3om85t,DE_374627,New d4T3TCNVP_12_60_100,New on d4T / 3TC / NVP 12mg/60mg/100mg,SUM,False
+pq4msirdtpr,DE_374626,New d4T_3TC_NVP_6_30_50,New on d4T / 3TC / NVP 6mg/30mg/50mg,SUM,False
+fDkcJaO15aQ,DE_374615,New d4T40_3TC150_EFV600,New on d4T 40mg + 3TC 150mg + EFV 600mg,SUM,False
+xUNvvqqhNwz,DE_374613,New d4T40_3TC150_NVP200,New on d4T 40mg / 3TC 150mg / NVP 200mg,SUM,False
+uN64b5MivTO,DE_374630,New Inf NVP10 (2mg/kg),New on Infant NVP 10mg/ml (2mg/kg),SUM,False
+D4PywWuIwy0,DE_374635,New NVPAZT3TC10+10+10 7d,New on NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days,SUM,False
+tnDQ80ycQus,DE_374624,New TDF300_ddI200_IDV400,New on TDF 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+w1554hhXNcq,DE_374625,New TDF300_ddI200_LPV,New on TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg,SUM,False
+ai8q3uo44rl,,Non-active malaria foci classification,Non-active malaria foci classification,NONE,False
+OAVNZb2venY,,Non-resident district and country,Non-resident district and country,NONE,False
+oUlFoAVdLgB,DE_239456,Number of deaths due to tuberculosis excluding HIV,Number of deaths due to tuberculosis excluding HIV,SUM,False
+LseeuddA4Fp,DE_239453,Number of prevalent tuberculosis cases,Number of prevalent tuberculosis cases,SUM,False
+DUtltDE5ma1,DE_360539,Nursing Aide,Nursing Aide,AVERAGE_SUM_ORG_UNIT,False
+BvuQnfq1C4J,DE_359060,Onchocerciasis f-u,Onchocerciasis follow-up,SUM,False
+DrEOxW8mbbh,DE_395,Onchocerci new,Onchocerciasis new,SUM,False
+q9AIeFQD7zj,DE_358954,Onchocerciasis ref.,Onchocerciasis referrals,SUM,False
+x3Do5e7g4Qo,DE_359707,OPV0 doses given ,OPV0 doses given,SUM,False
+pikOziyCXbM,DE_19,OPV1 doses given,OPV1 doses given,SUM,False
+O05mAByOgAv,DE_20,OPV2 doses given,OPV2 doses given,SUM,False
+vI2csg55S9C,DE_21,OPV3 doses given,OPV3 doses given,SUM,False
+QjBlbVQ8QR8,,Other medication,Other additional medication (please specify),NONE,False
+efvdFsY1dme,,Other breeding site,Other breeding site,NONE,False
+FxYWTORW4mT,,Other diagnosis method,Other diagnosis method (please specify),NONE,False
+viFyEk7JmVd,DE_360543,Other staff,Other staff,AVERAGE_SUM_ORG_UNIT,False
+VUUio5uEiyZ,,Other Symptoms,Other Symptoms,COUNT,False
+ArS7VyuL95f,DE_359065,Otitis media f-u,Otitis media follow-up,SUM,False
+DWLCM68Q7Zl,DE_358915,Otitis media new,Otitis media new,SUM,False
+j73ScVBTyP0,DE_358959,Otitis media ref.,Otitis media referrals,SUM,False
+zXNfOKXRBA9,CS020,Outcome ,Outcome of illness,NONE,False
+xc8gmAKfO95,DE_359722,PCV1 doses given,PCV1 doses given,SUM,False
+mGN1az8Xub6,DE_359723,PCV2 doses given,PCV2 doses given,SUM,False
+L2kxa2IA2cs,DE_359724,PCV3 doses given,PCV3 doses given,SUM,False
+fClA2Erf6IO,DE_23,Penta1 doses given,Penta1 doses given,SUM,False
+I78gJm4KBo7,DE_24,Penta2 doses given,Penta2 doses given,SUM,False
+n6aMJNLdvep,DE_25,Penta3 doses given,Penta3 doses given,SUM,False
+DX4LVYeP7bw,,People included,People included,NONE,False
+qpQinIDQ6Uy,DE_217125,PFS Date of training,PFS Date of training (end of training),AVERAGE,False
+zNXca47AaTh,DE_217130,PFS End-of-training - CAC counseling,PFS End-of-training assessment - CAC counseling,AVERAGE,False
+fQMBEt42CSl,DE_217131,PFS End-of-training - CAC MVA,PFS End-of-training assessment - CAC MVA,AVERAGE,False
+PfSefJQpg5g,DE_217126,PFS End-of-training - CC FP counseling,PFS End-of-training assessment - CC FP counseling,AVERAGE,False
+f2MduVqwPXO,DE_217128,PFS End-of-training - CC Implanon insertion,PFS End-of-training assessment - CC Implanon insertion,AVERAGE,False
+GXNUsigphqK,DE_217129,PFS End-of-training - CC IUCD insertion,PFS End-of-training assessment - CC IUCD insertion,AVERAGE,False
+ROEGWNaasDP,DE_217127,PFS End-of-training - CC Jadelle insertion,PFS End-of-training assessment - CC Jadelle insertion,AVERAGE,False
+Lh9x3J6EF0g,DE_217132,PFS End-of-training - PM FP counseling,PFS End-of-training assessment - PM FP counseling,AVERAGE,False
+BLNHqFdGFRv,DE_217134,PFS End-of-training - PM NSV,PFS End-of-training assessment - PM NSV,AVERAGE,False
+Y35b9mKPwgz,DE_217133,PFS End-of-training - PM Suprapubic minilap,PFS End-of-training assessment - PM Suprapubic minilap,AVERAGE,False
+CtpjtJOlix1,DE_217135,PFS End-of-training - PPIUD FP counseling,PFS End-of-training assessment - PPIUD FP counseling,AVERAGE,False
+Kdj9bEhmtER,DE_217136,PFS End-of-training - PPUID Postplacental IUCD,PFS End-of-training assessment - PPUID Postplacental IUCD,AVERAGE,False
+bTWjEduOv4P,DE_217187,PFS Inadequate recovery area,PFS Inadequate client recovery area,AVERAGE,False
+uYrt6Rjh0q2,DE_217215,PFS Inadequate recovery area - Discuss off-site mg,PFS Inadequate client recovery area - Discussion off-site management,AVERAGE,False
+lsPerCow7QG,DE_217214,PFS Inadequate recovery area - Discuss on-site mgm,PFS Inadequate client recovery area - Discussion on-site management,AVERAGE,False
+qlzHqClWAsG,DE_217188,PFS Inadequate recovery area - Discussion provider,PFS Inadequate client recovery area - Discussion with provider,AVERAGE,False
+D795f7Ftl5Z,DE_217180,PFS Inadequate couns room,PFS Inadequate counseling room,AVERAGE,False
+msiehvzdkh0,DE_217183,PFS Inadequate couns room - Discuss off-site mgmnt,PFS Inadequate counseling room - Discussion with off-site management,AVERAGE,False
+qv3Ivgr7qA8,DE_217182,PFS Inadequate couns room - Discuss on-site mgmnt,PFS Inadequate counseling room - Discussion with on-site management,AVERAGE,False
+OjGY9phCVkF,DE_217181,PFS Inadequate couns room - Discuss provider,PFS Inadequate counseling room - Discussion with provider,AVERAGE,False
+hFbuuBkjut3,DE_217184,PFS Inadequate procedure room,PFS Inadequate procedure room,AVERAGE,False
+kSDiqFhUP8P,DE_217186,PFS Inadequate procedure room - Discuss off-site m,PFS Inadequate procedure room - Discussion with off-site management,AVERAGE,False
+zJer0XIW5fV,DE_217185,PFS Inadequate procedure room - Discuss on-site mg,PFS Inadequate procedure room - Discussion with on-site management,AVERAGE,False
+zF6StgsGthD,DE_217173,PFS Lack of clinical knowledge,PFS Lack of clinical knowledge,AVERAGE,False
+DgluqT5CbIp,DE_217174,PFS Lack of clinical knowledge - Clinical coaching,PFS Lack of clinical knowledge - Clinical coaching,AVERAGE,False
+OKN6ZG1z7pq,DE_217175,PFS Lack of clinical knowledge - Knowledge update,PFS Lack of clinical knowledge - Knowledge update/orientation,AVERAGE,False
+ZpvFqxRhFuP,DE_217176,PFS Lack of clinical knowledge - Reference mater,PFS Lack of clinical knowledge - Provision of reference materials,AVERAGE,False
+Q6vysZzUoPl,DE_217165,PFS Lack of clinical skill,PFS Lack of clinical skill,AVERAGE,False
+ogBU5CfbAUZ,DE_217168,PFS Lack of clinical skill - Exchange visit,PFS Lack of clinical skill - Arrangement exchange visit high caseload site,AVERAGE,False
+z8Ay2GaaqpC,DE_217167,PFS Lack of clinical skill - Peer ment,PFS Lack of clinical skill - Arrangement for peer mentoring on-site,AVERAGE,False
+lJSMLN5WRDF,DE_217166,PFS Lack of clinical skill - Clinical coaching,PFS Lack of clinical skill - Clinical coaching,AVERAGE,False
+LDEqL9GokCM,DE_217213,PFS Lack of clinical standards,PFS Lack of clinical standards,AVERAGE,False
+dGdEEpNb7GW,DE_217178,PFS Lack of clinical standards - Discuss off-site,PFS Lack of clinical standards - Discussion with off-site management,AVERAGE,False
+uHkibfGqtXg,DE_217177,PFS Lack of clinical standards - Discuss on-site,PFS Lack of clinical standards - Discussion with on-site management,AVERAGE,False
+HpC2iqyoMR8,DE_217179,PFS Lack of clinical standards - Job aids,PFS Lack of clinical standards - Provision of job aids/guidelines,AVERAGE,False
+fgPOFbi37BM,DE_217169,PFS Lack of confidence,PFS Lack of confidence,AVERAGE,False
+VDxTE7l7sc7,DE_217171,PFS Lack of confidence - Peer mentoring,PFS Lack of confidence - Arrangement for peer mentoring on-site,AVERAGE,False
+Ws36Dp6gHA1,DE_217170,PFS Lack of confidence - Clinical coaching,PFS Lack of confidence - Clinical coaching,AVERAGE,False
+KRJeVOPBy6t,DE_217172,PFS Lack of confidence - Encouragement,PFS Lack of confidence - Encouragement,AVERAGE,False
+GFDKf2idXLV,DE_217210,PFS Method of contact,PFS Method of contact,AVERAGE,False
+e4EMaGSEyV9,DE_217211,PFS Name of person conducting follow-up,PFS Name of person conducting follow-up,AVERAGE,False
+IgkWhfPryqt,DE_217160,PFS Provider provision challenges - CAC,PFS Provider provision challenges - CAC,AVERAGE,False
+Q5725FPinzH,DE_217163,PFS Provider provision challenges - FS,PFS Provider provision challenges - FS,AVERAGE,False
+ihgI4dDwUQT,DE_217159,PFS Provider provision challenges - Implant,PFS Provider provision challenges - Implant,AVERAGE,False
+AVC7oJYrZrk,DE_217158,PFS Provider provision challenges - IUD,PFS Provider provision challenges - IUD,AVERAGE,False
+WMhpzP6czRF,DE_217164,PFS Provider provision challenges - NSV,PFS Provider provision challenges - NSV,AVERAGE,False
+ZhGKg3ssbmX,DE_217161,PFS Provider provision challenges - PAFP,PFS Provider provision challenges - PAFP,AVERAGE,False
+UoRMWhj2YIy,DE_217162,PFS Provider provision challenges - PPIUD,PFS Provider provision challenges - PPIUD,AVERAGE,False
+pharIEKZNo0,DE_217139,PFS Service provision 0 - CAC,PFS Service provision 0 - CAC,AVERAGE,False
+IZSvH4lOb1h,DE_217142,PFS Service provision 0 - FS,PFS Service provision 0 - FS,AVERAGE,False
+DcsUXIcK8IJ,DE_217138,PFS Service provision 0 - Implant,PFS Service provision 0 - Implant,AVERAGE,False
+rxTX7yNs8Ph,DE_217137,PFS Service provision 0 - IUD,PFS Service provision 0 - IUD,AVERAGE,False
+ypvDEOvkjTx,DE_217143,PFS Service provision 0 - NSV,PFS Service provision 0 - NSV,AVERAGE,False
+SayYGlKyPCa,DE_217140,PFS Service provision 0 - PA FP,PFS Service provision 0 - PA FP,AVERAGE,False
+ASvofuem7Oa,DE_217141,PFS Service provision 0 - PPIUD,PFS Service provision 0 - PPIUD,AVERAGE,False
+M3H9NEMuBix,DE_217146,PFS Service provision 1 - CAC,PFS Service provision 1 - CAC,AVERAGE,False
+hca8vQ6jEST,DE_217149,PFS Service provision 1 - FS,PFS Service provision 1 - FS,AVERAGE,False
+SKh80FGIVKI,DE_217145,PFS Service provision 1 - Implant,PFS Service provision 1 - Implant,AVERAGE,False
+MUOpAoXRVX9,DE_217144,PFS Service provision 1 - IUD,PFS Service provision 1 - IUD,AVERAGE,False
+bCBiRLqLjQl,DE_217150,PFS Service provision 1 - NSV,PFS Service provision 1 - NSV,AVERAGE,False
+vsKP6aojcqL,DE_217147,PFS Service provision 1 - PA FP,PFS Service provision 1 - PA FP,AVERAGE,False
+njV5usO9oNl,DE_217148,PFS Service provision 1 - PPIUD,PFS Service provision 1 - PPIUD,AVERAGE,False
+t9NU3SqPvcN,DE_217153,PFS Service provision 2 - CAC,PFS Service provision 2 - CAC,AVERAGE,False
+zff1i2Iwk8S,DE_217156,PFS Service provision 2- FS,PFS Service provision 2 - FS,AVERAGE,False
+PKBFrGgUy26,DE_217152,PFS Service provision 2 - Implant,PFS Service provision 2 - Implant,AVERAGE,False
+pWpQ69deqiv,DE_217151,PFS Service provision 2 - IUD,PFS Service provision 2 - IUD,AVERAGE,False
+QKujt9JlJfn,DE_217157,PFS Service provision 2 - NSV,PFS Service provision 2 - NSV,AVERAGE,False
+JSovKG6FZNW,DE_217154,PFS Service provision 2 - PA FP,PFS Service provision 2 - PA FP,AVERAGE,False
+cOXBak6pilm,DE_217155,PFS Service provision 2 - PPIUD,PFS Service provision 2 - PPIUD,AVERAGE,False
+yqiAt2vL2Oe,DE_217194,PFS Type of training - CAC,PFS Type of training - CAC,AVERAGE,False
+wqH05wytdJH,DE_217124,PFS Type of training - CC,PFS Type of training - CC,AVERAGE,False
+Ef3ueStqxJj,DE_217196,PFS Type of training - CC (OJT),PFS Type of training - CC (OJT),AVERAGE,False
+gtYt3KpQpW8,DE_217197,PFS Type of training - PM,PFS Type of training - PM,AVERAGE,False
+suMqFd2seuA,DE_217195,PFS Type of training - PPIUD,PFS Type of training - PPIUD,AVERAGE,False
+Mnkodq2wzlV,DE_217212,PFS Visit number,PFS Visit number,AVERAGE,False
+dIqx7rdnVc9,DE_360537,PH Aide,PH Aide,AVERAGE_SUM_ORG_UNIT,False
+Kx7SANA8K1z,,Place where transmission occurs,Place where transmission occurs,NONE,False
+lXolhoWewYH,DE_1148621,Plague (Deaths < 5 yrs),Plague (Deaths < 5 yrs),SUM,False
+iT8n0tI3nRW,DE_239774,Plague (Deaths < 5 yrs) Narrative,Plague (Deaths < 5 yrs) Narrative,SUM,False
+srXmZTeJxxT,PLHIV_TB_0,PLHIVs ref TB screen,PLHIVs referred for TB screening,SUM,False
+ZydlV51mGuj,PLHIV_TB_1,PLHIVs ref TB test,PLHIVs referred for TB test (Sputum/CXRay),SUM,False
+oxht1VLqF6x,PLHIV_TB_2,PLHIVs TB result pos,PLHIVs with a positive TB result,SUM,False
+yMtFhLsbZaL,DE_20872,PMTCTdiscordantPartn,PMTCT discordant partners or couples,SUM,False
+ZFC9MdnFHFJ,DE_20876,PMTCTexpectHIVwDeliv,PMTCT expected delivery among HIV+ women,SUM,False
+x0PshcPLSk1,DE_168063,PMTCThivExpoInfReg,PMTCT HIV exposed children registered during the course of the month,SUM,False
+hxh8X16Gvip,DE_168062,PMTCTHIV_ZDV&3TCLab,PMTCT HIV positive Women received ZDV and 3TC during labor,SUM,False
+dWqQVwKJTSu,DE_20848,PMTCTw.receivZDV_ANC,PMTCT HIV positive women received ZDV at ANC,SUM,False
+gnKnwQbY3UK,DE_20849,PMTCTwARTownHealth,PMTCT HIV positive w. received ART for own health,SUM,False
+wZqi8EXN5x4,DE_20877,PMTCTinf.Rec.NVP72Hr,PMTCT infant who received NVP within 72hrs,SUM,False
+HdQ2QsgMtCc,DE_20879,PMTCTinf.R.ZDV&Lam,PMTCT infant who received ZDV & Lamivudine,SUM,False
+WqbXHjN95Xw,DE_20842,PMTCTmalePartn.Test,PMTCT male partners tested for HIV,SUM,False
+MIKpDxt5ZvE,DE_20843,PMTCTmPartn.HIVposiv,PMTCT male partners tested HIV positive,SUM,False
+RoCtZpDLVS7,DE_168060,PMTCTHIVDeliFac(CS),PMTCT No HIV women who delivered in the health facility (CS),SUM,False
+tAQe5dZ6wRv,DE_20852,PMTCTHIVDeliFacNorma,PMTCT No HIV women who delivered in the health facility (Normal),SUM,False
+rFTnRXMFgxC,DE_20856,PMTCThivEposedChild,PMTCT No of expected HIV exposed children,SUM,False
+L4G4X567SeK,DE_20875,PMTCTwFPduringANC/PN,PMTCT positive w. offered FP during ANC/Post natal,SUM,False
+zCPMzMGWyHU,DE_20874,PMTCTwRef.FPfromANC,PMTCT positive w. referred for FP from ANC,SUM,False
+FGdTDgQrsBy,DE_20870,PMTCTrep.motherDeath,PMTCT reported mother death,SUM,False
+aO5TCNZ4OOr,DE_20836,PMTCTtotalExpec.Wmth,PMTCT total expected preg. women for the month,SUM,False
+kfSFuD4Q8rF,DE_20839,PMTCTwCouns.Ifeeding,PMTCT women counselled for infant feeding,SUM,False
+fQ46YRJj7Yq,DE_20845,PMTCT women HIV1,PMTCT women HIV1,SUM,False
+yhrP2vizKlf,DE_20847,PMTCTwHIV1&HIV2,PMTCT women HIV1 and HIV2,SUM,False
+hQkv3NaAjqv,DE_20846,PMTCT women HIV2,PMTCT women HIV2,SUM,False
+TvQ1myd6oTE,DE_20844,PMTCTwomenHIVpositiv,PMTCT women HIV positve,SUM,False
+f3vP3dSjUrS,DE_20868,PMTCTwLostContact,PMTCT women lost to contact,SUM,False
+WQqSx9H0RDf,DE_20860,PMTCTwRcompleteARV,PMTCT women received complete ARV for PMTCT,SUM,False
+e87Gl0315MV,DE_20853,PMTCTwReceivNVPlabor,PMTCT women received NVP during labour,SUM,False
+OCU92ttHmic,DE_20841,PMTCTwR.PostTest&res,PMTCT women received post test counselling and result,SUM,False
+CJKrsPzuY8R,DE_168059,PMTCTwPreTestCounsel,PMTCT women received pre- test counselling,SUM,False
+HPZd1WtTArI,DE_20855,PMTCTwR.ZDV&3CTDeliv,PMTCT women received ZDV & 3CT after delivery,SUM,False
+ONgKakbp7wR,DE_20838,PMTCw1stANC,PMTCT women seen for 1st ANC,SUM,False
+fxOM6VBQhBy,DE_20840,PMTCTwTestedHIV,PMTCT women tested for HIV,SUM,False
+HDRons6AfbL,,Population,Population,NONE,False
+vg6pdjObxsm,DE_20825,WRA,Population of women of child bearing age (WRA),AVERAGE_SUM_ORG_UNIT,False
+zgeAdnpSY5K,DE_360541,Porter,Porter,AVERAGE_SUM_ORG_UNIT,False
+LhoRsqtRn4r,DE_359673,Postnatal 1st,Postnatal 1st contact (within 1 week),SUM,False
+k1vnEuKnRYE,DE_359674,Postnatal 2nd,Postnatal 2nd contact (at 6 weeks),SUM,False
+h8vtacmZL5j,DE_359820,Pregn complications,Pregnancy-related complications,SUM,False
+d6GUgNWCDfl,DE_359107,Mat death 10-19 PHU ,Pregnancy-related deaths (6 weeks of birth) 10-19y at PHU,SUM,False
+z1q4VpzJvEh,DE_359418,Mat death 10-19 com.,Pregnancy-related deaths (6 weeks of birth) 10-19y in comm.,SUM,False
+pnMGI9pJTxH,DE_359108,Mat death 20-35 PHU,Pregnancy-related deaths (6 weeks of birth) 20-35y at PHU,SUM,False
+ZuAqHa7ekka,DE_359419,Mat death 20-35 comm,Pregnancy-related deaths (6 weeks of birth) 20-35y in comm.,SUM,False
+ZjLFpnq46QF,DE_359109,Mat death 35+ PHU,Pregnancy-related deaths (6 weeks of birth) 35+ y at PHU,SUM,False
+GHvwvsJzV4x,DE_359420,Mat death 35+ comm.,Pregnancy-related deaths (6 weeks of birth) 35+ y in comm.,SUM,False
+DweoXDLChlg,,Pregnancy status,Pregnancy status,NONE,False
+SWfdB5lX0fk,DE_423442,Pregnant,Pregnant,SUM,False
+sTzxtq72Moq,DE_239455,Prevalence of tuberculosis (per 100 000 population,Prevalence of tuberculosis (per 100 000 population),SUM,False
+V1OnhZYfSa2,,Previous classification,Previous classification,NONE,False
+iSxGIwA3ZrV,,Previous vector control intervention,Previous vector control intervention,NONE,False
+D33rH8UHKlZ,DE_374598,Prev ABC300ddI200IDV400,Prev. month on ABC 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+obbSEvaKTyW,DE_374599,Prev ABC300_ddI200_LPV,Prev. month on ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg,SUM,False
+VZPWjoT6Iyb,DE_374607,Prev ART other regimen,Prev. month on ART other regimen,SUM,False
+yXZd6HTew4q,DE_374604,Prev AZT10_3TC10_NVP10,Prev. month on AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml,SUM,False
+BVU4XA3aL0Y,DE_374594,Prev AZT300_3TC150_ABC300,Prev. month on AZT 300mg + 3TC 150mg + ABC 300mg ,SUM,False
+rFkRvm5Ns4a,DE_374593,Prev AZT300_3TC150_EFV600,Prev. month on AZT 300mg /  3TC 150mg + EFV 600mg,SUM,False
+pgzNTiQwMES,DE_374592,Prev AZT300_3TC150_NVP200,Prev. month on AZT 300mg / 3TC 150mg + NVP 200mg,SUM,False
+FOWABOOZtPg,DE_374595,Prev AZT300_3TC150_TDF300,Prev. month on AZT 300mg + 3TC 150mg + TDF 300mg ,SUM,False
+ReljOufQV11,DE_374605,Prev AZT 300mg at 28w,Prev. month on AZT 300mg at 28 wks,SUM,False
+FDpeT1lFQMM,DE_374610,PrevAZT3TC300150f7d,Prev. month on AZT + 3TC 300mg + 150mg for 7 days,SUM,False
+deGkTqbpTlS,DE_475165,PrevAZT3TC30015036w,Prev. month on AZT + 3TC 300mg + 150mg for 7 days after 36w,SUM,False
+BI5CBuRJVSV,DE_374608,Prev AZT_3TC_300_150 lab,Prev. month on AZT + 3TC 300mg + 150mg on labour,SUM,False
+e1eDe6JsE9j,DE_374609,Prev AZT3TCNVP300+150+200,Prev. month on AZT + 3TC + NVP 300mg + 150mg + 200mg,SUM,False
+oYZug9IEm3Q,DE_374596,Prev d4T30_3TC100_ABC 300,Prev. month on d4T 30mg + 3TC 100mg + ABC 300mg,SUM,False
+KD5UjA5V16r,DE_374597,Prev d4T30_3TC100_TDF300,Prev. month on d4T 30mg + 3TC 100mg + TDF 300mg ,SUM,False
+FQhY9n5Ft7t,DE_374590,Prev d4T30_3TC150_EFV600,Prev. month on d4T 30mg + 3TC 150mg + EFV 600mg,SUM,False
+ZecQS9lx4j9,DE_374588,Prev d4T30_3TC150_NVP200,Prev. month on d4T 30mg / 3TC 150mg / NVP 200mg,SUM,False
+gyudBBtgGCv,DE_374603,Prev d4T3TCNVP_12_60_100,Prev. month on d4T / 3TC / NVP 12mg/60mg/100mg,SUM,False
+YknvQAH4LnL,DE_374602,Prev d4T_3TC_NVP_6_30_50,Prev. month on d4T / 3TC / NVP 6mg/30mg/50mg,SUM,False
+XVzfK55tu7h,DE_374591,Prev d4T40_3TC150_EFV600,Prev. month on d4T 40mg + 3TC 150mg + EFV 600mg,SUM,False
+Sdfo0RBu1W3,DE_374589,Prev d4T40_3TC150_NVP200,Prev. month on d4T 40mg / 3TC 150mg / NVP 200mg,SUM,False
+iri7NSiuRc3,DE_374606,Prev Inf NVP10 (2mg/kg),Prev. month on Infant NVP 10mg/ml (2mg/kg),SUM,False
+CUVDjGzRmmU,DE_374611,Prev NVPAZT3TC10+10+10 7d,Prev. month on NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days,SUM,False
+n91IylSb1JQ,DE_374600,Prev TDF300_ddI200_IDV400,Prev. month on TDF 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+cQxY2T8GenX,DE_374601,Prev TDF300_ddI200_LPV,Prev. month on TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg,SUM,False
+xPTAT98T2Jd,DE_423990,Project: Activity Report,Project: Activity Report,SUM,False
+yiAhmn4q7wJ,DE_423998,Project: Comments,Project: Comments,SUM,False
+xk0krAO2KfJ,DE_423994,Project: Communications plan,Project: Communications plan,SUM,False
+okVqga4sADb,DE_423992,Project: Feasibility study,Project: Feasibility study,SUM,False
+JXwI2RLVRwa,DE_423996,Project: Goals and achievables,Project: Goals and achievables,SUM,False
+qF555AXehEn,DE_423989,Project: Narrative,Project: Narrative,SUM,False
+b65EIDnbjXf,DE_423991,Project: Plan,Project: Plan,SUM,False
+seNDI6rguib,DE_423995,Project: Procurement plans,Project: Procurement plans,SUM,False
+hA2cfVJL4fp,DE_423997,Project: Review,Project: Review,SUM,False
+fyjPqlHE7Dn,,Proven insecticide resistance,Proven insecticide resistance,NONE,False
+dU0GquGkGQr,DE_22,EarlyBreastfeed.BCG,Q_Early breastfeeding (within 1 hr after delivery) at BCG,SUM,False
+pEOVd4Z3TAS,DE_33,QexclusivBreast.DPT3,Q_Exclusive breastfeeding at time of Penta 3,SUM,False
+Rmixc9wJl0G,DE_359735,Q_LLITN at VitA2,Q_LLITN given at time of 2nd Vit A dose,SUM,False
+GCGfEY82Wz6,DE_268,SleptLlinLastNighMea,Q_Slept under LLIN last night Measles,SUM,False
+ca8lfO062zg,DE_359734,Q_VitA_4-6m_VitA2,Q_Vitamin A received 4-6 months ago at 12-59 dose,SUM,False
+jVDAvs6kIAP,DE_1148622,Rabies (Deaths < 5 yrs),Rabies (Deaths < 5 yrs),SUM,False
+Qk9nnX0i7lZ,DE_358919,RDT Malaria negative,Rapid diagnostic test for Malaria negative,SUM,False
+wZwzzRnr9N4,DE_358918,RDT Malaria positive,Rapid diagnostic test for Malaria positive,SUM,False
+hKZh1et5n7v,,RDT test result,RDT test result,NONE,False
+zFiMMpGyBgr,,Reason for conducting CI,Reason for conducting case investigation,NONE,False
+M2EsgTm4JHu,,Reason for conducting HI,Reason for conducting household investigation,NONE,False
+Zlro25GTcNK,,Reason for referral,Reason for referral,NONE,False
+gVfwyHBGWec,DE_365337,Treatment TB and HIV,Received treatment for both TB and HIV,SUM,False
+A3FR1rkz9D8,TX_CURR,Receiving ART,Receiving ART,SUM,False
+qgwWv33YaBj,DE_1151445,Referral protocol is described,Referral protocol is described,SUM,False
+MKMyvXshCdB,CS019,Referred,Referred,NONE,False
+Ue0g4Ii4oM8,,Relationship of cases and breeding site,Relationship of cases to residence and breeding site,NONE,False
+RYXVmlXoFb6,,Remark,Remark,NONE,False
+DanTR5x0WDK,,Residence of cases prompted current investigation,Residence of the malaria case/s  that prompted the current case investigation,NONE,False
+ECjafwJrxL5,,Residents had malaria past month,Residents had malaria past month,SUM,False
+lezQpdvvGjY,,Residents in HH,Residents in household,SUM,False
+KA6RY4BB41F,,Slept under net,Residents in household who slept under a net the previous night,SUM,False
+AscpjfkjEks,,Results of case investigation,Results of case investigation (parasite prevalence among tested),NONE,False
+xb5oJFjopGD,,Results post-response,Results post-response,NONE,False
+GYm08KsVDOz,DE_359061,Schistosomias. f-u,Schistosomiasis follow-up,SUM,False
+Y7Oq71I3ASg,DE_397,Schistosom new,Schistosomiasis new,SUM,False
+l76gpVSWoSE,DE_358955,Schistosomiasis ref.,Schistosomiasis referrals,SUM,False
+hkfMucdRMQG,DE_360531,SECHN,SECHN,AVERAGE_SUM_ORG_UNIT,False
+iVla5mEZiZo,DE_360542,Security worker,Security worker,AVERAGE_SUM_ORG_UNIT,False
+hI7NM78r3Rg,DE_374670,SF ABC300ddI200IDV400,Shift from ABC 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+lznF009R6XI,DE_374671,SF ABC300_ddI200_LPV,Shift from ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg,SUM,False
+Jw8BIUYVMGE,DE_374679,SF ART other regimen,Shift from ART other regimen,SUM,False
+t6YgakIbFif,DE_374676,SF AZT10_3TC10_NVP10,Shift from AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml,SUM,False
+gSD3Znye1hY,DE_374666,SF AZT300_3TC150_ABC300,Shift from AZT 300mg + 3TC 150mg + ABC 300mg ,SUM,False
+jHxFwWMbXT2,DE_374665,SF AZT300_3TC150_EFV600,Shift from AZT 300mg /  3TC 150mg + EFV 600mg,SUM,False
+pSHgU0Wf4ir,DE_374664,SF AZT300_3TC150_NVP200,Shift from AZT 300mg / 3TC 150mg + NVP 200mg,SUM,False
+MeAvt39JtqN,DE_374667,SF AZT300_3TC150_TDF300,Shift from AZT 300mg + 3TC 150mg + TDF 300mg ,SUM,False
+LJBV91hapop,DE_374677,SF AZT 300mg at 28w,Shift from AZT 300mg at 28 wks,SUM,False
+Mow8dnhE6FJ,DE_374682,SFAZT3TC300150for7d,Shift from AZT + 3TC 300mg + 150mg for 7 days,SUM,False
+supsI55QU7E,DE_475166,SFAZT3TC3001507d36w,Shift from AZT + 3TC 300mg + 150mg for 7 days after 36w,SUM,False
+q9CskFaFGE6,DE_374680,SF AZT_3TC_300_150 lab,Shift from AZT + 3TC 300mg + 150mg on labour,SUM,False
+AzwEuYfWAtN,DE_374681,SF AZT3TCNVP300+150+200,Shift from AZT + 3TC + NVP 300mg + 150mg + 200mg,SUM,False
+ZGKUt190yEn,DE_374668,SF d4T30_3TC100_ABC 300,Shift from d4T 30mg + 3TC 100mg + ABC 300mg,SUM,False
+a7Pue4ht1n1,DE_374669,SF d4T30_3TC100_TDF300,Shift from d4T 30mg + 3TC 100mg + TDF 300mg ,SUM,False
+ksGURIlASZB,DE_374662,SF d4T30_3TC150_EFV600,Shift from d4T 30mg + 3TC 150mg + EFV 600mg,SUM,False
+mmHNj6THZNH,DE_374660,SF d4T30_3TC150_NVP200,Shift from d4T 30mg / 3TC 150mg / NVP 200mg,SUM,False
+iCGDtgPA28k,DE_374675,SF d4T3TCNVP_12_60_100,Shift from d4T / 3TC / NVP 12mg/60mg/100mg,SUM,False
+tlSucW8wn23,DE_374674,SF d4T_3TC_NVP_6_30_50,Shift from d4T / 3TC / NVP 6mg/30mg/50mg,SUM,False
+BtXmKYNBc3k,DE_374663,SF d4T40_3TC150_EFV600,Shift from d4T 40mg + 3TC 150mg + EFV 600mg,SUM,False
+dAnZOL5kxlK,DE_374661,SF d4T40_3TC150_NVP200,Shift from d4T 40mg / 3TC 150mg / NVP 200mg,SUM,False
+Z5uEjG9zJNK,DE_374678,SF Inf NVP10 (2mg/kg),Shift from Infant NVP 10mg/ml (2mg/kg),SUM,False
+HmBwa7GWGRG,DE_374683,SF NVPAZT3TC10+10+10 7d,Shift from NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days,SUM,False
+y6noHe7ltxY,DE_374672,SF TDF300_ddI200_IDV400,Shift from TDF 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+oJLoUSMs3Ud,DE_374673,SF TDF300_ddI200_LPV,Shift from TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg,SUM,False
+hUSSNufoUQz,DE_374646,ST ABC300ddI200IDV400,Shift to ABC 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+PBXQFnb2AOk,DE_374647,ST ABC300_ddI200_LPV,Shift to ABC 300mg + ddI 200mg + LPV/r 133.3/33.3mg,SUM,False
+DlZORv7kWSl,DE_374655,ST ART other regimen,Shift to ART other regimen,SUM,False
+vhT3YzTev3B,DE_374652,ST AZT10_3TC10_NVP10,Shift to AZT 10mg/ml + 3TC 10mg/ml + NVP 10mg/ml,SUM,False
+PNlOOplRNOp,DE_374642,ST AZT300_3TC150_ABC300,Shift to AZT 300mg + 3TC 150mg + ABC 300mg ,SUM,False
+XMsORYe4ZcA,DE_374641,ST AZT300_3TC150_EFV600,Shift to AZT 300mg /  3TC 150mg + EFV 600mg,SUM,False
+kxcIr99QcAO,DE_374640,ST AZT300_3TC150_NVP200,Shift to AZT 300mg / 3TC 150mg + NVP 200mg,SUM,False
+NV0OXpHu6x4,DE_374643,ST AZT300_3TC150_TDF300,Shift to AZT 300mg + 3TC 150mg + TDF 300mg ,SUM,False
+AyLbN9fhY4W,DE_374653,ST AZT 300mg at 28w,Shift to AZT 300mg at 28 wks,SUM,False
+zTWitarSrae,DE_374658,STAZT3TC300150for7d,Shift to AZT + 3TC 300mg + 150mg for 7 days,SUM,False
+jYYxzqd1dqM,DE_475167,STAZT3TC3001507d36w,Shift to AZT + 3TC 300mg + 150mg for 7 days after 36w,SUM,False
+IJ4yZ027EmK,DE_374656,ST AZT_3TC_300_150 lab,Shift to AZT + 3TC 300mg + 150mg on labour,SUM,False
+YgsAnqU3I7B,DE_374657,ST AZT3TCNVP300+150+200,Shift to AZT + 3TC + NVP 300mg + 150mg + 200mg,SUM,False
+YTmhoGBxE2m,DE_374644,ST d4T30_3TC100_ABC 300,Shift to d4T 30mg + 3TC 100mg + ABC 300mg,SUM,False
+yB3qDR4Mlqk,DE_374645,ST d4T30_3TC100_TDF300,Shift to d4T 30mg + 3TC 100mg + TDF 300mg ,SUM,False
+qUY0i7PnaLS,DE_374638,ST d4T30_3TC150_EFV600,Shift to d4T 30mg + 3TC 150mg + EFV 600mg,SUM,False
+V651s5yIbnR,DE_374636,ST d4T30_3TC150_NVP200,Shift to d4T 30mg / 3TC 150mg / NVP 200mg,SUM,False
+EEEu3r8z1Rg,DE_374651,ST d4T3TCNVP_12_60_100,Shift to d4T / 3TC / NVP 12mg/60mg/100mg,SUM,False
+eCIPNNYj9ZM,DE_374650,ST d4T_3TC_NVP_6_30_50,Shift to d4T / 3TC / NVP 6mg/30mg/50mg,SUM,False
+a5MxE5H7d3q,DE_374639,ST d4T40_3TC150_EFV600,Shift to d4T 40mg + 3TC 150mg + EFV 600mg,SUM,False
+C6yhZddXLCX,DE_374637,ST d4T40_3TC150_NVP200,Shift to d4T 40mg / 3TC 150mg / NVP 200mg,SUM,False
+E7QJ0voitk7,DE_374654,ST Inf NVP10 (2mg/kg),Shift to Infant NVP 10mg/ml (2mg/kg),SUM,False
+un5mkYkVKqV,DE_374659,ST NVPAZT3TC10+10+10 7d,Shift to NVP + AZT + 3TC 10mg/ml (2mg/kg) + 10mg/ml + 10mg/ml for 7 days,SUM,False
+ZgIaamZjBjz,DE_374648,ST TDF300_ddI200_IDV400,Shift to TDF 300mg + ddI 200mg + IDV 400mg + r 100mg,SUM,False
+aJ9oon0aJ87,DE_374649,ST TDF300_ddI200_LPV,Shift to TDF 300mg + ddI 200mg + LPV/r 133.3mg/33.3mg,SUM,False
+i0vXh1P92m3,DE_359056,Skin infection f-u,Skin infection follow-up,SUM,False
+Y4cFzB4A9ZQ,DE_358912,Skin infection new,Skin infection new,SUM,False
+AoVvYq5mtLL,DE_358950,Skin infection ref.,Skin infection referrals,SUM,False
+QtZBHQORAvK,,Sleeping places,Sleeping places,SUM,False
+dHwY9LwU21J,,Slept Away PR,Slept away from usual residence before first symptoms,COUNT,False
+nu3vYkWgl2x,DE_360529,SRN,SRN,AVERAGE_SUM_ORG_UNIT,False
+tl03DMc49UT,DE_359063,STI Gen. Disch. f-u,STI - Genital Discharge follow-up,SUM,False
+CN9Oxawn7bD,DE_358931,STI - Genital D. new,STI - Genital Discharge new,SUM,False
+bcxWMsa1ZwU,DE_358957,STI Gen. Disch. ref.,STI - Genital Discharge referrals,SUM,False
+RZNJFsg7fQp,DE_359062,STI Gen. Ulcer f-u,STI - Genital Ulcer follow-up,SUM,False
+IeO1sWXVyp6,DE_358930,STI Gen. Disch. new,STI - Genital Ulcer new,SUM,False
+saMXNnGMaBw,DE_358956,STI Genital Ulcer r.,STI - Genital Ulcer referrals,SUM,False
+HZSdnO5fCUc,DE_359658,Still births,Still births,SUM,False
+cZnQDuF3IDz,DE_360103,SP_disc BCG (doses),Stock PHU discarded BCG,SUM,False
+FvKdfA2SuWI,DE_360126,SP_disc Measles (doses),Stock PHU discarded Measles,SUM,False
+WVrH6j3Wfye,DE_360129,SP_disc OPV (doses),Stock PHU discarded OPV,SUM,False
+p1MDHOT6ENy,DE_360049,SP_disp BCG (doses),Stock PHU dispensed  BCG,SUM,False
+lVknokmR4Ip,DE_360072,SP_disp Measles (doses),Stock PHU dispensed Measles,SUM,False
+FTINmL2lehN,DE_360075,SP_disp OPV (doses),Stock PHU dispensed OPV,SUM,False
+axVhq1itoQD,DE_359995,SP_rec BCG (doses),Stock PHU received  BCG,SUM,False
+XNrjXqZrHD8,DE_360018,SP_rec Measles (doses),Stock PHU received Measles,SUM,False
+nGCLjZDn0Q4,DE_360021,SP_rec OPV (doses),Stock PHU received OPV,SUM,False
+t99PL3gUxIl,DE_359941,SP_s_bal BCG (doses),Stock PHU start balance BCG,SUM,False
+vEAo4KwsAzl,DE_359964,SP_s_bal Measles (doses),Stock PHU start balance Measles,SUM,False
+iuSIObmKutb,DE_359967,SP_s_bal OPV (doses),Stock PHU start balance OPV,SUM,False
+XCMLePzaZiL,, Symptoms,Symptoms,NONE,False
+HmkXnHJxcD1,DE_1150454,TB Case Definition,TB Case Definition,NONE,False
+JFJfrQRwKUH,DE_98460,TBnewSSpo.Completed,TB Cohort new SS+ completed,SUM,False
+LwqtuNuXzMO,DE_98459,TBnewSSpositiv.cured,TB Cohort new SS+ cured,SUM,False
+iGWmygJhJ0W,DE_98463,TBnewSSpo.Defaulted,TB Cohort new SS+ defaulted,SUM,False
+iwKQb6AzcyA,DE_98462,TBnewSSpo.Died,TB Cohort new SS+ died,SUM,False
+iM7agdDyMAv,DE_98461,TBnewSSpo.Failed,TB Cohort new SS+ failed,SUM,False
+ax9QMVVaWzT,DE_98457,TBnewSSpo.Registered,TB Cohort new SS+ registered,SUM,False
+LvVagpDFHVd,DE_98458,TB_newSSpo.Trans_In,TB Cohort new SS+ trans. in,SUM,False
+zg2HS37R0S0,DE_98464,TBnewSSpo.TransOut,TB Cohort new SS+ trans out,SUM,False
+D7m8vpzxHDJ,DE_1150453,TB Disease Class.,TB Disease Classification,AVERAGE,False
+tHFKyPb1db7,DE_98451,ExtraPulmonaryTB,TB Extra pulmonary TB,SUM,False
+U5ubm6PPYrM,DE_860610,TB HIV testing done,TB HIV testing done,NONE,False
+cVs0TJQDBwT,DE_860603,Known MDR-TB contact,TB Known MDR-TB contact,NONE,False
+Vk1tzSQxvOR,DE_860004,TB lab CD4,TB lab CD4,NONE,False
+fCXKBdc27Bt,DE_860001,TB lab Creatinine,TB lab Creatinine,NONE,False
+lJTx9EZ1dk1,DE_860003,Tb lab Glucose,Tb lab Glucose,NONE,False
+fTZFU8cWvb3,DE_860002,TB lab Hemoglobin,TB lab Hemoglobin,NONE,False
+PcdVnX3EthS,DE_98445,TB New SS+ cases,TB New SS+ cases,SUM,False
+sVDDqpaKwBH,DE_98444,TB_NoSUspectScreened,TB No. of suspects screened,SUM,False
+vAzDOljIN1o,TB Previous use of second- line drugs,TB Previous use of second- line drugs,TB Previous use of second-line drugs,NONE,False
+Vacgoqzb0a9,DE_98455,TBrefByCom.Member,TB Referred by community member,SUM,False
+x4KonEdVrf4,DE_98456,TB Referred by other,TB Referred by other,SUM,False
+BexcJLSBmoI,DE_98454,TB_RefByPrivateProv.,TB Referred by private provider,SUM,False
+HihtAAbmIKd,DE_98453,TBrefByPublicFac.,TB Referred by public facility,SUM,False
+V7IfAfgOH9c,DE_860609,TB registration group,TB registration group,NONE,False
+DfxIW8gECPb,DE_98452,TB Self referral,TB Self referral,SUM,False
+yLIPuJHRgey,DE_859997,TB smear microscopy number of specimen,TB smear microscopy number of specimen,NONE,False
+zocHNQIQBIN,,TB smear microscopy test outcome,TB smear microscopy test outcome,NONE,False
+NzUztyjtUm2,DE_98449,TB Smear Negative,TB Smear Negative,SUM,False
+QmqSvR8y1VP,DE_98450,TB Smear not done,TB Smear not done,SUM,False
+NRmkLQkTbHw,DE_98448,TB_SP_TAI,TB Smear Positive T.A.I,SUM,False
+auVPuAdFCmY,DE_98447,TB_SP_Failure,TB Smear Positve Failure,SUM,False
+uwbLjPhducc,DE_98446,TB_SP_Relapse,TB Smear Positve Relapse,SUM,False
+zJbnrm3kUAk,DE_860623,TB Started on ART,TB Started on ART,NONE,False
+P6hgV2tSIvi,DE_860624,TB Started on CPT,TB Started on CPT,NONE,False
+lpHeSOA8GUV,DE_860596,TB treatment card,TB treatment card,NONE,False
+J7hdx5FCJvG,CS003,Temperature,Temperature,SUM,False
+Vp12ncSU1Av,DE_1148623,Tetanus Neonatal (Deaths < 5 yrs),Tetanus Neonatal (Deaths < 5 yrs),SUM,False
+nG0tBc37z0q,DE_359047,Tetatnus follow-up,Tetanus (not incl. 0-28 days) follow-up,SUM,False
+Uoj2wmnr5Dw,DE_358910,Tetatnus new,Tetanus (not incl. 0-28 days) new,SUM,False
+Bc7pt6MgY0j,DE_358941,Tetatnus referrals,Tetanus (not incl. 0-28 days) referrals,SUM,False
+hM4ya5T2AqX,DE_1148625,Tetanus Other (Deaths < 5 yrs),Tetanus Other (Deaths < 5 yrs),SUM,False
+bOTcPezfyYk,DE_624645,Time of assessment,Time of assessment,SUM,False
+IFgKaK8mSpD,,Timing of case/s with and local transmission ,Timing of case/s with and local transmission ,NONE,False
+WUg3MYWQ7pt,DE_5808,Total Population,Total Population,AVERAGE_SUM_ORG_UNIT,False
+DTVRnCGamkV,DE_20824,Total population <1y,Total population < 1 year,AVERAGE_SUM_ORG_UNIT,False
+DTtCy7Nx5jH,DE_20826,Total population < 5,Total population < 5 years,AVERAGE_SUM_ORG_UNIT,False
+i7JwJXVEl2C,,Travel comment,Travel comment,NONE,False
+hiymQVgVG2v,,Travel within 12 months,Travel in last 12 months,NONE,False
+OhU3RfPlQGR,,Travel outside province,Travel outside province,COUNT,False
+ISRUNdE4K1Q,,Travel last 12 months,Travel to (last 12 months),NONE,False
+xoDfSuukvZ9,CS006,Travel last 2 weeks,Travel to (last 2 weeks),NONE,False
+B1zbtdPXMRk,,Travel last 6 weeks,Travel to (last 6 weeks),NONE,False
+O7OiONht8T3,,Treatment Malaria,Treatment Malaria,NONE,False
+ROz7HjmtxIg,DE_1152143,TrueOnlyTrueOnly,TrueOnly,SUM,False
+zzHwXqxKYy1,DE_44,ANC_TT1,TT1 doses given,SUM,False
+DUTSJE8MGCw,DE_45,ANC_TT2,TT2 doses given,SUM,False
+jWaNoH0X0Am,DE_46,ANC_TT3,TT3 doses given,SUM,False
+tbudfYMNFS5,DE_47,ANC_TT4,TT4 doses given,SUM,False
+B2ocYtYkPBD,DE_48,ANC_TT5,TT5 doses given,SUM,False
+madOetOj4Ye,DE_359053,Tuberculosis f-u,Tuberculosis follow-up,SUM,False
+z9dYcQ2DlBG,DE_391,Tuberculos new,Tuberculosis new,SUM,False
+hdHLjKFmxB4,DE_358947,Tuberculosis ref.,Tuberculosis referrals,SUM,False
+mtzLOpBltII,,Type of population,Type of population,NONE,False
+Yy9NtNfwYZJ,DE_1148626,Typhoid (Deaths < 5 yrs),Typhoid (Deaths < 5 yrs),SUM,False
+rNi710XHPXY,DE_359052,Typhoid fever f-u,Typhoid fever follow-up,SUM,False
+Cj5rTc9nEvl,DE_396,Typhoid fe new,Typhoid fever new,SUM,False
+LaTxwutQILW,DE_358946,Typhoid fever ref.,Typhoid fever referrals,SUM,False
+Nz5YtOpDyuV,DE_360540,Vaccinator,Vaccinator,AVERAGE_SUM_ORG_UNIT,False
+ZjILYaYGEBM,VCCT_0,VCCTnoHIV1+HIV2,VCCT No positive test HIV1 and HIV2,SUM,False
+LicY0q8cagk,VCCT_5,VCCTnoPositveHIV1,VCCT No positive test HIV1 only,SUM,False
+LgYtBqVkADK,VCCT_6,VCCTnoPositveHIV2,VCCT No positive test HIV2 only,SUM,False
+EASG4IZChNr,VCCT_3,VCCTnoPositvTestResu,VCCT No receiving positive test results,SUM,False
+IpwsH1GUjCs,VCCT_4,VCCTnoPreTestCounsel,VCCT No receiving Pre-test counselling,SUM,False
+CjLP7zAhlP4,VCCT_1,VCCTnoResult&PoTestC,VCCT No reiciving result & post-test counselling,SUM,False
+bmW8ktueArb,VCCT_2,VCCT No Test,VCCT No Test,SUM,False
+RKJ08MlK5kr,,Vector behavior (based on study),Vector behavior (based on study),NONE,False
+btSSE4w61kd,DE_359672,Vitamin A postnatal,Vitamin A given at postnatal,SUM,False
+tU7GixyHhsv,DE_359733,Vitamin A <5,Vitamin A given to < 5y,SUM,False
+b6dOUjAarHD,DE_424050,Voucher HTC,Voucher HTC,SUM,False
+W7aC8jLASW8,DE_424051,Voucher IMCI,Voucher IMCI,SUM,False
+fqnXmRYo5Cz,DE_424052,Voucher Implants,Voucher Implants,SUM,False
+HrJmqlBqTFG,DE_424053,Voucher Injections,Voucher Injections,SUM,False
+Qz3kfeKgLgL,DE_424054,Voucher IUCD,Voucher IUCD,SUM,False
+UwCXONyUtGs,DE_424055,Voucher Pills,Voucher Pills,SUM,False
+HyJL2Lt37jN,DE_424056,Voucher VMMC,Voucher VMMC,SUM,False
+yugu3uQNOg7,,Vulnerability,Vulnerability,NONE,False
+JINgGHgqzSN,CS004,Weight,Weight,SUM,False
+bTcRDVjC66S,DE_359731,Weight/age red,Weight for age below lower line (red),SUM,False
+ldGXl6SEdqf,DE_359730,Weight/age yellow,Weight for age between middle and lower line (yellow),SUM,False
+NLnXLV5YpZF,DE_359729,Weight/age green,Weight for age on or above middle line (green),SUM,False
+pnL2VG8Bn7N,DE_359726,Weight/height 70-79,Weight for height 70-79 percent,SUM,False
+qPVDd87kS9Z,DE_359725,Weight/height 80+,Weight for height 80 percent and above,SUM,False
+lVsbKXoF0zX,DE_359727,Weight/height <70,Weight for height below 70 percent,SUM,False
+vV9UWAZohSf,DE_240795,Weight in kg,Weight in kg,AVERAGE,False
+QFX1FLWBwtq,MMD_ALL,Allergies,WHOMCH Allergies (drugs and/or severe food allergies),SUM,False
+cKBSkBB3Mt4,EA8c_TRE_HYP,Antihypertensive drug given,WHOMCH Antihypertensive drug given,SUM,False
+zzGNbeMnTd6,MMD_CON_AID,Autoimmune disease,WHOMCH Autoimmune disease,SUM,False
+ez86AhQ5cqp,TRE_BLD,Blood transfusion,WHOMCH Blood transfusion,SUM,False
+L6Toy2TrHHq,CLI_TMP,Body temperature,WHOMCH Body temperature,AVERAGE,False
+PKZPVfAJfHD,EA8a_TRE_CAL,Calcium supplements given ,WHOMCH Calcium supplements given ,SUM,False
+B3bDhNpCcEM,EP4_LAB_WBC_CD4,CD4 count,WHOMCH CD4 count,SUM,False
+de0FEHSIoxh,MMD_COM,Chronic conditions,WHOMCH Chronic conditions,SUM,False
+UQ2Zo8CruPB,MMD_CON_CHT,Chronic hypertension,WHOMCH Chronic hypertension,SUM,False
+YKXci7Sm0Zq,EA_EDD_CLI,Clinical estimate of due date,WHOMCH Clinical estimate of due date,SUM,False
+ALfOm7aaH6b,CLI_ECL,Clinical impression of eclampsia,WHOMCH Clinical impression of eclampsia,SUM,False
+Mfq2Y9N21KZ,CLI_PRE_ECL,Clinical impression of pre-eclampsia,WHOMCH Clinical impression of pre-eclampsia,SUM,False
+mGHBXrtqSut,EC_LBR_TOC_DOC,Commencement of labour,WHOMCH Commencement of labour,COUNT,False
+suhLG4CrzUw,MMD_OBS_CON,Conditions in previous pregnancy,WHOMCH Conditions in previous pregnancy,SUM,False
+klEz81wXFoU,CLI_INF,Confirmed or suspected infection,WHOMCH Confirmed or suspected infection,COUNT,False
+z8m3llJYuh9,EC_TRE_LBR1,Continuous supportive presence,WHOMCH Continuous supportive presence during labour and birth ,SUM,False
+QWVRukwa83h,EP1_TRE_CCC,Contraceptive counselling provided,WHOMCH Contraceptive counselling provided,SUM,False
+awGGBWPT5yv,EA10c_TRE_STE,Corticostereoid exposure,WHOMCH Corticostereoid exposure,COUNT,False
+u3TE34T4KH0,DOB,Date of birth,WHOMCH Date of birth/End of pregnancy,SUM,False
+cwgQnkamM2j,EN_DOB_REC,Date of birth of most recent newborn,WHOMCH Date of birth of most recent newborn,SUM,False
+MH33VLmOOqm,EC_DEL_IND_DAT,Date of induction of labor,WHOMCH Date of induction of labor,SUM,False
+r3BqzOPxAjp,EA3_STA_TET_DAT,Date of last TT dose,WHOMCH Date of last TT dose,SUM,False
+spkG704sTh6,DEL_MET,Delivery method,WHOMCH Delivery method,SUM,False
+Q1x1HIhuwFN,MMD_CON_DM,Diabetes,WHOMCH Diabetes,SUM,False
+dyYdfamSY2Z,EA_BP_DIA,Diastolic blood pressure,WHOMCH Diastolic blood pressure,AVERAGE_SUM_ORG_UNIT,False
+w7enwqzx90I,EA8_CLI_ECL1,Eclamptic convulsions,WHOMCH Eclamptic convulsions,SUM,False
+yTDoF5b1OhI,EA9_TRE_BRE3,ECV conversion remaining,WHOMCH ECV conversion remaining,SUM,False
+QM5d0hfSbKk,EA9_TRE_BRE1,ECV offered,WHOMCH ECV offered,SUM,False
+DCUDZxqOxUo,EA9_TRE_BRE2,ECV performed,WHOMCH ECV performed,SUM,False
+rHgrmXfa57b,EA10b_TRE_PPR1,Erythromycin given for PPROM,WHOMCH Erythromycin given for PPROM,SUM,False
+Js57E09s9fh,EA6_TRE_SYP2,Erythromycin given for syphillis,WHOMCH Erythromycin given for syphillis,SUM,False
+hib4oz2sOLw,EC_CLI_PPH,Estimated blood loss (ml),WHOMCH Estimated blood loss (ml),SUM,False
+EyfTU3ibMmJ,CLI_PAL,Extreme pallor,WHOMCH Extreme pallor,SUM,False
+u7aAPS8OgLw,EC_VIS_HR,Fetal heart rate on admission,WHOMCH Fetal heart rate on admission,SUM,False
+vPdXnmGWzfy,STA_PRE,Fetal presentation,WHOMCH Fetal presentation,SUM,False
+roKuXYfw1BW,,WHOMCH Gestational age at visit,WHOMCH Gestational age at visit,SUM,False
+PuiTfPfSf86,MMD_OBS_GRA,Gravidity(previous pregnancies),WHOMCH Gravidity(previous pregnancies),SUM,False
+X8HbdaoS9LN,LAB_HCR,Haematocrit value,WHOMCH Haematocrit value,SUM,True
+pwfdgeE21Os,CLI_HR,Heart rate,WHOMCH Heart rate,SUM,False
+vANAXwtLwcT,LAB_HB,Hemoglobin value,WHOMCH Hemoglobin value,SUM,True
+jRo4KlnCKeX,EA7_TRE_HIV2b,HIV counselling provided - negative,WHOMCH HIV counselling provided - negative,SUM,False
+yEmfXF9HJ1M,EA7_TRE_HIV2a,HIV counselling provided - positive,WHOMCH HIV counselling provided - positive,SUM,False
+Itl05OEupgQ,LAB_HIV,HIV rapid test,WHOMCH HIV rapid test,SUM,False
+yq1qT0NdjYQ,TRE_HIV_TRP,HIV test results provided to patient,WHOMCH HIV test results provided to patient,SUM,False
+D1EHM01p454,EC_DEL_IND1,Indication for induction of labour,WHOMCH Indication for induction of labour,SUM,False
+MVIV2RGWhUq,EC5_TRE_IND_PRO,Induction of labor,WHOMCH Induction of labor,SUM,False
+oQgcj7kV1c3,EC5_TRE_IND,Induction of labour with vaginal prostaglandin,WHOMCH Induction of labour with vaginal prostaglandin performed at term,SUM,False
+NPZPVg2rVh4,DE_423714,Insecticide treated bednet promoted,WHOMCH Insecticide treated bednet promoted,SUM,False
+Kb6kZzUCJi1,TRE_SUP,Iron and folic acid supplements given,WHOMCH Iron and folic acid supplements given,SUM,False
+w4ky6EkVahL,EA_LMP_DAT,LMP date,WHOMCH LMP date,SUM,False
+OSuxnldV4Ug,EA8b_TRE_ASP,Low-dose acetylsalicylic acid given,WHOMCH Low-dose acetylsalicylic acid given,SUM,False
+MHW5v2Iljtw,EA4a_TRE_MAL1,Malaria prophylaxis given in second trimester,WHOMCH Malaria prophylaxis given in second trimester,SUM,False
+zsWyjzmBLGz,EA4a_TRE_MAL2,Malaria prophylaxis given in third trimester,WHOMCH Malaria prophylaxis given in third trimester,SUM,False
+FIHEeJwfhZH,EC_CLI_NEA,Maternal near-miss,WHOMCH Maternal near-miss,SUM,False
+i9mEM7ZW7yV,EC_CLI_NEA2,MNM by coagulation/haematological dysfunction,WHOMCH Maternal near-miss by coagulation/haematological dysfunction,SUM,False
+SojR4V7A8u2,EC_CLI_NEA3,Maternal near-miss by other reason,WHOMCH Maternal near-miss by other reason,SUM,False
+PQlndpI05Bb,EC_CLI_NEA1,MNM by uterine dysfunction,WHOMCH Maternal near-miss by uterine dysfunction,SUM,False
+YsVHgzQCwmr,EC_CLI_MEC,Meconium stained liquor,WHOMCH Meconium stained liquor,SUM,False
+fNnOPQj83jz,DE_423611,Medication,WHOMCH Medication,SUM,False
+lcaG1Pnh27I,EA8d_TRE_ECL,MgSO4 injection given,WHOMCH MgSO4 injection given,SUM,False
+FYLMjPQ0wmo,CLI_ANE_MOD,Moderate aneamia,WHOMCH Moderate aneamia,SUM,False
+EnalHZFesIv,DE_423696,Mohammads point,WHOMCH Mohammads point,SUM,False
+SeXllT5ypsh,OFF_IND,off. induction of labour or exp. management,WHOMCH Offered a choice of induction of labour or expectant management,SUM,False
+nhW3SZX9JaN,TRE_HIV_ARV,Ongoing or initiated ARV regimen,WHOMCH Ongoing or initiated ARV regimen,COUNT,False
+WY9LjaUQI1q,ONSET,Onset of symptoms in current pregnancy,WHOMCH Onset of symptoms in current pregnancy,SUM,False
+xPTngRLQTnu,MMD_CON_OTHER,Other chronic condition,WHOMCH Other chronic condition,SUM,False
+Mh7nK8UKoZP,MMD_CON_OTHER_SPEC,Other chronic condition specified,WHOMCH Other chronic condition specified,SUM,False
+dpOtt7HUQXa,MMD_ALL_OM,Other medicine allergy,WHOMCH Other medicine allergy,SUM,False
+VSmOcdK3v7y,MMD_ALL_OM_SPEC,Other medicine allergy specified,WHOMCH Other medicine allergy specified,SUM,False
+ZbDPeYzWsh2,MMD_ALL_OS,Other severe allergy,WHOMCH Other severe allergy,SUM,False
+zk4Eui7Jhtr,MMD_ALL_OS_SPEC,Other severe allergy specified,WHOMCH Other severe allergy specified,SUM,False
+BmaBjPQX8ME,EC_TRE_PPH,Oxytocin given,WHOMCH Oxytocin given,SUM,False
+HUfKCOou7de,EC1_TRE_LBR3,Pain medication given,WHOMCH Pain medication given,SUM,False
+hisxuZstYJM,MMD_OBS_PAR,Parity (previous deliveries),WHOMCH Parity (previous deliveries),SUM,False
+VXdfPQRXKiA,EC_TRE_LBR2,Partograph used,WHOMCH Partograph used,SUM,False
+E6QaDtrQP5e,MMD_ALL_PEN,Penicillin allergy,WHOMCH Penicillin allergy,SUM,False
+OhcR0fpFcWa,EA6_TRE_SYP1,Penicillin given,WHOMCH Penicillin given,SUM,False
+PN6HcGjTraL,EA_CLI_PLU,Plurality assessed,WHOMCH Plurality assessed,SUM,False
+V5PR8Kw8ZnC,EC_PRE_OUT,Pregnancy outcome,WHOMCH Pregnancy outcome,SUM,False
+VFffa31SKjH,MMD_CON_HIV,Previously known HIV-positive,WHOMCH Previously known HIV-positive,SUM,False
+W4zW3aPyS0G,MMD_OBS_DEL,Previous modes of delivery,WHOMCH Previous modes of delivery,SUM,False
+iwNXUX6KYX0,OBS_BIRTHWEIGHT,Previous pregnacy birthweight,WHOMCH Previous pregnacy birthweight,SUM,False
+wqpUVEeJR3D,OBS_GEST_AGE,Previous pregnancy gest.age at birth,WHOMCH Previous pregnancy gest.age at birth,SUM,False
+mrVkW9h2Rdp,MMD_OBS_OUT,Previous pregnancy outcomes,WHOMCH Previous pregnancy outcomes,SUM,False
+dpiyZz8bkVE,EA_PRT_CON,Proteinuria (concentration mg/dL),WHOMCH Proteinuria (concentration mg/dL),SUM,False
+a7XjFEuZuKE,MMD_PRT_US,Proteinuria (urinstix),WHOMCH Proteinuria (urinstix),AVERAGE_SUM_ORG_UNIT,False
+vTEkiy8F3yj,EA8_CLI_ECL2,Recurrent eclamptic seizures,WHOMCH Recurrent eclamptic seizures,SUM,False
+sdchiIXIcCf,MMD_CON_RD,Renal disease,WHOMCH Renal disease,SUM,False
+Spl22QJsWeu,CLI_RR,Respiratory rate,WHOMCH Respiratory rate,SUM,False
+PCiOYWXZq2E,EC_CLI_PLA,Retained placenta,WHOMCH Retained placenta,SUM,False
+AAaJGnWR5js,EA6_LAB_SYP,RPR test,WHOMCH RPR test,SUM,False
+xoji9tjIrIj,EA_CON2,Screening for autoimmune disease performed,WHOMCH Screening for autoimmune disease performed,SUM,False
+kRVjK1hrUCe,EA_CON1,Screening for chronic hypertension performed,WHOMCH Screening for chronic hypertension performed,SUM,False
+jTtAqN1pMTY,EA_CON3,Screening for diabetes performed,WHOMCH Screening for diabetes performed,SUM,False
+YrtUVQtPngs,EA_SCR_PRE_ECL,Screening for pre-eclampsia risk factors performed,WHOMCH Screening for pre-eclampsia risk factors performed,SUM,False
+rIwYLa8kox3,EA_OBS1,Screening for previous pre-eclampsia performed,WHOMCH Screening for previous pre-eclampsia performed,SUM,False
+hH1izHeUNrQ,EA_CON5,Screening for renal disease performed ,WHOMCH Screening for renal disease performed ,SUM,False
+AXuzjgLsBy3,CLI_ANE_SEV,Severe anaemia,WHOMCH Severe anaemia,SUM,False
+ytV9rX4ADnn,EA4b_PRE_MAL,Slept under ITN (insecticide treated bednet),WHOMCH Slept under ITN (insecticide treated bednet),SUM,False
+sWoqcoByYmD,STA_SMO,Smoking,WHOMCH Smoking,SUM,False
+Ok9OQpitjQr,EA5_TRE_SMO,Smoking cessation counselling provided ,WHOMCH Smoking cessation counselling provided ,SUM,False
+z9auvNRRWQJ,EA10b_LAB_PPR,Speculum test result pPROM,WHOMCH Speculum examination test result for suspected pPROM,SUM,False
+yV91JsUXuju,EA10a_LAB_PRO,Speculum test result PROM,WHOMCH Speculum examination test result for suspected PROM,SUM,False
+cF0XbuZkUcC,EA10b_CLI_PPR1,Suspected pPROM,WHOMCH Suspected pPROM,SUM,False
+DwWIh6D3fSr,EA10a_CLI_PRO1,Suspected PROM,WHOMCH Suspected PROM,SUM,False
+M4HEOoEFTAT,EA_BP_SYS,Systolic blood pressure,WHOMCH Systolic blood pressure,AVERAGE_SUM_ORG_UNIT,False
+sUX4i7QqbXF,EC_STA_TET,Tetanus vaccination status,WHOMCH Tetanus vaccination status,SUM,False
+cz5DN6BVVeW,EC_CLI_TEA,Third or fourth degree perineal tear,WHOMCH Third or fourth degree perineal tear,SUM,False
+RxVNLSeTjto,EA2_TRE_ANE_MOD,Treatment for moderate anemia,WHOMCH Treatment for moderate anemia,SUM,False
+nB4Ui3ckmUi,EA2_TRE_ANE_SEV,Treatment for severe anemia,WHOMCH Treatment for severe anemia,SUM,False
+DecmCMPDPdS,EA_EDD_ULS,Ultrasound estimate of due date,WHOMCH Ultrasound estimate of due date,SUM,False
+m3XQrgadVK9,EC4_TRE_HEM,Uterotonics given,WHOMCH Uterotonics given,SUM,False
+csl3yq5UC46,LAB_WBC,White blood cell count,WHOMCH White blood cell count,SUM,False
+E62UwxnYf26,DE_359058,Worm infestation f-u,Worm infestation follow-up,SUM,False
+Usk9Asj5DED,DE_358914,Worm infest. new,Worm infestation new,SUM,False
+VmoPqzwBgkx,DE_358952,Worm infestation ref,Worm infestation referrals,SUM,False
+yJwdE6XJbrF,DE_359066,Wounds/Trauma f-u,Wounds/Trauma follow-up,SUM,False
+FJs8ZjlQE6f,DE_358916,Wounds/Trauma new,Wounds/Trauma new,SUM,False
+JMKtVQ5HasH,DE_358960,Wounds/Trauma ref.,Wounds/Trauma referrals,SUM,False
+zHaIxBfQMZk,D0001,WP1,WP1,SUM,False
+HUYDWrGgTdI,D0002,WP2,WP2,SUM,False
+vcSXdYGa5St,,XX MAL RDT - Age,XX MAL RDT TRK - Age,SUM,True
+lWLkpWMHqEq,,XX MAL RDT - Diagnosis Method,XX MAL RDT TRK - Diagnosis Method,SUM,False
+QMLLmxjsFqk,,XX MAL RDT - Diagnosis Type,XX MAL RDT TRK - Diagnosis Type,SUM,False
+XEuy83qbOvM,,XX MAL RDT - Microscopy Result,XX MAL RDT TRK - Microscopy Result,SUM,False
+iV67wNwjQuG,,XX MAL RDT - No tested,XX MAL RDT TRK - No tested reason,SUM,False
+diH9IbKTpHj,,XX MAL RDT - RDT Result,XX MAL RDT TRK - RDT Result,SUM,False
+DKj79JKpli0,,XX MAL RDT - Reason for not testing,XX MAL RDT TRK - Reason for not testing,SUM,False
+DY1xJukD6nc,,XX MAL RDT - Referral,XX MAL RDT TRK - Referral,SUM,False
+YdwvOAN77SV,,XX MAL RDT - Sex,XX MAL RDT TRK - Sex,SUM,False
+zFaeo9trjWb,,XX MAL RDT - Treatment Mixed,XX MAL RDT TRK - Treatment Mixed,SUM,False
+CLC5VYdZBay,,XX MAL RDT - Treatment Pf,XX MAL RDT TRK - Treatment Pf,SUM,False
+TnCSyYfCaNE,,XX MAL RDT - Treatment Pv,XX MAL RDT TRK - Treatment Pv,SUM,False
+rypjN8CV02V,,XX MAL RDT - Village of Residence,XX MAL RDT TRK - Village of Residence,SUM,False
+plfo9ai1jtW,DE_359055,Yaws follow-up,Yaws follow-up,SUM,False
+FF3Ev33BuCh,DE_398,Yaws new,Yaws new,SUM,False
+gQAAvbLx8MM,DE_358949,Yaws referrals,Yaws referrals,SUM,False
+cNkTt6mJQyO,Yebo,Yebo,Yebo,SUM,False
+USBq0VHSkZq,DE_1148627,Yellow Fever (Deaths < 5 yrs),Yellow Fever (Deaths < 5 yrs),SUM,False
+rj9mw1J6sBg,DE_239775,Yellow Fever (Deaths < 5 yrs) Narrative,Yellow Fever (Deaths < 5 yrs) Narrative,SUM,False
+l6byfWFUGaP,DE_35,Yellow Fever doses given,Yellow Fever doses given,SUM,False
+hvdCBRWUk80,DE_359051,Yellow fever f-u,Yellow fever follow-up,SUM,False
+XWU1Huh0Luy,DE_393,Yellow fev new,Yellow fever new,SUM,False
+zSJF2b48kOg,DE_358945,Yellow fever ref.,Yellow fever referrals,SUM,False
+QN8WyI8KgpU,DE_1152140,YesOnly,YesOnly,SUM,False
