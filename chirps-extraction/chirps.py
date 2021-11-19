@@ -289,14 +289,14 @@ def extract_sum(
     with fs.open(files[0]) as fp:
         with rasterio.open(fp) as src:
             affine = src.transform
+            width, height = src.width, src.height
 
-    daily_rasters = []
+    cumsum = np.zeros(shape=(height, width), dtype=np.float32)
+
     for f in files:
         with fs.open(f) as fp:
             with rasterio.open(fp) as src:
-                daily_rasters.append(src.read(1))
-
-    cumsum = np.nansum(daily_rasters, axis=0)
+                cumsum += src.read(1)
 
     return cumsum, affine
 
