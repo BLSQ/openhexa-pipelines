@@ -281,10 +281,10 @@ def download_chirps_daily(
             download_chirps_data(download_url=url, fs=fs, output_path=output_path)
 
 
-def extract_sum_epi_week(
+def extract_sum(
     fs: AbstractFileSystem, files: typing.Sequence[str]
 ) -> typing.Tuple[np.ndarray, Affine]:
-    """Get weekly precipitation sum from daily precipitation rasters."""
+    """Get precipitation sum from daily precipitation rasters."""
 
     with fs.open(files[0]) as fp:
         with rasterio.open(fp) as src:
@@ -296,9 +296,9 @@ def extract_sum_epi_week(
             with rasterio.open(fp) as src:
                 daily_rasters.append(src.read(1))
 
-    weekly = np.nansum(daily_rasters, axis=0)
+    cumsum = np.nansum(daily_rasters, axis=0)
 
-    return weekly, affine
+    return cumsum, affine
 
 
 def extract_chirps_data(
@@ -335,7 +335,7 @@ def extract_chirps_data(
                 continue
 
             epi_year, epi_week = epi_week_dir.split("/")[-1].split("-")
-            epi_array, epi_affine = extract_sum_epi_week(input_fs, files)
+            epi_array, epi_affine = extract_sum(input_fs, files)
 
             stats = zonal_stats(
                 contours,
