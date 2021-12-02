@@ -8,7 +8,7 @@ import logging
 import os
 import tempfile
 import typing
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import click
 import geopandas as gpd
@@ -21,9 +21,10 @@ from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
-from pandas import DatetimeIndex
 from rasterstats import zonal_stats
 from s3fs import S3FileSystem
+from shapely.geometry import Polygon
+from sqlalchemy import create_engine
 
 # comon is a script to set parameters on production
 try:
@@ -38,12 +39,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-CHIRPS_VERSION = "2.0"
-CHIRPS_TIMELY = "daily"
-CHIRPS_ZONE = "africa"
-# Year folder added on the fly by the download_chirps_daily function.
-CHIRPS_URL = f"https://data.chc.ucsb.edu/products/CHIRPS-{CHIRPS_VERSION}/{CHIRPS_ZONE}_{CHIRPS_TIMELY}/tifs/p05/"
-CHIRPS_BASENAME = "chirps-v2.0.{chirps_year}.{chirps_month:0>2d}.{chirps_day:0>2d}.tif"
+
+class ChirpsError(Exception):
+    """CHIRPS base error."""
 
 
 def filesystem(target_path: str) -> AbstractFileSystem:
@@ -74,38 +72,83 @@ def cli():
 
 
 @cli.command()
-@click.option("--output-dir", type=str, help="output directory")
-@click.option("--start", type=int, help="start year")
-@click.option("--end", type=int, help="end year")
+@click.option("--output-dir", type=str, help="output directory", required=True)
+@click.option("--start", type=int, help="start date", required=True)
+@click.option("--end", type=int, help="end date", required=True)
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing files"
 )
 def download(output_dir: str, start: int, end: int, overwrite: bool):
     """Download raw precipitation data."""
     logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
-    download_chirps_daily(
-        output_dir=output_dir, year_start=start, year_end=end, overwrite=overwrite
-    )
+    start = datetime.strptime(start, "%Y-%m-%d").date()
+    end = datetime.strptime(end, "%Y-%m-%d").date()
+    chirps = Chirps()
+    chirps.download_range(start, end, output_dir, overwrite=overwrite)
 
 
 @cli.command()
-@click.option("--start", type=int, help="start year")
-@click.option("--end", type=int, help="end year")
-@click.option("--contours", type=str, help="path to contours file")
-@click.option("--input-dir", type=str, help="raw CHIRPS data directory")
-@click.option("--output-file", type=str, help="output directory")
-def extract(start, end, contours, input_dir, output_file):
+@click.option("--start", type=int, help="start date", required=True)
+@click.option("--end", type=int, help="end date", required=True)
+@click.option("--contours", type=str, help="path to contours", required=True)
+@click.option("--input-dir", type=str, help="chirps data directory", required=True)
+@click.option("--weekly", type=str, help="path to weekly output")
+@click.option("--monthly", type=str, help="path to monthly output")
+@click.option("--db-host", type=str, help="database hostname")
+@click.option("--db-port", type=int, help="database port", default=5432)
+@click.option("--db-name", type=str, help="database name")
+@click.option("--db-user", type=str, help="database username")
+@click.option("--db-password", type=str, help="database password")
+def extract(
+    start,
+    end,
+    contours,
+    input_dir,
+    weekly,
+    monthly,
+    db_host,
+    db_port,
+    db_name,
+    db_user,
+    db_password,
+):
     """Compute zonal statistics."""
 
     logger.info(f"Computing zonal statistics for {contours}")
 
-    extract_chirps_data(
-        contours_file=contours,
-        input_dir=input_dir,
-        output_file=output_file,
-        start_year=start,
-        end_year=end,
-    )
+    if contours.startswith("pg://"):
+        con = create_engine(
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
+        table = contours.split("/")[-1]
+        contours_data = gpd.read_postgis(f"SELECT * FROM {table}", con, "geometry")
+    else:
+        fs = filesystem(contours)
+        with fs.open(contours) as f:
+            contours_data = gpd.read_file(f)
+
+    start = datetime.strptime(start, "%Y-%m-%d").date()
+    end = datetime.strptime(end, "%Y-%m-%d").date()
+
+    if weekly:
+
+        weekly_data = weekly_stats(
+            contours=contours_data, start=start, end=end, chirps_dir=input_dir
+        )
+
+        fs = filesystem(weekly)
+        with fs.open(weekly) as f:
+            weekly_data.to_csv(f)
+
+    if monthly:
+
+        monthly_data = monthly_stats(
+            contours=contours_data, start=start, end=end, chirps=input_dir
+        )
+
+        fs = filesystem(monthly)
+        with fs.open(monthly) as f:
+            monthly_data.to_csv(f)
 
 
 class EpiSystem(enum.Enum):
@@ -113,12 +156,8 @@ class EpiSystem(enum.Enum):
     WHO = "WHO"
 
 
-def provide_epi_week(
-    year: int, month: int, day: int, system: EpiSystem = "CDC"
-) -> typing.Tuple[int, int, date, date]:
-    """Provide epidemiological week from a date using either the CDC or WHO system.
-
-    How do we define the first week of the year/January ?
+class EpiWeek:
+    """How do we define the first week of the year/January ?
 
         - Epi Week begins on a Sunday and end on a Saturday.
         - The first EpiWeek ends on the first Saturday of January as long as
@@ -139,230 +178,335 @@ def provide_epi_week(
           current year
         - If January 1 occurs on Thursday, Friday or Saturday, the calendar
           week that includes January 1 will be th last week of previous year.
-
-    Note
-    ----
-    WHO system not really tested (no reference calendar found).
-
-    Raises
-    ------
-    ValueError
-        If epi week system is neither CDC or WHO.
     """
-    systems = {"CDC": 0, "WHO": 1}
-    if system.upper() not in systems.keys():
-        raise ValueError("System not in {}".format(list(systems.keys())))
 
-    x = date(year, month, day)
-    week_day = (x - timedelta(days=systems[system.upper()])).isoweekday()
-    week_day = 0 if week_day == 7 else week_day  # Week : Sun = 0 ; Sat = 6
+    def __init__(self, date_object: date, system: EpiSystem = "CDC"):
+        self.from_date(date_object, system)
 
-    # Start the weekday on Sunday (CDC)
-    week_start_day = x - timedelta(days=week_day)
-    # End the weekday on Saturday (CDC)
-    week_end_day = week_start_day + timedelta(days=6)
+    def __iter__(self):
+        """Iterate over days of the epi. week."""
+        n_days = (self.end - self.start).days + 1
+        for wday in range(0, n_days):
+            yield self.start + timedelta(days=wday)
 
-    week_start_year_day = week_start_day.timetuple().tm_yday
-    week_end_year_day = week_end_day.timetuple().tm_yday
+    def __eq__(self, other):
+        """Compare only week and year."""
+        return self.week == other.week and self.year == other.year
 
-    if week_end_year_day in range(4, 11):
-        epi_week = 1
-    else:
-        epi_week = ((week_start_year_day + 2) // 7) + 1
+    def __repr__(self):
+        return f"EpiWeek({self.year}W{self.week})"
 
-    if week_end_year_day in range(4, 11):
-        epi_year = week_end_day.year
-    else:
-        epi_year = week_start_day.year
+    def from_date(self, date_object: date, system: EpiSystem = "CDC"):
+        """Get epidemiological week info from date object."""
+        systems = {"CDC": 0, "WHO": 1}
+        if system.upper() not in systems.keys():
+            raise ValueError("System not in {}".format(list(systems.keys())))
 
-    return epi_week, epi_year, week_start_day, week_end_day
+        week_day = (date_object - timedelta(days=systems[system.upper()])).isoweekday()
+        week_day = 0 if week_day == 7 else week_day  # Week : Sun = 0 ; Sat = 6
 
+        # Start the weekday on Sunday (CDC)
+        self.start = date_object - timedelta(days=week_day)
+        # End the weekday on Saturday (CDC)
+        self.end = self.start + timedelta(days=6)
 
-def provide_time_range(
-    year_start: int, year_end: int, future: bool = False
-) -> DatetimeIndex:
-    """Get pandas date range from start and end year."""
-    start_period = date(year_start, 1, 1)
-    _, _, start_epi_day, _ = provide_epi_week(
-        date.today().year, date.today().month, date.today().day
-    )
-    if future:
-        end_period = date(year_end, 12, 31)
-    else:
-        end_period = (
-            start_epi_day - timedelta(days=1)
-            if date(year_end, 12, 31) >= start_epi_day
-            else date(year_end, 12, 31)
-        )  # No Future
-    return pd.date_range(start_period, end_period)
+        week_start_year_day = self.start.timetuple().tm_yday
+        week_end_year_day = self.end.timetuple().tm_yday
 
-
-def download_chirps_data(
-    *, download_url: str, fs: AbstractFileSystem, output_path: str
-):
-    """Download .tif or .gzip file from URL."""
-
-    logger.info(f"Downloading {download_url}")
-
-    # If a .tif file is requested but not available, the request will be
-    # successfull (status code = 200) and the server will include the location
-    # of the corresponding .tif.gz in the Content-Location header.
-    src_fname = download_url.split("/")[-1]
-    r = requests.head(download_url)
-    download_url = download_url.replace(
-        src_fname, r.headers.get("content-location", src_fname)
-    )
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-
-        # Write the GeoTIFF in a temporary file
-        tmp_file = os.path.join(tmp_dir, "raster.tif")
-        r = requests.get(download_url, stream=True, timeout=60)
-        r.raise_for_status()
-        with open(tmp_file, "wb") as f:
-            if download_url.endswith(".gz"):
-                f.write(gzip.decompress(r.content))
-            else:
-                f.write(r.content)
-
-        # Compress, tile and assign nodata value with Rasterio before writing
-        with rasterio.open(tmp_file) as src:
-            dst_profile = src.profile.copy()
-            dst_profile.update(
-                compress="deflate",
-                predictor=3,
-                zlevel=6,
-                tiled=True,
-                blockxsize=256,
-                blockysize=256,
-                nodata=-9999,
-            )
-            tmp_file_2 = os.path.join(tmp_dir, "raster2.tif")
-            with rasterio.open(tmp_file_2, "w", **dst_profile) as dst:
-                dst.write(src.read(1), 1)
-
-        fs.put(tmp_file_2, output_path)
-
-
-def download_chirps_daily(
-    *,
-    output_dir: str,
-    year_start: int,
-    year_end: int,
-    overwrite: bool = False,
-):
-    """Download CHIRPS daily products for a given time range."""
-
-    output_dir = output_dir.rstrip("/")
-    fs = filesystem(output_dir)
-    time_range = provide_time_range(year_start, year_end)
-    time_serie = time_range.to_series().apply(
-        lambda r: provide_epi_week(r.year, r.month, r.day)
-    )
-
-    for day, (epi_week, year, _, _) in time_serie.items():
-        output_file = CHIRPS_BASENAME.format(
-            chirps_year=day.year, chirps_month=day.month, chirps_day=day.day
-        )
-        output_path = f"{output_dir}/{year}-{epi_week:0>2d}/{output_file}"
-        url = f"{CHIRPS_URL}{day.year}/{output_file}"
-
-        fs.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-        if fs.exists(output_path) and fs.size(output_path) > 0 and not overwrite:
-            logger.info(f"Skipping {output_path}")
-            continue
-
-        r = requests.head(url)
-        if r.status_code == 404:
-            logger.info(f"No raster found at {url}. Stopping download.")
-            break
+        if week_end_year_day in range(4, 11):
+            self.week = 1
         else:
-            download_chirps_data(download_url=url, fs=fs, output_path=output_path)
+            self.week = ((week_start_year_day + 2) // 7) + 1
+
+        if week_end_year_day in range(4, 11):
+            self.year = self.end.year
+        else:
+            self.year = self.start.year
 
 
-def extract_sum(
-    fs: AbstractFileSystem, files: typing.Sequence[str]
+def epiweek_range(start: date, end: date) -> typing.List[EpiWeek]:
+    """Get a range of epidemiological weeks between two dates."""
+    epiweeks = []
+    day = start
+    while day <= end:
+        epiweek = EpiWeek(day)
+        if epiweek not in epiweeks:
+            epiweeks.append(epiweek)
+        day += timedelta(days=1)
+    return epiweeks
+
+
+def _compress(src_raster: str, dst_raster: str):
+    """Compress a raster to save storage space."""
+    with rasterio.open(src_raster) as src:
+        dst_profile = src.profile.copy()
+        dst_profile.update(
+            compress="deflate",
+            predictor=3,
+            zlevel=6,
+            tiled=True,
+            blockxsize=256,
+            blockysize=256,
+            nodata=-9999,
+        )
+        with rasterio.open(dst_raster, "w", **dst_profile) as dst:
+            dst.write(src.read(1), 1)
+    return dst_raster
+
+
+def _download(url: str, dst_file: str, timeout: int = 60):
+    """Download file at URL."""
+    r = requests.get(url, stream=True, timeout=timeout)
+    r.raise_for_status()
+    with open(dst_file, "wb") as f:
+        if url.endswith(".gz"):
+            f.write(gzip.decompress(r.content))
+        else:
+            f.write(r.content)
+    return dst_file
+
+
+class Chirps:
+    def __init__(
+        self, version: str = "2.0", zone: str = "africa", timely: str = "daily"
+    ):
+        self.version = version
+        self.zone = zone
+        self.timely = timely
+
+    @property
+    def base_url(self):
+        return (
+            "https://data.chc.ucsb.edu/products/CHIRPS-"
+            f"{self.version}/{self.zone}_{self.timely}/tifs/p05"
+        )
+
+    def fname(self, day: date):
+        """Get file name of daily CHIRPS data for a given date."""
+        if day >= date(2021, 6, 1):
+            extension = "tif"
+        else:
+            extension = "tif.gz"
+        return f"chirps-v2.0.{day.year}.{day.month:0>2d}.{day.day:0>2d}.{extension}"
+
+    def download(
+        self, day: date, output_dir: str, timeout: int = 60, overwrite: bool = False
+    ):
+        """Download a CHIRPS file identified by a date."""
+        fs = filesystem(output_dir)
+        fname = self.fname(day)
+        output_file = os.path.join(output_dir, fname.replace(".gz", ""))
+
+        if fs.exists(output_file) and not overwrite:
+            logger.info(f"{fname} already exists. Skipping download.")
+            return
+
+        url = f"{self.base_url}/{day.year}/{fname}"
+        logger.info(
+            f"Downloading CHIRPS data for date {day.strftime('%Y-%m-%d')} {url}."
+        )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            raster = _download(
+                url, os.path.join(tmp_dir, "raster.tif"), timeout=timeout
+            )
+            raster = _compress(raster, os.path.join(tmp_dir, "raster_compressed.tif"))
+            fs.put(raster, output_file)
+        logger.info(f"Moved downloaded file to {output_file}.")
+
+    def download_range(
+        self, start: date, end: date, output_dir: str, overwrite: bool = False
+    ):
+        """Download all CHIRPS daily products to cover a given date range."""
+        day = start
+        while day <= end:
+            per_year = os.path.join(output_dir, str(day.year))
+            os.makedirs(per_year, exist_ok=True)
+            self.download(day, output_dir=per_year, overwrite=overwrite)
+            day += timedelta(days=1)
+
+
+def chirps_path(data_dir: str, date_object: date):
+    """Return CHIRPS raster file path for a given date."""
+    fs = filesystem(data_dir)
+    pattern = os.path.join(
+        data_dir, str(date_object.year), f"*{date_object.strftime('%Y.%m.%d')}.tif"
+    )
+    search = fs.glob(pattern)
+    if search:
+        return search[0]
+    return None
+
+
+def raster_cumsum(
+    rasters: typing.List[str], extent: Polygon
 ) -> typing.Tuple[np.ndarray, Affine]:
-    """Get precipitation sum from daily precipitation rasters."""
-
-    with fs.open(files[0]) as fp:
+    """Compute cumulative sum between rasters."""
+    fs = filesystem(rasters[0])
+    # Get raster metadata from first raster in the list
+    with fs.open(rasters[0]) as fp:
         with rasterio.open(fp) as src:
-            affine = src.transform
-            width, height = src.width, src.height
+            xmin, ymin, xmax, ymax = extent.bounds
+            nodata = src.nodata
+            window = rasterio.windows.from_bounds(
+                xmin, ymin, xmax, ymax, transform=src.transform
+            )
+            affine = src.window_transform(window)
+            height, width = src.read(1, window=window, masked=True).shape
 
     cumsum = np.zeros(shape=(height, width), dtype=np.float32)
-
-    for f in files:
-        with fs.open(f) as fp:
+    for rst in rasters:
+        with fs.open(rst) as fp:
             with rasterio.open(fp) as src:
-                cumsum += src.read(1)
+                cumsum += src.read(1, window=window, masked=True)
 
-    return cumsum, affine
+    return cumsum, affine, nodata
 
 
-def extract_chirps_data(
-    *,
-    contours_file: str,
-    input_dir: str,
-    output_file: str,
-    start_year: int,
-    end_year: int,
-):
-    """Extract CHIRPS data."""
+def weekly_stats(
+    contours: gpd.GeoDataFrame, start: date, end: date, chirps_dir: str
+) -> pd.DataFrame:
+    """Compute weekly precipitation aggregation statistics.
 
-    input_dir = input_dir.rstrip("/")
-    contours_df = gpd.read_file(contours_file)
+    Parameters
+    ----------
+    contours : GeoDataFrame
+        Contours geodataframe with a geometry column (EPSG:4326).
+    start : date
+        Start date.
+    end : date
+        End date.
+    chirps_dir : str
+        CHIRPS data root directory.
 
-    input_fs = filesystem(input_dir)
-    output_fs = filesystem(output_file)
+    Return
+    ------
+    DataFrame
+        Weekly stats as a dataframe of length n_weeks * n_contours.
+    """
+    fs = filesystem(chirps_dir)
+    weeks = epiweek_range(start, end)
 
-    contours = contours_df.to_crs("EPSG:4326")
-    data = pd.DataFrame()
+    dataframe = pd.DataFrame(columns=contours.columns)
 
-    for year in range(start_year, end_year + 1):
+    for week in weeks:
 
-        for epi_week_dir in input_fs.glob(f"{input_dir}/{year}-*"):
+        # Get the list of all daily rasters for the epi week
+        rasters = [chirps_path(chirps_dir, day) for day in week]
+        if not all(rasters):
+            logger.info(f"Epidemiological week {week} is incomplete. Skipping.")
+            continue
 
-            logger.info(f"Processing epi week {epi_week_dir.split('/')[-1]}")
-            files = input_fs.glob(f"{epi_week_dir}/*.tif")
+        # Compute zonal statistics based on precipitation cumulative sum
+        cumsum, affine, nodata = raster_cumsum(
+            rasters, extent=contours[contours.is_valid].unary_union
+        )
+        stats = zonal_stats(
+            [geom.__geo_interface__ for geom in contours.geometry],
+            cumsum,
+            affine=affine,
+            nodata=nodata,
+            stats=["sum", "count"],
+        )
 
-            # Skip incomplete epi weeks
-            if len(files) < 6:
-                logger.info(
-                    f"Skipping incomplete epi week {epi_week_dir.split('/')[-1]}"
-                )
-                continue
+        dataframe_week = contours.copy()
+        dataframe_week["period"] = f"{week.year}W{week.week}"
+        dataframe_week["epi_year"] = str(week.year)
+        dataframe_week["epi_week"] = str(week.week)
+        dataframe_week["start_date"] = week.start.strftime("%Y-%m-%d")
+        dataframe_week["end_date"] = week.end.strftime("%Y-%m-%d")
+        dataframe_week["mid_date"] = week.start + (week.end - week.start) / 2
+        dataframe_week["count"] = [stat["count"] for stat in stats]
+        dataframe_week["sum"] = [stat["sum"] for stat in stats]
+        dataframe = dataframe.append(dataframe_week)
 
-            epi_year, epi_week = epi_week_dir.split("/")[-1].split("-")
-            epi_array, epi_affine = extract_sum(input_fs, files)
+    return dataframe
 
+
+def _iter_month_days(year: int, month: int):
+    """Iterate over days in a month."""
+    start = date(year, month, 1)
+    for d in range(0, 31):
+        day = start + timedelta(days=d)
+        if day.month == month:
+            yield day
+
+
+def monthly_stats(
+    contours: gpd.GeoDataFrame, start: date, end: date, chirps_dir: str
+) -> pd.DataFrame:
+    """Compute weekly precipitation aggregation statistics.
+
+    Parameters
+    ----------
+    contours : GeoDataFrame
+        Contours geodataframe with a geometry column (EPSG:4326).
+    start : date
+        Start date.
+    end : date
+        End date.
+    chirps_dir : str
+        CHIRPS data root directory.
+
+    Return
+    ------
+    DataFrame
+        Weekly stats as a dataframe of length n_weeks * n_contours.
+    """
+    fs = filesystem(chirps_dir)
+    dataframe = pd.DataFrame(columns=contours.columns)
+
+    year, month = start.year, start.month
+    day = start
+
+    while year <= end.year and month <= end.month:
+
+        days_in_month = [d for d in _iter_month_days(year, month)]
+
+        # Get the list of all daily rasters for the month
+        rasters = [chirps_path(chirps_dir, d) for d in days_in_month]
+
+        if all(rasters):
+
+            logger.info(f"Computing zonal statistics for month {year}{month:02}.")
+            # Compute zonal statistics based on precipitation cumulative sum
+            cumsum, affine, nodata = raster_cumsum(
+                rasters, extent=contours[contours.is_valid].unary_union
+            )
             stats = zonal_stats(
-                contours,
-                epi_array,
-                affine=epi_affine,
-                nodata=np.nan,
-                stats="sum count",
-                geojson_out=True,
+                [geom.__geo_interface__ for geom in contours.geometry],
+                cumsum,
+                affine=affine,
+                nodata=nodata,
+                stats=["sum", "count"],
             )
 
-            df = gpd.GeoDataFrame.from_features(stats)
-            df = pd.DataFrame(df.drop(columns="geometry"))
-            df["epi_year"], df["epi_week"], df["date"] = [
-                epi_year,
-                epi_week,
-                f"{epi_week}/{epi_year}",
-            ]
+            dataframe_month = contours.copy()
+            dataframe_month["period"] = f"{year}{month:02}"
+            dataframe_month["epi_year"] = year
+            dataframe_month["epi_month"] = int(month)
+            dataframe_month["start_date"] = days_in_month[0].strftime("%Y-%m-%d")
+            dataframe_month["end_date"] = days_in_month[-1].strftime("%Y-%m-%d")
+            dataframe_month["mid_date"] = (
+                days_in_month[0] + (days_in_month[-1] - days_in_month[0]) / 2
+            )
+            dataframe_month["count"] = [stat["count"] for stat in stats]
+            dataframe_month["sum"] = [stat["sum"] for stat in stats]
+            dataframe = dataframe.append(dataframe_month)
 
-            data = pd.concat([data, df], axis=0, copy=False)
+        else:
 
-    data = data.reset_index(drop=True)
+            logger.info(f"Month {year}{month:02} is incomplete. Skipping.")
 
-    output_fs.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with output_fs.open(output_file, "w") as f:
-        csv = data.to_csv(index=False)
-        f.write(csv)
-        logger.info(f"Aggregated statistics written to {output_file}.")
+        if month < 12:
+            month += 1
+        else:
+            year += 1
+            month = 1
+
+    if "geometry" in dataframe.columns:
+        dataframe = dataframe.drop(columns=["geometry"])
+    return dataframe
 
 
 if __name__ == "__main__":
