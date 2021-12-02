@@ -6,7 +6,7 @@ The program supports S3, GCS, and local paths for both inputs and outputs.
 
 ## Usage
 
-This pipeline is meant to be run within a Docker container. The examples below use `docker-compose.yaml`, which is the 
+This pipeline is meant to be run within a Docker container. The examples below use `docker-compose.yaml`, which is the
 recommended approach for local development.
 
 ```
@@ -26,16 +26,17 @@ Commands:
 ## Data acquisition
 
 ```
-Usage: docker-compose run pipeline chirps download [OPTIONS]
+Usage: chirps download [OPTIONS]
 
   Download raw precipitation data.
 
 Options:
-  --start INTEGER    start year
-  --end INTEGER      end year
-  --output-dir TEXT  output directory
+  --output-dir TEXT  output directory  [required]
+  --start TEXT       start date  [required]
+  --end TEXT         end date  [required]
   --overwrite        overwrite existing files
   --help             Show this message and exit.
+
 ```
 
 The `download` subcommand downloads daily precipitation rasters for the african continent into a S3 directory.
@@ -44,8 +45,8 @@ The `download` subcommand downloads daily precipitation rasters for the african 
 
 ``` sh
 chirps download \
-    --start 2017 \
-    --end 2018 \
+    --start 2017-02-01 \
+    --end 2018-03-15 \
     --output-dir "s3://bucket/africa/daily"
 ```
 
@@ -57,11 +58,17 @@ Usage: chirps extract [OPTIONS]
   Compute zonal statistics.
 
 Options:
-  --start INTEGER     start year
-  --end INTEGER       end year
-  --contours TEXT     path to contours file
-  --input-dir TEXT    raw CHIRPS data directory
-  --output-file TEXT  output directory
+  --start TEXT        start date  [required]
+  --end TEXT          end date  [required]
+  --contours TEXT     path to contours  [required]
+  --input-dir TEXT    chirps data directory  [required]
+  --weekly TEXT       path to weekly output
+  --monthly TEXT      path to monthly output
+  --db-host TEXT      database hostname
+  --db-port INTEGER   database port
+  --db-name TEXT      database name
+  --db-user TEXT      database username
+  --db-password TEXT  database password
   --help              Show this message and exit.
 ```
 
@@ -70,10 +77,13 @@ The `extract` subcommand compute zonal statistics based on a contours file provi
 ### Example
 
 ``` sh
-docker-compose run pipeline chirps extract --start 2017 --end 2018 \
+docker-compose run pipeline chirps extract \
+    --start 2017-01-01 \
+    --end 2018-01-01 \
     --contours "s3://bucket/contours/bfa.geojson" \
     --input-dir "s3://bucket/africa/daily" \
-    --output-file "s3://bucket/precipitation/bfa/chirps.csv" \
+    --weekly "s3://bucket/precipitation/bfa/weekly.csv" \
+    --monthly "s3://bucket/precipitation/bfa/monthly.csv"
 ```
 
 ## Testing
@@ -110,7 +120,7 @@ Read by `rasterio` (via `GDAL`):
 
 ## Code style
 
-Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) 
+Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort)
 and [`autoflake`](https://github.com/myint/autoflake). We currently target the Python 3.9 syntax.
 
 We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is
