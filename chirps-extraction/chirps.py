@@ -137,17 +137,17 @@ def extract(
         )
 
         fs = filesystem(weekly)
-        with fs.open(weekly) as f:
+        with fs.open(weekly, "w") as f:
             weekly_data.to_csv(f)
 
     if monthly:
 
         monthly_data = monthly_stats(
-            contours=contours_data, start=start, end=end, chirps=input_dir
+            contours=contours_data, start=start, end=end, chirps_dir=input_dir
         )
 
         fs = filesystem(monthly)
-        with fs.open(monthly) as f:
+        with fs.open(monthly, "w") as f:
             monthly_data.to_csv(f)
 
 
