@@ -88,8 +88,8 @@ def download(output_dir: str, start: int, end: int, overwrite: bool):
 
 
 @cli.command()
-@click.option("--start", type=int, help="start date", required=True)
-@click.option("--end", type=int, help="end date", required=True)
+@click.option("--start", type=str, help="start date", required=True)
+@click.option("--end", type=str, help="end date", required=True)
 @click.option("--contours", type=str, help="path to contours", required=True)
 @click.option("--input-dir", type=str, help="chirps data directory", required=True)
 @click.option("--weekly", type=str, help="path to weekly output")
