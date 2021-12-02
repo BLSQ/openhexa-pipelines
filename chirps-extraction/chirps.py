@@ -114,7 +114,7 @@ def extract(
 ):
     """Compute zonal statistics."""
 
-    logger.info(f"Computing zonal statistics for {contours}")
+    logger.info(f"Computing zonal statistics for {contours}.")
 
     if contours.startswith("pg://"):
         con = create_engine(
@@ -312,7 +312,7 @@ class Chirps:
             )
             raster = _compress(raster, os.path.join(tmp_dir, "raster_compressed.tif"))
             fs.put(raster, output_file)
-        logger.info(f"Moved downloaded file to {output_file}.")
+        logger.debug(f"Moved downloaded file to {output_file}.")
 
     def download_range(
         self, start: date, end: date, output_dir: str, overwrite: bool = False
@@ -397,6 +397,7 @@ def weekly_stats(
             logger.info(f"Epidemiological week {week} is incomplete. Skipping.")
             continue
 
+        logger.info(f"Computing zonal statistics for epidemiological week {week}.")
         # Compute zonal statistics based on precipitation cumulative sum
         cumsum, affine, nodata = raster_cumsum(
             rasters, extent=contours[contours.is_valid].unary_union
