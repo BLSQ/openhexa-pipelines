@@ -73,8 +73,8 @@ def cli():
 
 @cli.command()
 @click.option("--output-dir", type=str, help="output directory", required=True)
-@click.option("--start", type=int, help="start date", required=True)
-@click.option("--end", type=int, help="end date", required=True)
+@click.option("--start", type=str, help="start date", required=True)
+@click.option("--end", type=str, help="end date", required=True)
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing files"
 )
