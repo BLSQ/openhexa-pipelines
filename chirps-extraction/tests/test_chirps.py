@@ -243,10 +243,7 @@ def test_cli_download(moto_server, bfa_output_data, mock_chc):
         ],
     )
 
-    print(result.output)
-    # print(result.stdout)
-    # print(result.stderr)
-    # assert result.exit_code == 0
+    assert result.exit_code == 0
 
 
 def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
@@ -276,7 +273,4 @@ def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
         ],
     )
 
-    print(result.exception)
-
-    print(result.output)
     assert result.exit_code == 0
