@@ -56,7 +56,7 @@ def bfa_output_data(boto_client):
     boto_client.create_bucket(Bucket="bfa-output-data")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def mock_chc():
     with responses.RequestsMock() as mocked_responses:
 
@@ -79,15 +79,11 @@ def mock_chc():
             re.compile("https://data.chc.ucsb.edu/(.*)"),
             callback=get_callback,
         )
-        mocked_responses.add_callback(
-            responses.HEAD,
-            re.compile("https://data.chc.ucsb.edu/(.*)"),
-            callback=head_callback,
-        )
+
         yield
 
 
-def test_compress():
+def test__compress():
     src_raster = os.path.join(
         os.path.dirname(__file__), "sample_tifs", "chirps-v2.0.2017.05.05.tif"
     )
@@ -98,7 +94,7 @@ def test_compress():
             assert src.profile.get("compress").lower() == "deflate"
 
 
-def test_download(mock_chc):
+def test__download(mock_chc):
     url = (
         "https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/"
         "2017/chirps-v2.0.2017.05.05.tif.gz"
@@ -109,8 +105,8 @@ def test_download(mock_chc):
         assert os.path.isfile(dst_file)
 
 
-@pytest.fixture(scope="module")
-def catalog():
+@pytest.fixture
+def catalog(mock_chc):
     return chirps.Chirps(version="2.0", zone="africa", timely="daily")
 
 
@@ -176,25 +172,25 @@ def test_raster_cumsum():
     assert affine
 
 
-def test_weekly_stats(mock_chc):
+def test_weekly_stats():
 
     contours = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
-    start = date(2019, 11, 18)
-    end = date(2020, 2, 5)
+    data_dir = os.path.join(os.path.dirname(__file__), "bfa-raw-data")
+    start = date(2017, 4, 1)
+    end = date(2017, 7, 1)
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    stats = chirps.weekly_stats(contours, start, end, chirps_dir=data_dir)
+    assert len(stats) > 50
+    # todo: better quality checks
 
-        stats = chirps.weekly_stats(contours, start, end, chirps_dir=tmp_dir)
-        # todo: check stats
 
-
-def test_monthly_stats(mock_chc):
+def test_monthly_stats():
 
     contours = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
-    start = date(2019, 11, 18)
-    end = date(2020, 2, 5)
+    data_dir = os.path.join(os.path.dirname(__file__), "bfa-raw-data")
+    start = date(2017, 4, 1)
+    end = date(2017, 7, 1)
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-
-        stats = chirps.monthly_stats(contours, start, end, chirps_dir=tmp_dir)
-        # todo: check stats
+    stats = chirps.monthly_stats(contours, start, end, chirps_dir=data_dir)
+    assert len(stats) > 10
+    # todo: better quality checks
