@@ -325,6 +325,10 @@ class Chirps:
             f"Downloading CHIRPS data for date {day.strftime('%Y-%m-%d')} {url}."
         )
 
+        r = requests.head(url)
+        if r.status_code != 200:
+            return None
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             raster = _download(
                 url, os.path.join(tmp_dir, "raster.tif"), timeout=timeout
