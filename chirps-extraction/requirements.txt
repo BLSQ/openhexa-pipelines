@@ -202,6 +202,8 @@ protobuf==3.18.1
     # via
     #   google-api-core
     #   google-cloud-storage
+psycopg2==2.9.2
+    # via -r requirements.in
 py==1.10.0
     # via pytest
 pyasn1==0.4.8
