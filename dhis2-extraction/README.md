@@ -62,7 +62,7 @@ Options:
                                   Attribute option combo UID. *
   -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
-  --children / --no-children      Include childrens of selected org units.
+  --children / --no-children      Include children of selected org units.
   --aggregate / --no-aggregate    Aggregate using Analytics API.
   --analytics / --no-analytics    Use the Analytics API.
   --skip                          Only download metadata.
