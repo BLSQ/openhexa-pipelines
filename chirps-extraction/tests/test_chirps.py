@@ -1,16 +1,15 @@
 import os
 import re
+import tempfile
 from datetime import date
 
 import chirps
-import fsspec
-import pandas as pd
+import geopandas as gpd
 import pytest
 import rasterio
 import responses
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
-from gcsfs import GCSFileSystem
 from s3fs import S3FileSystem
 
 
@@ -18,7 +17,7 @@ def test_filesystem():
     assert isinstance(chirps.filesystem("/tmp/file.txt"), LocalFileSystem)
     assert isinstance(chirps.filesystem("http://example.com/"), HTTPFileSystem)
     assert isinstance(chirps.filesystem("s3://bucket/dir"), S3FileSystem)
-    assert isinstance(chirps.filesystem("gcs://bucket/dir"), GCSFileSystem)
+    # assert isinstance(chirps.filesystem("gcs://bucket/dir"), GCSFileSystem)
     with pytest.raises(ValueError):
         chirps.filesystem("bad://bucket/dir")
 
@@ -27,14 +26,12 @@ def test_filesystem():
 def bfa_raw_data(boto_client):
     boto_client.create_bucket(Bucket="bfa-raw-data")
     for fname in os.listdir(
-        os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017-18")
+        os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017")
     ):
         with open(
-            os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017-18", fname), "rb"
+            os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017", fname), "rb"
         ) as f:
-            boto_client.put_object(
-                Bucket="bfa-raw-data", Key=f"2017-18/{fname}", Body=f.read()
-            )
+            boto_client.put_object(Bucket="bfa-raw-data", Key=fname, Body=f.read())
 
 
 @pytest.fixture(params=["s3", "file"])
@@ -90,90 +87,114 @@ def mock_chc():
         yield
 
 
-def test_provide_epi_week():
-    # epi_year == year
-    epi_week, epi_year, start, end = chirps.provide_epi_week(2012, 1, 12)
-    assert epi_week == 2
-    assert epi_year == 2012
-    assert start == date(2012, 1, 8)
-    assert end == date(2012, 1, 14)
-
-    # epi_year != year
-    epi_week, epi_year, start, end = chirps.provide_epi_week(2018, 12, 30)
-    assert epi_week == 1
-    assert epi_year == 2019
-    assert start == date(2018, 12, 30)
-    assert end == date(2019, 1, 5)
+def test_compress():
+    src_raster = os.path.join(
+        os.path.dirname(__file__), "sample_tifs", "chirps-v2.0.2017.05.05.tif"
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dst_raster = os.path.join(tmp_dir, "raster.tif")
+        chirps._compress(src_raster, dst_raster)
+        with rasterio.open(dst_raster) as src:
+            assert src.profile.get("compress").lower() == "deflate"
 
 
-def test_provide_time_range():
-    drange = chirps.provide_time_range(2012, 2014)
-    assert len(drange) == 1096
-    assert drange[0].date() == date(2012, 1, 1)
-    assert drange[-1].date() == date(2014, 12, 31)
+def test_download(mock_chc):
+    url = (
+        "https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/"
+        "2017/chirps-v2.0.2017.05.05.tif.gz"
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dst_file = os.path.join(tmp_dir, "chirps.tif")
+        dst_file = chirps._download(url, dst_file)
+        assert os.path.isfile(dst_file)
 
 
-def test_download_chirps_daily(moto_server, mock_chc, download_location):
-    protocol, download_dir, storage_options = download_location
-    output_dir = os.path.join(download_dir, "africa/daily")
-    chirps.download_chirps_daily(
-        output_dir=output_dir, year_start=2012, year_end=2012, overwrite=True
+@pytest.fixture(scope="module")
+def catalog():
+    return chirps.Chirps(version="2.0", zone="africa", timely="daily")
+
+
+def test_chirps_base_url(catalog):
+    assert (
+        catalog.base_url
+        == "https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05"
     )
 
-    fs = fsspec.filesystem(protocol, **storage_options)
-    dirs = fs.ls(f"{output_dir}")
-    assert len(dirs) == 53
-    files = fs.glob(f"{output_dir}/*/*.tif")
-    assert len(files) == 366
+
+def test_chirps_fname(catalog):
+    assert catalog.fname(date(2020, 1, 1)) == "chirps-v2.0.2020.01.01.tif.gz"
+    # no .gz after 2020-06-01
+    assert catalog.fname(date(2021, 7, 1)) == "chirps-v2.0.2021.07.01.tif"
 
 
-def test_extract_sum_epi_week(moto_server, bfa_raw_data):
-    files = [
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.04.30.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.01.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.02.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.03.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.04.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.05.tif",
-        "s3://bfa-raw-data/2017-18/chirps-v2.0.2017.05.06.tif",
+def test_chirps_download(catalog, mock_chc):
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        dst_file = catalog.download(day=date(2017, 5, 5), output_dir=tmp_dir)
+
+        with rasterio.open(dst_file) as src:
+            assert src.profile.get("width")
+
+
+def test_chirps_download_range(catalog, mock_chc):
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        catalog.download_range(
+            start=date(2017, 4, 15), end=date(2017, 5, 15), output_dir=tmp_dir
+        )
+
+
+def test_chirps_path():
+
+    data_dir = os.path.join(os.path.dirname(__file__), "bfa-raw-data")
+    expected = os.path.join(data_dir, "2017", "chirps-v2.0.2017.05.05.tif")
+    assert chirps.chirps_path(data_dir, date(2017, 5, 5)) == expected
+
+
+def test_raster_cumsum():
+
+    bfa = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
+    extent = bfa.iloc[0].geometry
+
+    data_dir = os.path.join(os.path.dirname(__file__), "bfa-raw-data")
+    rasters = [
+        os.path.join(data_dir, "2017", f)
+        for f in [
+            "chirps-v2.0.2017.05.01.tif",
+            "chirps-v2.0.2017.05.02.tif",
+            "chirps-v2.0.2017.05.03.tif",
+            "chirps-v2.0.2017.05.04.tif",
+        ]
     ]
 
-    with rasterio.Env(
-        AWS_HTTPS=False,
-        AWS_VIRTUAL_HOSTING=False,
-        AWS_NO_SIGN_REQUEST=False,
-        AWS_S3_ENDPOINT=os.environ["AWS_S3_ENDPOINT"].replace("http://", ""),
-        AWS_DEFAULT_REGION="us-east-1",
-    ):
-        fs = fsspec.filesystem(
-            "s3", client_kwargs={"endpoint_url": os.environ["AWS_S3_ENDPOINT"]}
-        )
-        prec_sum, affine = chirps.extract_sum_epi_week(fs, files)
-    assert prec_sum.min() >= 0
-    assert isinstance(affine, rasterio.Affine)
+    cumsum, affine, nodata = chirps.raster_cumsum(rasters, extent)
+    assert cumsum.min() >= 0
+    assert cumsum.max() <= 100
+    assert cumsum.mean() == pytest.approx(15.85, abs=1)
+    assert affine
 
 
-def test_extract_chirps_data(moto_server, bfa_raw_data, bfa_output_data):
-    with rasterio.Env(
-        AWS_HTTPS=False,
-        AWS_VIRTUAL_HOSTING=False,
-        AWS_NO_SIGN_REQUEST=False,
-        AWS_S3_ENDPOINT=os.environ["AWS_S3_ENDPOINT"].replace("http://", ""),
-        AWS_DEFAULT_REGION="us-east-1",
-    ):
-        chirps.extract_chirps_data(
-            contours_file=os.path.join(os.path.dirname(__file__), "bfa.geojson"),
-            input_dir="s3://bfa-raw-data",
-            output_file="s3://bfa-output-data/results.csv",
-            start_year=2017,
-            end_year=2018,
-        )
+def test_weekly_stats(mock_chc):
 
-    output_df = pd.read_csv(
-        "s3://bfa-output-data/results.csv",
-        storage_options={
-            "client_kwargs": {"endpoint_url": os.environ["AWS_S3_ENDPOINT"]}
-        },
-    )
-    assert isinstance(output_df, pd.DataFrame)
-    assert len(output_df) == 13
+    contours = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
+    start = date(2019, 11, 18)
+    end = date(2020, 2, 5)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        stats = chirps.weekly_stats(contours, start, end, chirps_dir=tmp_dir)
+        # todo: check stats
+
+
+def test_monthly_stats(mock_chc):
+
+    contours = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
+    start = date(2019, 11, 18)
+    end = date(2020, 2, 5)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        stats = chirps.monthly_stats(contours, start, end, chirps_dir=tmp_dir)
+        # todo: check stats
