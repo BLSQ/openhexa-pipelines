@@ -83,6 +83,12 @@ def mock_chc():
             callback=get_callback,
         )
 
+        mocked_responses.add_callback(
+            responses.HEAD,
+            re.compile("https://data.chc.ucsb.edu/(.*)"),
+            callback=head_callback,
+        )
+
         yield
 
 
