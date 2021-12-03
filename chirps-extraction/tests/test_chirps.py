@@ -8,6 +8,7 @@ import geopandas as gpd
 import pytest
 import rasterio
 import responses
+from click.testing import CliRunner
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from s3fs import S3FileSystem
@@ -31,7 +32,9 @@ def bfa_raw_data(boto_client):
         with open(
             os.path.join(os.path.dirname(__file__), "bfa-raw-data/2017", fname), "rb"
         ) as f:
-            boto_client.put_object(Bucket="bfa-raw-data", Key=fname, Body=f.read())
+            boto_client.put_object(
+                Bucket="bfa-raw-data", Key=f"2017/{fname}", Body=f.read()
+            )
 
 
 @pytest.fixture(params=["s3", "file"])
@@ -220,3 +223,60 @@ def test_epiweek_range():
 
     wrange = chirps.epiweek_range(start, end)
     assert len(wrange) == 12
+
+
+def test_cli_download(moto_server, bfa_output_data, mock_chc):
+
+    output_dir = os.path.join("s3://bfa-output-data/africa/daily")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        chirps.cli,
+        [
+            "download",
+            "--output-dir",
+            output_dir,
+            "--start",
+            "2017-04-30",
+            "--end",
+            "2017-06-01",
+        ],
+    )
+
+    print(result.output)
+    # print(result.stdout)
+    # print(result.stderr)
+    # assert result.exit_code == 0
+
+
+def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
+
+    chirps_dir = "s3://bfa-raw-data"
+    contours = os.path.join(os.path.dirname(__file__), "bfa.geojson")
+    weekly_output = "s3://bfa-output-data/weekly.csv"
+    monthly_output = "s3://bfa-output-data/monthly.csv"
+
+    runner = CliRunner()
+    result = runner.invoke(
+        chirps.cli,
+        [
+            "extract",
+            "--input-dir",
+            chirps_dir,
+            "--contours",
+            contours,
+            "--start",
+            "2017-04-30",
+            "--end",
+            "2017-06-01",
+            "--weekly",
+            weekly_output,
+            "--monthly",
+            monthly_output,
+        ],
+    )
+
+    print(result.exception)
+
+    print(result.output)
+    assert result.exit_code == 0
