@@ -137,9 +137,14 @@ def extract(
             contours=contours_data, start=start, end=end, chirps_dir=input_dir
         )
 
-        fs = filesystem(weekly)
-        with fs.open(weekly, "w") as f:
-            weekly_data.to_csv(f)
+        if weekly.startswith("pg://"):
+            table = weekly.split("/")[-1]
+            weekly_data.to_sql(table, con, if_exists="replace")
+
+        else:
+            fs = filesystem(weekly)
+            with fs.open(weekly, "w") as f:
+                weekly_data.to_csv(f)
 
     if monthly:
 
@@ -147,9 +152,14 @@ def extract(
             contours=contours_data, start=start, end=end, chirps_dir=input_dir
         )
 
-        fs = filesystem(monthly)
-        with fs.open(monthly, "w") as f:
-            monthly_data.to_csv(f)
+        if monthly.startswith("pg://"):
+            table = monthly.split("/")[-1]
+            monthly_data.to_sql(table, con, if_exists="replace")
+
+        else:
+            fs = filesystem(monthly)
+            with fs.open(monthly, "w") as f:
+                monthly_data.to_csv(f)
 
     return
 
