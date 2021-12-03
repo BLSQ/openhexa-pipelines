@@ -423,6 +423,8 @@ def weekly_stats(
         dataframe_week["sum"] = [stat["sum"] for stat in stats]
         dataframe = dataframe.append(dataframe_week)
 
+    if "geometry" in dataframe.columns:
+        dataframe = dataframe.drop(columns=["geometry"])
     return dataframe
 
 
