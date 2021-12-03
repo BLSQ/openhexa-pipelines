@@ -314,6 +314,8 @@ class Chirps:
             fs.put(raster, output_file)
         logger.debug(f"Moved downloaded file to {output_file}.")
 
+        return output_file
+
     def download_range(
         self, start: date, end: date, output_dir: str, overwrite: bool = False
     ):
@@ -454,11 +456,9 @@ def monthly_stats(
     DataFrame
         Weekly stats as a dataframe of length n_weeks * n_contours.
     """
-    fs = filesystem(chirps_dir)
     dataframe = pd.DataFrame(columns=contours.columns)
 
     year, month = start.year, start.month
-    day = start
 
     while year <= end.year and month <= end.month:
 
