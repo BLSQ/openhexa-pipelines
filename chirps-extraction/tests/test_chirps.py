@@ -194,3 +194,29 @@ def test_monthly_stats():
     stats = chirps.monthly_stats(contours, start, end, chirps_dir=data_dir)
     assert len(stats) > 10
     # todo: better quality checks
+
+
+def test__iter_month_days():
+
+    assert len([d for d in chirps._iter_month_days(2020, 2)]) == 29
+    assert len([d for d in chirps._iter_month_days(2021, 2)]) == 28
+
+
+def test_epi_week():
+
+    epiw = chirps.EpiWeek(date(2020, 1, 1))
+    assert epiw.start == date(2019, 12, 29)
+    assert epiw.end == date(2020, 1, 4)
+    assert epiw.year == 2020
+    assert epiw.week == 1
+
+    assert chirps.EpiWeek(date(2020, 1, 2)) == chirps.EpiWeek(date(2019, 12, 30))
+
+
+def test_epiweek_range():
+
+    start = date(2020, 1, 1)
+    end = date(2020, 3, 15)
+
+    wrange = chirps.epiweek_range(start, end)
+    assert len(wrange) == 12
