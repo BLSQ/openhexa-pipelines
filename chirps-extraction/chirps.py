@@ -138,6 +138,9 @@ def extract(
         )
 
         if weekly.startswith("pg://"):
+            con = create_engine(
+                f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            )
             table = weekly.split("/")[-1]
             weekly_data.to_sql(table, con, if_exists="replace")
 
@@ -153,6 +156,9 @@ def extract(
         )
 
         if monthly.startswith("pg://"):
+            con = create_engine(
+                f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            )
             table = monthly.split("/")[-1]
             monthly_data.to_sql(table, con, if_exists="replace")
 
