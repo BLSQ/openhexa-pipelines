@@ -85,6 +85,7 @@ def download(output_dir: str, start: int, end: int, overwrite: bool):
     end = datetime.strptime(end, "%Y-%m-%d").date()
     chirps = Chirps()
     chirps.download_range(start, end, output_dir, overwrite=overwrite)
+    return
 
 
 @cli.command()
@@ -149,6 +150,8 @@ def extract(
         fs = filesystem(monthly)
         with fs.open(monthly, "w") as f:
             monthly_data.to_csv(f)
+
+    return
 
 
 class EpiSystem(enum.Enum):
@@ -336,7 +339,11 @@ def chirps_path(data_dir: str, date_object: date):
     )
     search = fs.glob(pattern)
     if search:
-        return search[0]
+        if "://" in data_dir:
+            protocol = data_dir.split("://")[0]
+            return f"{protocol}://{search[0]}"
+        else:
+            return search[0]
     return None
 
 
