@@ -60,6 +60,8 @@ Options:
   -ing, --indicator-group TEXT    Indicator group UID. *
   -aoc, --attribute-option-combo TEXT
                                   Attribute option combo UID. *
+  -coc, --category-option-combo TEXT
+                                  Category option combo UID. *
   -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
   --children / --no-children      Include childrens of selected org units.
@@ -94,7 +96,10 @@ dhis2extract download \
     * `organisation_units.gpkg`
     * `organisation_unit_groups.csv`
     * `data_elements.csv`
+    * `indicators.csv`
+    * `indicator_groups.csv`
     * `datasets.csv`
+    * `programs.csv`
     * `category_option_combos.csv`
     * `category_combos.csv`
     * `category_options.csv`
@@ -102,7 +107,14 @@ dhis2extract download \
 * Data table
     * `extract.csv`
 
-`extract.csv` is a table with the following columns: `DX_UID`, `COC_UID`, `AOC_UID`, `PERIOD`, `OU_UID` and `VALUE`.
+`extract.csv` is a table with one row per data element, org. unit and period. The following columns are created:
+
+* `dx_uid`, `dx_name` : data element or indicator UID and name
+* `dx_type` : data element or indicator
+* `coc_uid`, `coc_name` : category option combo UID and name
+* `period` : period in DHIS2 format
+* `ou_uid` : org. unit UID
+* `level_{1,2,3,4,5}_uid`, `level_{1,2,3,4,5}_name` : org. unit UID and name for each hierarchical level
 
 ### Usage
 
