@@ -78,8 +78,12 @@ def cli():
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing files"
 )
-def download(output_dir: str, start: int, end: int, overwrite: bool):
+@click.option("--debug", is_flag=True, default=False, help="enable debug logs")
+def download(output_dir: str, start: int, end: int, overwrite: bool, debug: bool):
     """Download raw precipitation data."""
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
     logger.info(f"Downloading CHIRPS data from {start} to {end} into {output_dir}.")
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
@@ -102,6 +106,7 @@ def download(output_dir: str, start: int, end: int, overwrite: bool):
 @click.option("--db-name", type=str, help="database name")
 @click.option("--db-user", type=str, help="database username")
 @click.option("--db-password", type=str, help="database password")
+@click.option("--debug", is_flag=True, default=False, help="enable debug logs")
 def extract(
     start,
     end,
@@ -116,8 +121,12 @@ def extract(
     db_name,
     db_user,
     db_password,
+    debug,
 ):
     """Compute zonal statistics."""
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
 
     logger.info(f"Computing zonal statistics for {contours}.")
 
