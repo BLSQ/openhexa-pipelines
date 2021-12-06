@@ -23,7 +23,6 @@ from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
 from rasterstats import zonal_stats
 from s3fs import S3FileSystem
-from shapely.geometry import Polygon
 from sqlalchemy import create_engine
 
 # comon is a script to set parameters on production
@@ -142,8 +141,8 @@ def extract(
             contours_data = gpd.read_file(f)
 
     # Ignore invalid geometries
-    contours_data = contours_data[contours_data.is_valid]
     contours_data = contours_data[contours_data.is_simple]
+    contours_data = contours_data[contours_data.is_valid]
 
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
@@ -383,14 +382,15 @@ def chirps_path(data_dir: str, date_object: date):
 
 
 def raster_cumsum(
-    rasters: typing.List[str], extent: Polygon
-) -> typing.Tuple[np.ndarray, Affine]:
+    rasters: typing.List[str], bounds: typing.Tuple[float]
+) -> typing.Tuple[np.ndarray, Affine, float]:
     """Compute cumulative sum between rasters."""
+    logger.debug(f"Computing cumulative sum for {len(rasters)} rasters.")
     fs = filesystem(rasters[0])
     # Get raster metadata from first raster in the list
     with fs.open(rasters[0]) as fp:
         with rasterio.open(fp) as src:
-            xmin, ymin, xmax, ymax = extent.bounds
+            xmin, ymin, xmax, ymax = bounds
             nodata = src.nodata
             window = rasterio.windows.from_bounds(
                 xmin, ymin, xmax, ymax, transform=src.transform
@@ -443,17 +443,19 @@ def weekly_stats(
 
         logger.info(f"Computing zonal statistics for epidemiological week {week}.")
         # Compute zonal statistics based on precipitation cumulative sum
-        cumsum, affine, nodata = raster_cumsum(
-            rasters, extent=contours[contours.is_valid].unary_union
-        )
+        cumsum, affine, nodata = raster_cumsum(rasters, contours.total_bounds)
+
+        shapes = [geom.__geo_interface__ for geom in contours.geometry]
+        logger.debug(f"Computing zonal stats for {len(shapes)} polygons.")
         stats = zonal_stats(
-            [geom.__geo_interface__ for geom in contours.geometry],
+            shapes,
             cumsum,
             affine=affine,
             nodata=nodata,
             stats=["sum", "count"],
         )
 
+        logger.debug("Formatting output.")
         dataframe_week = contours.copy()
         dataframe_week["period"] = f"{week.year}W{week.week}"
         dataframe_week["epi_year"] = str(week.year)
@@ -515,9 +517,7 @@ def monthly_stats(
 
             logger.info(f"Computing zonal statistics for month {year}{month:02}.")
             # Compute zonal statistics based on precipitation cumulative sum
-            cumsum, affine, nodata = raster_cumsum(
-                rasters, extent=contours[contours.is_valid].unary_union
-            )
+            cumsum, affine, nodata = raster_cumsum(rasters, contours.total_bounds)
             stats = zonal_stats(
                 [geom.__geo_interface__ for geom in contours.geometry],
                 cumsum,
