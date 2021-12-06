@@ -21,10 +21,7 @@ Commands:
 
 ### Usage
 
-The program uses the appropriate endpoint according to the `--aggregate` and `--analytics` flags:
-
-* If `--aggregate`, the Analytics API is used to aggregate data element values per hierarchical level and period ;
-* If `--no-analytics`, the Analytics API is avoided -- this can be useful to download data that have not been incoprated to the analytics data tables yet.
+Depending on the type of information requested, the program will select the appropriate API endpoint. This is managed by the user through the `--aggregate/--no-aggregate` and `--analytics/--no-analytics` flags.
 
 At least one temporal dimension is required: either `period` or `start-date` and `end-date`.
 
@@ -35,6 +32,24 @@ At least one org unit dimension is required: either `org-unit`, `org-unit-group`
 Dimension parameters (periods, org units, datasets, data elements, indicators, programs, etc) can be repeated any number of times.
 
 With the `--skip` flag, only the metadata tables are downloaded.
+
+**Exporting aggregated data values from the analytics tables** (default)  
+`--aggregate` and `--analytics`  
+The `api/analytics` endpoint from DHIS2 is used, this is the default.
+Data values are exported from the analytics tables and aggregated according to the `period` dimension, *e.g.* data will be aggregated per year if periods were provided as DHIS2 years.
+
+**Exporting raw data values from the analytics tables**  
+`--no-aggregate` and `--analytics`  
+The `api/analytics/rawData` endpoint from DHIS2 is used.
+Data values are exported from the analytics tables as raw data values, i.e. no temporal aggregation is performed.
+Note: data for children of the provided org. units will also be collected.
+
+**Exporting raw data values**  
+`--no-aggregate` and `--no-analytics`  
+The `api/dataValueSet` endpoint from DHIS2 is used.
+Raw data values are exported (no analytics tables). No aggregation is performed. This is useful if you want to export data that is not yet included in the analytics tables.
+Note: data values are supposed to be extracted per dataset. If data elements UIDs are provided, the entire dataset to which the data element belong will be downloaded.
+
 
 ```
 Usage: dhis2extract.py download [OPTIONS]
