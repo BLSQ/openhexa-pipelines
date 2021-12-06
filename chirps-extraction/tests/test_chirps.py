@@ -272,9 +272,9 @@ def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
             "2017-04-30",
             "--end",
             "2017-06-01",
-            "--weekly",
+            "--weekly-csv",
             weekly_output,
-            "--monthly",
+            "--monthly-csv",
             monthly_output,
         ],
     )

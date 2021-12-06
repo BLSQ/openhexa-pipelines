@@ -93,8 +93,10 @@ def download(output_dir: str, start: int, end: int, overwrite: bool):
 @click.option("--end", type=str, help="end date", required=True)
 @click.option("--contours", type=str, help="path to contours", required=True)
 @click.option("--input-dir", type=str, help="chirps data directory", required=True)
-@click.option("--weekly", type=str, help="path to weekly output")
-@click.option("--monthly", type=str, help="path to monthly output")
+@click.option("--weekly-csv", type=str, help="path to weekly output")
+@click.option("--monthly-csv", type=str, help="path to monthly output")
+@click.option("--weekly-sql", type=str, help="sql table name to weekly output")
+@click.option("--monthly-sql", type=str, help="sql table name to monthly output")
 @click.option("--db-host", type=str, help="database hostname")
 @click.option("--db-port", type=int, help="database port", default=5432)
 @click.option("--db-name", type=str, help="database name")
@@ -105,8 +107,10 @@ def extract(
     end,
     contours,
     input_dir,
-    weekly,
-    monthly,
+    weekly_csv,
+    monthly_csv,
+    weekly_sql,
+    monthly_sql,
     db_host,
     db_port,
     db_name,
@@ -131,40 +135,38 @@ def extract(
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
 
-    if weekly:
+    if weekly_csv or weekly_sql:
 
         weekly_data = weekly_stats(
             contours=contours_data, start=start, end=end, chirps_dir=input_dir
         )
 
-        if weekly.startswith("pg://"):
+        if weekly_sql:
             con = create_engine(
                 f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             )
-            table = weekly.split("/")[-1]
-            weekly_data.to_sql(table, con, if_exists="replace")
+            weekly_data.to_sql(weekly_sql, con, if_exists="replace")
 
-        else:
-            fs = filesystem(weekly)
-            with fs.open(weekly, "w") as f:
+        if weekly_csv:
+            fs = filesystem(weekly_csv)
+            with fs.open(weekly_csv, "w") as f:
                 weekly_data.to_csv(f)
 
-    if monthly:
+    if monthly_csv or monthly_sql:
 
         monthly_data = monthly_stats(
             contours=contours_data, start=start, end=end, chirps_dir=input_dir
         )
 
-        if monthly.startswith("pg://"):
+        if monthly_sql:
             con = create_engine(
                 f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             )
-            table = monthly.split("/")[-1]
-            monthly_data.to_sql(table, con, if_exists="replace")
+            monthly_data.to_sql(monthly_sql, con, if_exists="replace")
 
-        else:
-            fs = filesystem(monthly)
-            with fs.open(monthly, "w") as f:
+        if monthly_csv:
+            fs = filesystem(monthly_csv)
+            with fs.open(monthly_csv, "w") as f:
                 monthly_data.to_csv(f)
 
     return
