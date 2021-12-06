@@ -144,6 +144,9 @@ def extract(
     contours_data = contours_data[contours_data.is_simple]
     contours_data = contours_data[contours_data.is_valid]
 
+    if contours_data.crs and contours_data.crs != "EPSG:4326":
+        contours_data = contours_data.to_crs("EPSG:4326")
+
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
 
