@@ -132,6 +132,10 @@ def extract(
         with fs.open(contours) as f:
             contours_data = gpd.read_file(f)
 
+    # Ignore invalid geometries
+    contours_data = contours_data[contours_data.is_valid]
+    contours_data = contours_data[contours_data.is_simple]
+
     start = datetime.strptime(start, "%Y-%m-%d").date()
     end = datetime.strptime(end, "%Y-%m-%d").date()
 
