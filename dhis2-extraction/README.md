@@ -104,24 +104,26 @@ dhis2extract download \
 
 ## Transform data into formatted CSV files
 
-`dhis2extract transform` processes the raw data downloaded with `dhis2extract transform` into formatted CSV files. The following files are created in `output-dir`:
+`dhis2extract transform` processes the raw data downloaded with `dhis2extract transform` into formatted CSV files. 
 
-* Metadata tables
-    * `organisation_units.csv`
-    * `organisation_units.gpkg`
-    * `organisation_unit_groups.csv`
-    * `data_elements.csv`
-    * `indicators.csv`
-    * `indicator_groups.csv`
-    * `datasets.csv`
-    * `programs.csv`
-    * `category_option_combos.csv`
-    * `category_combos.csv`
-    * `category_options.csv`
-    * `categories.csv`
+The following files are created in `output-dir`:
+
 * Data table
     * `extract.csv`
-
+* Metadata tables
+    * `metadata/metadata/organisation_units.csv`
+    * `metadata/organisation_units.gpkg`
+    * `metadata/organisation_unit_groups.csv`
+    * `metadata/data_elements.csv`
+    * `metadata/indicators.csv`
+    * `metadata/indicator_groups.csv`
+    * `metadata/datasets.csv`
+    * `metadata/programs.csv`
+    * `metadata/category_option_combos.csv`
+    * `metadata/category_combos.csv`
+    * `metadata/category_options.csv`
+    * `metadata/categories.csv`
+  
 `extract.csv` is a table with one row per data element, org. unit and period. The following columns are created:
 
 * `dx_uid`, `dx_name` : data element or indicator UID and name
