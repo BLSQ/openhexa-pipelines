@@ -405,7 +405,9 @@ def raster_cumsum(
     for rst in rasters:
         with fs.open(rst) as fp:
             with rasterio.open(fp) as src:
-                cumsum += src.read(1, window=window, masked=True)
+                data = src.read(1, window=window)
+                has_data = data != nodata
+                cumsum[has_data] += data[has_data]
 
     return cumsum, affine, nodata
 
