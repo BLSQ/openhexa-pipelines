@@ -6,6 +6,7 @@ import enum
 import gzip
 import logging
 import os
+import string
 import tempfile
 import typing
 from datetime import date, datetime, timedelta
@@ -165,6 +166,52 @@ def extract(
 
     with fs_output.open(weekly_csv, "w") as f:
         weekly_data.to_csv(f)
+        # force some types:
+        weekly_data["epi_week"] = weekly_data["epi_week"].astype(int)
+        weekly_data["epi_year"] = weekly_data["epi_year"].astype(int)
+        weekly_data["count"] = weekly_data["count"].astype(int)
+
+        if weekly_sql:
+            con = create_engine(
+                f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            )
+
+            # remove potential SQL injection
+            # we can't use params={} from read_sql because it escape the table name
+            # which makes the query invalid
+            table = "".join(
+                [
+                    c
+                    for c in weekly_sql
+                    if c in string.ascii_letters + string.digits + "_"
+                ]
+            )
+
+            # select the last data in the table
+            max_year, max_week = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_week::int) as max_week
+                from "%(table)s"
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+
+            if max_year and max_week:
+                weekly_data[
+                    (weekly_data.epi_year >= max_year)
+                    & (weekly_data.epi_week > max_week)
+                ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
+            else:
+                weekly_data.to_sql(
+                    table, con, if_exists="append", index=False, chunksize=4096
+                )
 
     monthly_data = monthly_stats(
         contours=contours_data, start=start, end=end, chirps_dir=input_dir
@@ -178,6 +225,52 @@ def extract(
 
     with fs_output.open(monthly_csv, "w") as f:
         monthly_data.to_csv(f)
+        # force some types:
+        monthly_data["epi_month"] = monthly_data["epi_month"].astype(int)
+        monthly_data["epi_year"] = monthly_data["epi_year"].astype(int)
+        monthly_data["count"] = monthly_data["count"].astype(int)
+
+        if monthly_sql:
+            con = create_engine(
+                f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            )
+
+            # remove potential SQL injection
+            # we can't use params={} from read_sql because it escape the table name
+            # which makes the query invalid
+            table = "".join(
+                [
+                    c
+                    for c in monthly_sql
+                    if c in string.ascii_letters + string.digits + "_"
+                ]
+            )
+
+            # select the last data in the table
+            max_year, max_month = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_month::int) as max_month
+                from "%(table)s"
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+
+            if max_year and max_month:
+                monthly_data[
+                    (monthly_data.epi_year >= max_year)
+                    & (monthly_data.epi_month > max_month)
+                ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
+            else:
+                monthly_data.to_sql(
+                    table, con, if_exists="append", index=False, chunksize=4096
+                )
 
     return
 
