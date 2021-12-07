@@ -161,7 +161,6 @@ def test_chirps_path():
 def test_raster_cumsum():
 
     bfa = gpd.read_file(os.path.join(os.path.dirname(__file__), "bfa.geojson"))
-    extent = bfa.iloc[0].geometry
 
     data_dir = os.path.join(os.path.dirname(__file__), "bfa-raw-data")
     rasters = [
@@ -174,10 +173,10 @@ def test_raster_cumsum():
         ]
     ]
 
-    cumsum, affine, nodata = chirps.raster_cumsum(rasters, extent)
+    cumsum, affine, nodata = chirps.raster_cumsum(rasters, bfa.total_bounds)
     assert cumsum.min() >= 0
     assert cumsum.max() <= 100
-    assert cumsum.mean() == pytest.approx(15.85, abs=1)
+    assert cumsum.mean() == pytest.approx(14.5, abs=1)
     assert affine
 
 
@@ -256,8 +255,7 @@ def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
 
     chirps_dir = "s3://bfa-raw-data"
     contours = os.path.join(os.path.dirname(__file__), "bfa.geojson")
-    weekly_output = "s3://bfa-output-data/weekly.csv"
-    monthly_output = "s3://bfa-output-data/monthly.csv"
+    output_dir = "s3://bfa-output-data/rainfall"
 
     runner = CliRunner()
     result = runner.invoke(
@@ -272,10 +270,8 @@ def test_cli_extract(moto_server, bfa_raw_data, bfa_output_data):
             "2017-04-30",
             "--end",
             "2017-06-01",
-            "--weekly-csv",
-            weekly_output,
-            "--monthly-csv",
-            monthly_output,
+            "--output-dir",
+            output_dir,
         ],
     )
 
