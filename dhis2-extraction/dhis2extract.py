@@ -783,7 +783,7 @@ def transform(input_dir, output_dir, overwrite):
     input_dir = input_dir.rstrip("/")
     fs_input = filesystem(input_dir)
     fs_output = filesystem(output_dir)
-    fs_output.mkdirs(output_dir, metadata_output_dir, exist_ok=True)
+    fs_output.mkdirs(output_dir, exist_ok=True)
     fs_output.mkdirs(metadata_output_dir, exist_ok=True)
 
     fpath_metadata = f"{input_dir}/metadata.json"
