@@ -20,6 +20,9 @@ case "$command" in
 "dhis2extraction")
   python -m dhis2extract $arguments
   ;;
+"test")
+  pytest tests/
+  ;;
 "python")
   python $arguments
   ;;
