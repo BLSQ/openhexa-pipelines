@@ -178,21 +178,24 @@ def extract(
             [c for c in weekly_table if c in string.ascii_letters + string.digits + "_"]
         )
 
-        # select the last data in the table
-        max_year, max_week = pd.read_sql(
-            """
-            select
-                max(epi_year::int) as max_year,
-                max(epi_week::int) as max_week
-            from "%(table)s"
-            where (epi_year::int) = (
-                select max(epi_year::int) as max_year
+        try:
+            # select the last data in the table
+            max_year, max_week = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_week::int) as max_week
                 from "%(table)s"
-            )
-        """
-            % {"table": table},
-            con,
-        ).values[0]
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+        except Exception:
+            max_year, max_week = None, None
 
         if max_year and max_week:
             weekly_data[
@@ -231,21 +234,24 @@ def extract(
             ]
         )
 
-        # select the last data in the table
-        max_year, max_month = pd.read_sql(
-            """
-            select
-                max(epi_year::int) as max_year,
-                max(epi_month::int) as max_month
-            from "%(table)s"
-            where (epi_year::int) = (
-                select max(epi_year::int) as max_year
+        try:
+            # select the last data in the table
+            max_year, max_month = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_month::int) as max_month
                 from "%(table)s"
-            )
-        """
-            % {"table": table},
-            con,
-        ).values[0]
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+        except Exception:
+            max_year, max_month = None, None
 
         if max_year and max_month:
             monthly_data[
