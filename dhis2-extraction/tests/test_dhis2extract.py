@@ -613,8 +613,8 @@ def test_download_transform(mocked_responses):
         )
 
         assert result.exit_code == 0
+        assert "extract.csv" in os.listdir(tmp_dir)
         for fname in [
-            "extract.csv",
             "organisation_units.gpkg",
             "categories.csv",
             "category_combos.csv",
@@ -628,4 +628,4 @@ def test_download_transform(mocked_responses):
             "organisation_unit_groups.csv",
             "organisation_units.csv",
         ]:
-            assert fname in os.listdir(tmp_dir)
+            assert fname in os.listdir(os.path.join(tmp_dir, "metadata"))

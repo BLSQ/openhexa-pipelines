@@ -152,3 +152,11 @@ dhis2extract transform \
     -i "s3://<bucket>/dhis2/extract/raw" \
     -o "s3://<bucket>/dhis2/extract"
 ```
+
+## Testing
+
+Running pytest:
+
+``` sh
+docker-compose run pipeline pytest
+```

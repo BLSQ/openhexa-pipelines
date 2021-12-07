@@ -779,10 +779,12 @@ def _check_dhis2_period(date: str) -> bool:
 def transform(input_dir, output_dir, overwrite):
     """Transform raw data from DHIS2 into formatted CSV files."""
     output_dir = output_dir.rstrip("/")
+    metadata_output_dir = os.path.join(output_dir, "metadata")
     input_dir = input_dir.rstrip("/")
     fs_input = filesystem(input_dir)
     fs_output = filesystem(output_dir)
-    fs_output.mkdirs(output_dir, exist_ok=True)
+    fs_output.mkdirs(output_dir, metadata_output_dir, exist_ok=True)
+    fs_output.mkdirs(metadata_output_dir, exist_ok=True)
 
     fpath_metadata = f"{input_dir}/metadata.json"
     if not fs_input.exists(fpath_metadata):
@@ -809,7 +811,7 @@ def transform(input_dir, output_dir, overwrite):
 
     for fname, transform in transform_functions:
 
-        fpath = f"{output_dir}/{fname}"
+        fpath = f"{metadata_output_dir}/{fname}"
 
         # Transform metadata and write output dataframe to disk
         if not fs_output.exists(fpath) or overwrite:
@@ -824,23 +826,27 @@ def transform(input_dir, output_dir, overwrite):
             continue
 
     # Create a GPKG with all org units for which we have geometries
-    fpath = f"{output_dir}/organisation_units.gpkg"
+    fpath = f"{metadata_output_dir}/organisation_units.gpkg"
     if not fs_output.exists(fpath) or overwrite:
         logger.info("Creating org units geopackage.")
-        with fs_output.open(f"{output_dir}/organisation_units.csv") as f:
+        with fs_output.open(f"{metadata_output_dir}/organisation_units.csv") as f:
             df = pd.read_csv(f)
             geodf = _transform_org_units_geo(df)
-        with fs_output.open(f"{output_dir}/organisation_units.gpkg", "wb") as f:
+        with fs_output.open(
+            f"{metadata_output_dir}/organisation_units.gpkg", "wb"
+        ) as f:
             geodf.to_file(f, driver="GPKG")
     else:
         logger.info(f"{os.path.basename(fpath)} already exists. Skipping.")
 
     # These metadata tables are needed to join element names and full org unit
     # hierarchy into the final extract.
-    org_units = pd.read_csv(f"{output_dir}/organisation_units.csv", index_col=0)
-    data_elements = pd.read_csv(f"{output_dir}/data_elements.csv", index_col=0)
-    indicators = pd.read_csv(f"{output_dir}/indicators.csv", index_col=0)
-    coc = pd.read_csv(f"{output_dir}/category_option_combos.csv", index_col=0)
+    org_units = pd.read_csv(
+        f"{metadata_output_dir}/organisation_units.csv", index_col=0
+    )
+    data_elements = pd.read_csv(f"{metadata_output_dir}/data_elements.csv", index_col=0)
+    indicators = pd.read_csv(f"{metadata_output_dir}/indicators.csv", index_col=0)
+    coc = pd.read_csv(f"{metadata_output_dir}/category_option_combos.csv", index_col=0)
 
     # Transform API response
     transform_functions = [
