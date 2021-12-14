@@ -852,7 +852,7 @@ def transform(input_dir, output_dir, overwrite):
     transform_functions = [
         ("analytics.csv", _transform_analytics),
         ("analytics_raw_data.csv", _transform_analytics_raw_data),
-        ("data_value_sets", _transform_data_value_sets),
+        ("data_value_sets.csv", _transform_data_value_sets),
     ]
 
     for fname, transform in transform_functions:
