@@ -1058,9 +1058,11 @@ def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
             "period",
             "orgunit",
             "value",
+            "lastUpdated",
         ]
     ]
-    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
+    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value", "last_updated"]
+    df["last_updated"] = df.last_updated(lambda x: x[:10])
     return df
 
 
