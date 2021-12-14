@@ -175,7 +175,7 @@ def download(
     overwrite: bool,
 ):
     """Download data from a DHIS2 instance via its web API."""
-    dhis = DHIS2(instance, username, password, timeout=30)
+    dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
     fs = filesystem(output_dir)
     fs.mkdirs(output_dir, exist_ok=True)
