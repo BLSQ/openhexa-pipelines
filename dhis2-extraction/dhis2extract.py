@@ -1058,7 +1058,7 @@ def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
             "period",
             "orgunit",
             "value",
-            "lastUpdated",
+            "lastupdated",
         ]
     ]
     df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value", "last_updated"]
