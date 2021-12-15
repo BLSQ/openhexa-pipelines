@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import typing
+from io import StringIO
 
 import click
 import geopandas as gpd
@@ -466,16 +467,6 @@ class DHIS2:
             datasets = [self.data_element_dataset(de) for de in data_elements]
             datasets = list(set(datasets))
 
-        # The dataValueSets endpoint does not support the "ou:LEVEL-n" dimension
-        # parameter. As an alternative, we request data for the parent org units
-        # and include data for the children org units in the response.
-        # NB: org_units parameter still takes precedence.
-        if not org_units and org_unit_levels:
-            org_units = []
-            for lvl in org_unit_levels:
-                org_units.append(self.org_units_per_lvl(lvl - 1))
-            include_childrens = True
-
         params = {
             "dataSet": datasets,
             "children": include_childrens,
@@ -485,8 +476,6 @@ class DHIS2:
         if start_date and end_date:
             params["startDate"] = start_date
             params["endDate"] = end_date
-        if org_units:
-            params["orgUnit"] = org_units
         if org_unit_groups:
             params["orgUnitGroup"] = org_unit_groups
         if data_element_groups:
@@ -494,10 +483,40 @@ class DHIS2:
         if attribute_option_combos:
             params["attributeOptionCombo"] = attribute_option_combos
 
+        # The dataValueSets endpoint does not support the "ou:LEVEL-n" dimension
+        # parameter. As an alternative, we request data for the parent org units
+        # and include data for the children org units in the response.
+        # NB: org_units parameter still takes precedence.
+        if not org_units and org_unit_levels:
+            return self._data_value_sets_for_level(params, org_unit_levels)
+
+        return self._data_value_sets_regular(params)
+
+    def _data_value_sets_for_level(self, params, org_unit_levels):
+        org_units = []
+        for lvl in org_unit_levels:
+            org_units.append(self.org_units_per_lvl(lvl - 1))
+
+        params["include_childrens"] = True
+        df = pd.DataFrame()
+        for i in range(len(org_units), 50):
+            params["orgUnit"] = org_units[i : i + 50]
+            r = self.api.get(
+                "dataValueSets", params=params, file_type="csv", timeout=self.timeout
+            )
+            df = df.append(pd.read_csv(StringIO(r.content.decode())))
+
+        return df.to_csv()
+
+    def _data_value_sets_regular(self, params):
         r = self.api.get(
             "dataValueSets", params=params, file_type="csv", timeout=self.timeout
         )
+
         return r.content.decode()
+
+    def _chunk_requests(self):
+        pass
 
     def analytics_raw_data(
         self,

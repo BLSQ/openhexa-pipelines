@@ -123,6 +123,27 @@ def test_data_value_sets_03(demo, mocked_responses):
     assert len(df) == 196
 
 
+def test_data_value_sets_04(demo, mocked_responses):
+    """With levels arguments."""
+    responses_dir = os.path.join(os.path.dirname(__file__), "responses")
+    with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
+        mocked_responses.add(
+            responses.GET,
+            url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
+            body=f.read(),
+            status=200,
+        )
+    csv = demo.data_value_sets(
+        periods=["202008", "202010"],
+        org_unit_levels=[2],
+        datasets=["BfMAe6Itzgt", "QX4ZTUbOt3a"],
+    )
+    df = pd.read_csv(StringIO(csv))
+    assert (
+        len(df) == 9604
+    )  # TODO: find a better way to test this, or write better fixtures / mocked responses
+
+
 def test_analytics_01(demo, mocked_responses):
     """With start and end dates arguments."""
     responses_dir = os.path.join(os.path.dirname(__file__), "responses")
