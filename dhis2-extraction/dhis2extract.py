@@ -515,9 +515,6 @@ class DHIS2:
 
         return r.content.decode()
 
-    def _chunk_requests(self):
-        pass
-
     def analytics_raw_data(
         self,
         periods: typing.Sequence[str] = None,
