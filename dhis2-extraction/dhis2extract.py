@@ -8,7 +8,7 @@ from io import StringIO
 import click
 import geopandas as gpd
 import pandas as pd
-from dhis2 import Api
+from dhis2 import Api as BaseApi
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -299,6 +299,38 @@ METADATA_TABLES = {
 }
 
 
+class Api(BaseApi):
+    def chunked_get(
+        self,
+        endpoint,
+        *,
+        params: dict,
+        chunk_on: typing.Tuple[str, typing.Sequence[typing.Any]],
+        chunk_size: int,
+        **kwargs,
+    ):
+        """
+        Split a request in multiple chunks and merge the results.
+        :param endpoint: the DHIS2 API endpoint
+        :param params: standard DHIS2.py API params
+        :param chunk_on: a tuple of (parameter_name, parameter_values): the parameter that will determine the split
+        :param chunk_size: how many of "parameter_values" to handle by request
+        :param kwargs: fowarded to the DHIS2 API endpoint
+        :return: CSV content for now
+        """
+
+        if kwargs["file_type"] != "csv":
+            raise ValueError("Only CSV file_type supported for now")
+
+        df = pd.DataFrame()
+        for i in range(len(chunk_on[1]), chunk_size):
+            params[chunk_on[0]] = chunk_on[1][i : i + chunk_size]
+            r = self.get(endpoint, params=params, **kwargs)
+            df = df.append(pd.read_csv(StringIO(r.content.decode())))
+
+        return df.to_csv()
+
+
 class DHIS2:
     def __init__(self, instance: str, username: str, password: str, timeout=30):
         """Connect to a DHIS2 instance API.
@@ -498,15 +530,15 @@ class DHIS2:
             org_units.append(self.org_units_per_lvl(lvl - 1))
 
         params["include_childrens"] = True
-        df = pd.DataFrame()
-        for i in range(len(org_units), 50):
-            params["orgUnit"] = org_units[i : i + 50]
-            r = self.api.get(
-                "dataValueSets", params=params, file_type="csv", timeout=self.timeout
-            )
-            df = df.append(pd.read_csv(StringIO(r.content.decode())))
 
-        return df.to_csv()
+        return self.api.chunked_get(
+            "dataValueSets",
+            params=params,
+            chunk_on=("orgUnit", org_units),
+            chunk_size=50,
+            file_type="csv",
+            timeout=self.timeout,
+        )
 
     def _data_value_sets_regular(self, params):
         r = self.api.get(
