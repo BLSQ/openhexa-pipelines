@@ -3,12 +3,11 @@ import logging
 import os
 import re
 import typing
-from io import StringIO
 
 import click
 import geopandas as gpd
 import pandas as pd
-from dhis2 import Api as BaseApi
+from api import Api
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -17,7 +16,7 @@ from period import Period, get_range
 from s3fs import S3FileSystem
 from shapely.geometry import shape
 
-# comon is a script to set parameters on production
+# common is a script to set parameters on production
 try:
     import common  # noqa: F401
 except ImportError:
@@ -299,50 +298,6 @@ METADATA_TABLES = {
 }
 
 
-class Api(BaseApi):
-    def chunked_get(
-        self,
-        endpoint: str,
-        *,
-        params: dict,
-        chunk_on: typing.Tuple[str, typing.Sequence[typing.Any]],
-        chunk_size: int,
-        **kwargs,
-    ) -> str:
-        """
-        Split a request in multiple chunks and merge the results.
-
-        Parameters
-        ----------
-        endpoint : str
-            The DHIS2 API endpoint
-        params : dict
-            standard DHIS2.py API params
-        chunk_on : tuple
-            a tuple of (parameter_name, parameter_values): the parameter that will determine the split
-        chunk_size : int
-            how many of "parameter_values" to handle by request
-        kwargs : dict
-            fowarded to the DHIS2 API endpoint
-
-        Return
-        ------
-        str
-            CSV content for now
-        """
-
-        if kwargs["file_type"] != "csv":
-            raise ValueError("Only CSV file_type supported for now")
-
-        df = pd.DataFrame()
-        for i in range(len(chunk_on[1]), chunk_size):
-            params[chunk_on[0]] = chunk_on[1][i : i + chunk_size]
-            r = self.get(endpoint, params=params, **kwargs)
-            df = df.append(pd.read_csv(StringIO(r.content.decode())))
-
-        return df.to_csv()
-
-
 class DHIS2:
     def __init__(self, instance: str, username: str, password: str, timeout=30):
         """Connect to a DHIS2 instance API.
@@ -437,7 +392,7 @@ class DHIS2:
         end_date: str = None,
         org_units: typing.Sequence[str] = None,
         org_unit_groups: typing.Sequence[str] = None,
-        org_unit_levels: typing.Sequence[str] = None,
+        org_unit_levels: typing.Sequence[int] = None,
         data_elements: typing.Sequence[str] = None,
         data_element_groups: typing.Sequence[str] = None,
         attribute_option_combos: typing.Sequence[str] = None,
@@ -534,12 +489,14 @@ class DHIS2:
         if not org_units and org_unit_levels:
             return self._data_value_sets_for_level(params, org_unit_levels)
 
-        return self._data_value_sets_regular(params)
+        return self._data_value_sets_for_org_units(params, org_units)
 
-    def _data_value_sets_for_level(self, params, org_unit_levels):
+    def _data_value_sets_for_level(
+        self, params: dict, org_unit_levels: typing.Sequence[int]
+    ):
         org_units = []
         for lvl in org_unit_levels:
-            org_units.append(self.org_units_per_lvl(lvl - 1))
+            org_units += self.org_units_per_lvl(lvl - 1)
 
         params["include_childrens"] = True
 
@@ -550,14 +507,17 @@ class DHIS2:
             chunk_size=50,
             file_type="csv",
             timeout=self.timeout,
-        )
+        ).content.decode()
 
-    def _data_value_sets_regular(self, params):
-        r = self.api.get(
-            "dataValueSets", params=params, file_type="csv", timeout=self.timeout
-        )
-
-        return r.content.decode()
+    def _data_value_sets_for_org_units(self, params, org_units: typing.Sequence[str]):
+        return self.api.chunked_get(
+            "dataValueSets",
+            params=params,
+            chunk_on=("orgUnit", org_units),
+            chunk_size=50,
+            file_type="csv",
+            timeout=self.timeout,
+        ).content.decode()
 
     def analytics_raw_data(
         self,

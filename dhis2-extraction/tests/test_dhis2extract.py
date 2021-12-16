@@ -123,8 +123,9 @@ def test_data_value_sets_03(demo, mocked_responses):
     assert len(df) == 196
 
 
-def test_data_value_sets_04(demo, mocked_responses):
-    """With levels arguments - requests should be chunked."""
+def test_data_value_sets_04(demo, mocked_responses, raw_metadata):
+    """With loads of org units - requests should be chunked"""
+
     responses_dir = os.path.join(os.path.dirname(__file__), "responses")
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
         mocked_responses.add(
@@ -135,13 +136,35 @@ def test_data_value_sets_04(demo, mocked_responses):
         )
     csv = demo.data_value_sets(
         periods=["202008", "202010"],
-        org_unit_levels=[2],
+        org_units=[ou["id"] for ou in raw_metadata["organisationUnits"][:113]],
         datasets=["BfMAe6Itzgt", "QX4ZTUbOt3a"],
     )
     df = pd.read_csv(StringIO(csv))
-    assert (
-        len(df) == 9604
-    )  # TODO: find a better way to test this, or write better fixtures / mocked responses
+
+    # 113 org units, chunk size=50, we should have 3 requests (they share the same response with 196 lines)
+    assert len(df) == 196 * 3
+
+
+def test_data_value_sets_05(demo, mocked_responses):
+    """With levels arguments - requests should be chunked."""
+
+    responses_dir = os.path.join(os.path.dirname(__file__), "responses")
+    with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
+        mocked_responses.add(
+            responses.GET,
+            url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
+            body=f.read(),
+            status=200,
+        )
+    csv = demo.data_value_sets(
+        periods=["202008", "202010"],
+        org_unit_levels=[4],
+        datasets=["BfMAe6Itzgt", "QX4ZTUbOt3a"],
+    )
+    df = pd.read_csv(StringIO(csv))
+
+    # 267 org units for level 4, chunk size=50, we should have 6 requests (they share the same response with 196 lines)
+    assert len(df) == 196 * 6
 
 
 def test_analytics_01(demo, mocked_responses):
