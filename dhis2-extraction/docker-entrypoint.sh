@@ -21,7 +21,7 @@ case "$command" in
   python -m dhis2extract $arguments
   ;;
 "test")
-  pytest tests/
+  pytest -s $arguments
   ;;
 "python")
   python $arguments

@@ -7,7 +7,7 @@ import typing
 import click
 import geopandas as gpd
 import pandas as pd
-from dhis2 import Api
+from api import Api
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -16,7 +16,7 @@ from period import Period, get_range
 from s3fs import S3FileSystem
 from shapely.geometry import shape
 
-# comon is a script to set parameters on production
+# common is a script to set parameters on production
 try:
     import common  # noqa: F401
 except ImportError:
@@ -392,7 +392,7 @@ class DHIS2:
         end_date: str = None,
         org_units: typing.Sequence[str] = None,
         org_unit_groups: typing.Sequence[str] = None,
-        org_unit_levels: typing.Sequence[str] = None,
+        org_unit_levels: typing.Sequence[int] = None,
         data_elements: typing.Sequence[str] = None,
         data_element_groups: typing.Sequence[str] = None,
         attribute_option_combos: typing.Sequence[str] = None,
@@ -466,16 +466,6 @@ class DHIS2:
             datasets = [self.data_element_dataset(de) for de in data_elements]
             datasets = list(set(datasets))
 
-        # The dataValueSets endpoint does not support the "ou:LEVEL-n" dimension
-        # parameter. As an alternative, we request data for the parent org units
-        # and include data for the children org units in the response.
-        # NB: org_units parameter still takes precedence.
-        if not org_units and org_unit_levels:
-            org_units = []
-            for lvl in org_unit_levels:
-                org_units.append(self.org_units_per_lvl(lvl - 1))
-            include_childrens = True
-
         params = {
             "dataSet": datasets,
             "children": include_childrens,
@@ -485,8 +475,6 @@ class DHIS2:
         if start_date and end_date:
             params["startDate"] = start_date
             params["endDate"] = end_date
-        if org_units:
-            params["orgUnit"] = org_units
         if org_unit_groups:
             params["orgUnitGroup"] = org_unit_groups
         if data_element_groups:
@@ -494,10 +482,25 @@ class DHIS2:
         if attribute_option_combos:
             params["attributeOptionCombo"] = attribute_option_combos
 
-        r = self.api.get(
-            "dataValueSets", params=params, file_type="csv", timeout=self.timeout
-        )
-        return r.content.decode()
+        # The dataValueSets endpoint does not support the "ou:LEVEL-n" dimension
+        # parameter. As an alternative, we request data for the parent org units
+        # and include data for the children org units in the response.
+        # NB: org_units parameter still takes precedence.
+        if not org_units and org_unit_levels:
+            org_units = []
+            for lvl in org_unit_levels:
+                org_units += self.org_units_per_lvl(lvl - 1)
+
+            params["include_childrens"] = True
+
+        return self.api.chunked_get(
+            "dataValueSets",
+            params=params,
+            chunk_on=("orgUnit", org_units),
+            chunk_size=50,
+            file_type="csv",
+            timeout=self.timeout,
+        ).content.decode()
 
     def analytics_raw_data(
         self,
