@@ -302,21 +302,33 @@ METADATA_TABLES = {
 class Api(BaseApi):
     def chunked_get(
         self,
-        endpoint,
+        endpoint: str,
         *,
         params: dict,
         chunk_on: typing.Tuple[str, typing.Sequence[typing.Any]],
         chunk_size: int,
         **kwargs,
-    ):
+    ) -> str:
         """
         Split a request in multiple chunks and merge the results.
-        :param endpoint: the DHIS2 API endpoint
-        :param params: standard DHIS2.py API params
-        :param chunk_on: a tuple of (parameter_name, parameter_values): the parameter that will determine the split
-        :param chunk_size: how many of "parameter_values" to handle by request
-        :param kwargs: fowarded to the DHIS2 API endpoint
-        :return: CSV content for now
+
+        Parameters
+        ----------
+        endpoint : str
+            The DHIS2 API endpoint
+        params : dict
+            standard DHIS2.py API params
+        chunk_on : tuple
+            a tuple of (parameter_name, parameter_values): the parameter that will determine the split
+        chunk_size : int
+            how many of "parameter_values" to handle by request
+        kwargs : dict
+            fowarded to the DHIS2 API endpoint
+
+        Return
+        ------
+        str
+            CSV content for now
         """
 
         if kwargs["file_type"] != "csv":
