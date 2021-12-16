@@ -124,7 +124,7 @@ def test_data_value_sets_03(demo, mocked_responses):
 
 
 def test_data_value_sets_04(demo, mocked_responses):
-    """With levels arguments."""
+    """With levels arguments - requests should be chunked."""
     responses_dir = os.path.join(os.path.dirname(__file__), "responses")
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
         mocked_responses.add(
