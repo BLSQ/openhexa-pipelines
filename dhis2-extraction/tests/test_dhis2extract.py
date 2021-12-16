@@ -110,7 +110,7 @@ def test_data_value_sets_03(demo, mocked_responses):
     with open(os.path.join(responses_dir, "dataValueSets", "response03.csv")) as f:
         mocked_responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
+            url=re.compile(".+/dataValueSets.csv.+period=202008.+orgUnit=VdXuxcNkiad"),
             body=f.read(),
             status=200,
         )

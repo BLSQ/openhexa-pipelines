@@ -487,29 +487,12 @@ class DHIS2:
         # and include data for the children org units in the response.
         # NB: org_units parameter still takes precedence.
         if not org_units and org_unit_levels:
-            return self._data_value_sets_for_level(params, org_unit_levels)
+            org_units = []
+            for lvl in org_unit_levels:
+                org_units += self.org_units_per_lvl(lvl - 1)
 
-        return self._data_value_sets_for_org_units(params, org_units)
+            params["include_childrens"] = True
 
-    def _data_value_sets_for_level(
-        self, params: dict, org_unit_levels: typing.Sequence[int]
-    ):
-        org_units = []
-        for lvl in org_unit_levels:
-            org_units += self.org_units_per_lvl(lvl - 1)
-
-        params["include_childrens"] = True
-
-        return self.api.chunked_get(
-            "dataValueSets",
-            params=params,
-            chunk_on=("orgUnit", org_units),
-            chunk_size=50,
-            file_type="csv",
-            timeout=self.timeout,
-        ).content.decode()
-
-    def _data_value_sets_for_org_units(self, params, org_units: typing.Sequence[str]):
         return self.api.chunked_get(
             "dataValueSets",
             params=params,

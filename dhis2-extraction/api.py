@@ -62,12 +62,14 @@ class Api(BaseApi):
         if len(chunk_parameter_values) == 0:
             raise ValueError("Cannot chunk requests with an empty list of values")
         elif len(chunk_parameter_values) < chunk_size:
+            params[chunk_parameter_name] = chunk_parameter_values
+
             return self.get(endpoint, params=params, **kwargs)
 
         df = pd.DataFrame()
         r = None
-        for i in range(0, len(chunk_on[1]), chunk_size):
-            params[chunk_on[0]] = chunk_on[1][i : i + chunk_size]
+        for i in range(0, len(chunk_parameter_values), chunk_size):
+            params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
             r = self.get(endpoint, params=params, **kwargs)
             df = df.append(pd.read_csv(StringIO(r.content.decode())))
 
