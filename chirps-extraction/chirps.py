@@ -398,11 +398,7 @@ class Chirps:
 
     def fname(self, day: date):
         """Get file name of daily CHIRPS data for a given date."""
-        if day >= date(2021, 6, 1):
-            extension = "tif"
-        else:
-            extension = "tif.gz"
-        return f"chirps-v2.0.{day.year}.{day.month:0>2d}.{day.day:0>2d}.{extension}"
+        return f"chirps-v2.0.{day.year}.{day.month:0>2d}.{day.day:0>2d}.tif.gz"
 
     def download(
         self, day: date, output_dir: str, timeout: int = 60, overwrite: bool = False
