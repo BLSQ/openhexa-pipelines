@@ -123,12 +123,13 @@ def test_data_value_sets_03(demo, mocked_responses):
     assert len(df) == 196
 
 
-def test_data_value_sets_04(demo, mocked_responses, raw_metadata):
+@responses.activate
+def test_data_value_sets_04(demo, raw_metadata):
     """With loads of org units - requests should be chunked"""
 
     responses_dir = os.path.join(os.path.dirname(__file__), "responses")
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
-        mocked_responses.add(
+        responses.add(
             responses.GET,
             url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
             body=f.read(),
@@ -145,14 +146,15 @@ def test_data_value_sets_04(demo, mocked_responses, raw_metadata):
     assert len(df) == 196 * 3
 
 
-def test_data_value_sets_05(demo, mocked_responses):
+@responses.activate
+def test_data_value_sets_05(demo):
     """With levels arguments - requests should be chunked."""
 
     responses_dir = os.path.join(os.path.dirname(__file__), "responses")
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
-        mocked_responses.add(
+        responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
+            url=re.compile(".+/dataValueSets.csv.+children=True.+period=202008.+"),
             body=f.read(),
             status=200,
         )

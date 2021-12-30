@@ -130,7 +130,7 @@ def cli():
     "--children/--no-children",
     is_flag=True,
     default=False,
-    help="Include childrens of selected org units.",
+    help="Include children of selected org units.",
 )
 @click.option(
     "--aggregate/--no-aggregate",
@@ -230,7 +230,7 @@ def download(
             data_elements=data_element,
             data_element_groups=data_element_group,
             attribute_option_combos=attribute_option_combo,
-            include_childrens=children,
+            include_children=children,
         )
         output_file = f"{output_dir}/data_value_sets.csv"
 
@@ -396,7 +396,7 @@ class DHIS2:
         data_elements: typing.Sequence[str] = None,
         data_element_groups: typing.Sequence[str] = None,
         attribute_option_combos: typing.Sequence[str] = None,
-        include_childrens: bool = False,
+        include_children: bool = False,
     ) -> str:
         """Extract all data values for a given DHIS2 dataset.
 
@@ -431,8 +431,8 @@ class DHIS2:
             UIDs of the data element groups of interest.
         attribute_option_combos : list of str, optional
             UIDs of the attribute option combos of interest.
-        include_childrens : bool, optional
-            Include childrens of selected org units.
+        include_children : bool, optional
+            Include children of selected org units.
 
         Return
         ------
@@ -468,7 +468,7 @@ class DHIS2:
 
         params = {
             "dataSet": datasets,
-            "children": include_childrens,
+            "children": include_children,
         }
         if periods:
             params["period"] = periods
@@ -491,7 +491,7 @@ class DHIS2:
             for lvl in org_unit_levels:
                 org_units += self.org_units_per_lvl(lvl - 1)
 
-            params["include_childrens"] = True
+            params["children"] = True
 
             logger.info(
                 f"No org units, so asking data for org unit of levels {','.join([str(lvl - 1) for lvl in org_unit_levels])} (total: {len(org_units)})."
