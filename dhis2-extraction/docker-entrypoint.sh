@@ -11,6 +11,7 @@ show_help() {
   dhis2extract     : start dhis2extraction subsystem
   python           : run arbitrary python code
   bash             : launch bash session
+  test             : launch tests using Pytest
 
   Any arguments passed will be forwarded to the executed command
   """

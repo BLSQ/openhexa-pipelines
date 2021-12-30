@@ -159,5 +159,5 @@ dhis2extract transform \
 Running pytest:
 
 ``` sh
-docker-compose run pipeline pytest
+docker-compose run pipeline test
 ```

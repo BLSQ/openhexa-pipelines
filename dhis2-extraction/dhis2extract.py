@@ -493,6 +493,10 @@ class DHIS2:
 
             params["include_childrens"] = True
 
+            logger.info(
+                f"No org units, so asking data for org unit of levels {','.join([str(lvl - 1) for lvl in org_unit_levels])} (total: {len(org_units)})."
+            )
+
         return self.api.chunked_get(
             "dataValueSets",
             params=params,
