@@ -144,7 +144,9 @@ def cli():
     default=True,
     help="Use the Analytics API.",
 )
-@click.option("--skip", is_flag=True, default=False, help="Only download metadata.")
+@click.option(
+    "--metadata-only", is_flag=True, default=False, help="Only download metadata."
+)
 @click.option(
     "--overwrite", is_flag=True, default=False, help="Overwrite existing file."
 )
@@ -171,7 +173,7 @@ def download(
     children: bool,
     aggregate: bool,
     analytics: bool,
-    skip: bool,
+    metadata_only: bool,
     overwrite: bool,
 ):
     """Download data from a DHIS2 instance via its web API."""
@@ -212,7 +214,7 @@ def download(
             logger.debug(f"Writing metadata to {output_meta}.")
             json.dump(dhis.metadata, f)
 
-    if skip:
+    if metadata_only:
         return
 
     # The dataValueSets endpoint does not support data elements UIDs as parameters,

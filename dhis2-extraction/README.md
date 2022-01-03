@@ -31,7 +31,7 @@ At least one org unit dimension is required: either `org-unit`, `org-unit-group`
 
 Dimension parameters (periods, org units, datasets, data elements, indicators, programs, etc) can be repeated any number of times.
 
-With the `--skip` flag, only the metadata tables are downloaded.
+With the `--metadata-only` flag, only the metadata tables are downloaded.
 
 **Exporting raw data values from the analytics tables** (default)  
 `--no-aggregate` and `--analytics`  
@@ -81,7 +81,7 @@ Options:
   --children / --no-children      Include children of selected org units.
   --aggregate / --no-aggregate    Aggregate using Analytics API.
   --analytics / --no-analytics    Use the Analytics API.
-  --skip                          Only download metadata.
+  --metadata-only                 Only download metadata.
   --overwrite                     Overwrite existing file.
   --help                          Show this message and exit.
 
