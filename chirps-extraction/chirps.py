@@ -144,7 +144,8 @@ def extract(
         with fs.open(contours) as f:
             contours_data = gpd.read_file(f)
 
-    # Ignore invalid geometries
+    # Drop geometries that cannot be fixed
+    contours_data = _fix_geometries(contours_data)
     contours_data = contours_data[contours_data.is_simple]
     contours_data = contours_data[contours_data.is_valid]
 
@@ -457,6 +458,26 @@ def chirps_path(data_dir: str, date_object: date):
         else:
             return search[0]
     return None
+
+
+def _fix_geometries(geodf: gpd.GeoDataFrame):
+    """Try to fix invalid geometries in a geodataframe.
+
+    Parameters
+    ----------
+    geodf : geodataframe
+        Input geodataframe with a geometry column.
+
+    Return
+    ------
+    geodf : geodataframe
+        Updated geodataframe with valid geometries.
+    """
+    geodf_ = geodf.copy()
+    for i, row in geodf_.iterrows():
+        if not row.geometry.is_valid:
+            geodf_.at[i, "geometry"] = row.geometry.buffer(0)
+    return geodf_
 
 
 def raster_cumsum(
