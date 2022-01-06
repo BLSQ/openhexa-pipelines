@@ -36,7 +36,12 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
-    "-p", dest="parameters", action="append", type=str, help="Pipeline parameters"
+    "-p",
+    dest="parameters",
+    action="append",
+    type=str,
+    help="Pipeline parameters",
+    default=[],
 )
 
 args = parser.parse_args()
