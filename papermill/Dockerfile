@@ -57,7 +57,7 @@ RUN pip install \
     'sentry-sdk'
 
 RUN mkdir /app/
-COPY __init__.py app.py common.py /app/
+COPY __init__.py app.py common.py? /app/
 WORKDIR /app/
 ENTRYPOINT ["/app/app.py"]
 CMD ["--help"]
