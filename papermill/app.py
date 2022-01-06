@@ -20,10 +20,20 @@ logger = logging.getLogger("papermill_app")
 
 parser = argparse.ArgumentParser(description="Papermill pipeline")
 parser.add_argument(
-    "-i", dest="in_nb", action="store", type=str, help="Input notebook to use"
+    "-i",
+    dest="in_nb",
+    action="store",
+    type=str,
+    help="Input notebook to use",
+    required=True,
 )
 parser.add_argument(
-    "-o", dest="out_nb", action="store", type=str, help="Output notebook to generate"
+    "-o",
+    dest="out_nb",
+    action="store",
+    type=str,
+    help="Output notebook to generate",
+    required=True,
 )
 parser.add_argument(
     "-p", dest="parameters", action="append", type=str, help="Pipeline parameters"
