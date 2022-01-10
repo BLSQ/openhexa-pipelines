@@ -63,14 +63,14 @@ def cli():
 @click.option(
     "--execution_date",
     "-d",
-    type=click.DateTime(),
+    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]),
     required=True,
     help="Execution date.",
 )
 @click.option(
     "--logical_date",
     "-l",
-    type=click.DateTime(),
+    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]),
     required=True,
     help="Logical run date.",
 )

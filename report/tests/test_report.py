@@ -8,7 +8,12 @@ import report
 
 def test_report():
     runner = CliRunner()
-    sample_date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    sample_date_1 = (
+        datetime.datetime.now(tz=datetime.timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+    )
+    sample_date_2 = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
     result = runner.invoke(
         report.cli,
         [
@@ -20,9 +25,9 @@ def test_report():
             "-r",
             "xb22",
             "-d",
-            sample_date,
+            sample_date_1,
             "-l",
-            sample_date,
+            sample_date_2,
             "-h",
             "Amazing pipeline",
             "-i",
@@ -43,8 +48,8 @@ The content of this directory was created by a Pipeline run from OpenHexa.
 Key facts:
 - This run comes from a **Airflow** pipeline
 - The run has `xb22` as identifier (use this for troubleshooting purposes)
-- The pipeline was run on **{sample_date}**.
-- The logical execution date of the pipeline is **{sample_date}**.
+- The pipeline was run on **{sample_date_1}**.
+- The logical execution date of the pipeline is **{sample_date_2}**.
 
 ## Additional info
 This pipeline does wonders!
