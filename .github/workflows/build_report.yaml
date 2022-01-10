@@ -35,4 +35,4 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           context: ./report/
           tags: |
-            blsq/openhexa-report:latest
+            blsq/openhexa-pipelines-report:latest
