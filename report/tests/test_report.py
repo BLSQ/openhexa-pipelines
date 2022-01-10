@@ -40,8 +40,7 @@ def test_report():
 
     with open("/code/some_dir/README.md") as f:
         actual_content = f.read()
-        expected_content = f"""
-# Pipeline report
+        expected_content = f"""# Pipeline report
 ## Amazing pipeline
 The content of this directory was created by a Pipeline run from OpenHexa.
 

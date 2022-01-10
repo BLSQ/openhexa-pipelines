@@ -98,8 +98,7 @@ def report(
     fs = filesystem(output_dir)
     fs.mkdirs(output_dir, exist_ok=True)
 
-    content = f"""
-# Pipeline report
+    content = f"""# Pipeline report
 ## {headline}
 The content of this directory was created by a Pipeline run from OpenHexa.
 

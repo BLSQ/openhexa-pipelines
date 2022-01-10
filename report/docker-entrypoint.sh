@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-command=$1
-arguments=${*:2}
+all=("$@")
+command="${all[0]}"
+arguments=("${all[@]:1}")
 
 show_help() {
   echo """
@@ -17,18 +18,18 @@ show_help() {
   """
 }
 
-case "$command" in
+case $command in
 "report")
-  python -m report $arguments
+  python -m report "${arguments[@]}"
   ;;
 "test")
-  pytest -s $arguments
+  pytest -s "${arguments[@]}"
   ;;
 "python")
-  python $arguments
+  python "${arguments[@]}"
   ;;
 "bash")
-  bash $arguments
+  bash "${arguments[@]}"
   ;;
 *)
   show_help
