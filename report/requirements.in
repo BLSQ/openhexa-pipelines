@@ -1,0 +1,5 @@
+s3fs==2021.8.1
+gcsfs==2021.8.1
+fsspec
+pytest
+click
