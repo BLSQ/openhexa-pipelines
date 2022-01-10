@@ -28,6 +28,43 @@ class ReportError(Exception):
     """Report error."""
 
 
+def generate_content(
+    *,
+    is_success: bool,
+    headline: str,
+    pipeline_type: str,
+    run_id: str,
+    execution_date: datetime.datetime,
+    logical_date: datetime.datetime,
+    info: str,
+    config: str,
+):
+    if is_success:
+        success_or_failure = "✅ This pipeline was run successfully."
+    else:
+        success_or_failure = "❌ This pipeline failed to execute properly."
+
+    return f"""# OpenHexa Pipeline report
+## {headline}
+The content of this directory was created by a Pipeline run from OpenHexa.
+
+{success_or_failure}
+
+Key facts:
+- This run comes from a pipeline of type **{pipeline_type}**
+- The run has `{run_id}` as identifier (use this for troubleshooting purposes)
+- The pipeline was run on **{execution_date.strftime("%B %d, %Y at %H:%M:%S")}**.
+- The logical execution date of the pipeline is **{logical_date.strftime("%B %d, %Y at %H:%M:%S")}**.
+
+## Additional info
+{info}
+
+## Used configuration
+```
+{json.dumps(json.loads(config), indent=2)}
+```"""
+
+
 def filesystem(target_path: str) -> AbstractFileSystem:
     """Guess filesystem based on path"""
 
@@ -83,7 +120,7 @@ def cli():
 @click.option(
     "--config", "-c", type=str, required=True, help="Configuration used for the run."
 )
-def report(
+def success(
     output_dir: str,
     pipeline_type: str,
     run_id: str,
@@ -93,33 +130,84 @@ def report(
     info: str,
     config: str,
 ):
-    """Generates a report for the pipeline run."""
+    """Generates a success report for the pipeline run."""
 
     fs = filesystem(output_dir)
     fs.mkdirs(output_dir, exist_ok=True)
 
-    content = f"""# Pipeline report
-## {headline}
-The content of this directory was created by a Pipeline run from OpenHexa.
+    output_file = f"{output_dir.rstrip('/')}/README.md"
+    with fs.open(output_file, "w") as f:
+        logger.debug(f"Writing README.md report file {output_file}.")
+        content = generate_content(
+            is_success=True,
+            headline=headline,
+            pipeline_type=pipeline_type,
+            run_id=run_id,
+            execution_date=execution_date,
+            logical_date=logical_date,
+            info=info,
+            config=config,
+        )
+        f.write(content)
 
-Key facts:
-- This run comes from a **{pipeline_type}** pipeline
-- The run has `{run_id}` as identifier (use this for troubleshooting purposes)
-- The pipeline was run on **{execution_date.isoformat()}**.
-- The logical execution date of the pipeline is **{logical_date.isoformat()}**.
 
-## Additional info
-{info}
+@cli.command()
+@click.option("--output-dir", "-o", type=str, required=True, help="Output directory.")
+@click.option(
+    "--pipeline_type", "-t", type=str, required=True, help="ID of the DAG being run."
+)
+@click.option("--run_id", "-r", type=str, required=True, help="ID of the run itself.")
+@click.option(
+    "--execution_date",
+    "-d",
+    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]),
+    required=True,
+    help="Execution date.",
+)
+@click.option(
+    "--logical_date",
+    "-l",
+    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]),
+    required=True,
+    help="Logical run date.",
+)
+@click.option(
+    "--headline", "-h", type=str, required=True, help="Information about the DAG."
+)
+@click.option(
+    "--info", "-i", type=str, required=True, help="Information about the DAG."
+)
+@click.option(
+    "--config", "-c", type=str, required=True, help="Configuration used for the run."
+)
+def failure(
+    output_dir: str,
+    pipeline_type: str,
+    run_id: str,
+    execution_date: datetime.datetime,
+    logical_date: datetime.datetime,
+    headline: str,
+    info: str,
+    config: str,
+):
+    """Generates an error report for the pipeline run."""
 
-## Used configuration
-```
-{json.dumps(json.loads(config), indent=2)}
-```
-    """
+    fs = filesystem(output_dir)
+    fs.mkdirs(output_dir, exist_ok=True)
 
     output_file = f"{output_dir.rstrip('/')}/README.md"
     with fs.open(output_file, "w") as f:
         logger.debug(f"Writing README.md report file {output_file}.")
+        content = generate_content(
+            is_success=False,
+            headline=headline,
+            pipeline_type=pipeline_type,
+            run_id=run_id,
+            execution_date=execution_date,
+            logical_date=logical_date,
+            info=info,
+            config=config,
+        )
         f.write(content)
 
 
