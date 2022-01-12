@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 import typing
 
 import click
@@ -862,10 +863,15 @@ def transform(input_dir, output_dir, overwrite):
         with fs_output.open(f"{metadata_output_dir}/organisation_units.csv") as f:
             df = pd.read_csv(f)
             geodf = _transform_org_units_geo(df)
-        with fs_output.open(
-            f"{metadata_output_dir}/organisation_units.gpkg", "wb"
-        ) as f:
-            geodf.to_file(f, driver="GPKG")
+        with tempfile.NamedTemporaryFile() as tmpf:
+            for level in sorted(geodf.ou_level.unique()):
+                geodf_lvl = geodf[geodf.ou_level == level]
+                geodf_lvl.to_file(
+                    f"{tmpf.name}.gpkg", driver="GPKG", layer=f"LEVEL_{level}"
+                )
+            fs_output.put(
+                f"{tmpf.name}.gpkg", f"{metadata_output_dir}/organisation_units.gpkg"
+            )
     else:
         logger.info(f"{os.path.basename(fpath)} already exists. Skipping.")
 
