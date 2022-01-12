@@ -863,6 +863,10 @@ def transform(input_dir, output_dir, overwrite):
         with fs_output.open(f"{metadata_output_dir}/organisation_units.csv") as f:
             df = pd.read_csv(f)
             geodf = _transform_org_units_geo(df)
+        # Multi-layered write with the Geopackage driver does not seem to work
+        # correctly in Geopandas when using a file handle, that is why we do
+        # not use fs_output.open() here. I don't know why it only works with
+        # a file path
         with tempfile.NamedTemporaryFile() as tmpf:
             for level in sorted(geodf.ou_level.unique()):
                 geodf_lvl = geodf[geodf.ou_level == level]
