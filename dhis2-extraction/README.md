@@ -21,8 +21,6 @@ Commands:
 
 ### Usage
 
-Depending on the type of information requested, the program will select the appropriate API endpoint. This is managed by the user through the `--aggregate/--no-aggregate` and `--analytics/--no-analytics` flags.
-
 At least one temporal dimension is required: either `period` or `start-date` and `end-date`.
 
 At least one data dimension is required: either `data-element`, `data-element-group`, `indicator`, or `indicator-group`. `dataset` can be used to fetch all the data elements belonging to a given DHIS2 dataset.
@@ -33,19 +31,21 @@ Dimension parameters (periods, org units, datasets, data elements, indicators, p
 
 With the `--metadata-only` flag, only the metadata tables are downloaded.
 
+The program may perform requests to 3 different DHIS2 API endpoints: `api/dataValueSet`, `api/analytics`, or `api/analytics/rawData`:
+
 **Exporting raw data values from the analytics tables** (default)  
-`--no-aggregate` and `--analytics`  
+`--mode analytics-raw`  
 The `api/analytics/rawData` endpoint from DHIS2 is used.
 Data values are exported from the analytics tables as raw data values, i.e. no temporal aggregation is performed.
 Note: data for children of the provided org. units will also be collected.
 
 **Exporting aggregated data values from the analytics tables**  
-`--aggregate` and `--analytics`  
-The `api/analytics` endpoint from DHIS2 is used, this is the default.
+`--mode analytics`  
+The `api/analytics` endpoint from DHIS2 is used.
 Data values are exported from the analytics tables and aggregated according to the `period` dimension, *e.g.* data will be aggregated per year if periods were provided as DHIS2 years.
 
 **Exporting raw data values**  
-`--no-aggregate` and `--no-analytics`  
+`--mode raw`  
 The `api/dataValueSet` endpoint from DHIS2 is used.
 Raw data values are exported (no analytics tables). No aggregation is performed. This is useful if you want to export data that is not yet included in the analytics tables.
 Note: data values are supposed to be extracted per dataset. If data elements UIDs are provided, the entire dataset to which the data element belong will be downloaded.
@@ -79,8 +79,8 @@ Options:
   -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
   --children / --no-children      Include children of selected org units.
-  --aggregate / --no-aggregate    Aggregate using Analytics API.
-  --analytics / --no-analytics    Use the Analytics API.
+  -m, --mode [analytics|analytics-raw|raw]
+                                  DHIS2 API endpoint to use
   --metadata-only                 Only download metadata.
   --overwrite                     Overwrite existing file.
   --help                          Show this message and exit.
