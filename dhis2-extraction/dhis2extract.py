@@ -8,6 +8,7 @@ import click
 import geopandas as gpd
 import pandas as pd
 from api import Api
+from click.types import Choice
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -53,6 +54,15 @@ def filesystem(target_path: str) -> AbstractFileSystem:
         fs_class = LocalFileSystem
 
     return fs_class(client_kwargs=client_kwargs)
+
+
+def _s3_bucket_exists(fs: S3FileSystem, bucket: str) -> bool:
+    """Check if a S3 bucket exists."""
+    try:
+        fs.info(f"s3://{bucket}")
+        return True
+    except FileNotFoundError:
+        return False
 
 
 @click.group()
@@ -133,16 +143,11 @@ def cli():
     help="Include children of selected org units.",
 )
 @click.option(
-    "--aggregate/--no-aggregate",
-    is_flag=True,
-    default=False,
-    help="Aggregate using Analytics API.",
-)
-@click.option(
-    "--analytics/--no-analytics",
-    is_flag=True,
-    default=True,
-    help="Use the Analytics API.",
+    "--mode",
+    "-m",
+    type=Choice(["analytics", "analytics-raw", "raw"], case_sensitive=False),
+    default="analytics",
+    help="DHIS2 API endpoint to use",
 )
 @click.option(
     "--metadata-only", is_flag=True, default=False, help="Only download metadata."
@@ -171,8 +176,7 @@ def download(
     program: typing.Sequence[str],
     from_json: str,
     children: bool,
-    aggregate: bool,
-    analytics: bool,
+    mode: str,
     metadata_only: bool,
     overwrite: bool,
 ):
@@ -180,6 +184,14 @@ def download(
     dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
     fs = filesystem(output_dir)
+
+    # S3FileSystem.mkdirs() will automatically create a new
+    # bucket if permissions allow it and we do not want that.
+    if output_dir.startswith("s3://"):
+        bucket = output_dir.split("//")[-1].split("/")[0]
+        if not _s3_bucket_exists(fs, bucket):
+            raise DHIS2ExtractError(f"S3 bucket {bucket} does not exist.")
+
     fs.mkdirs(output_dir, exist_ok=True)
 
     # Load dimension parameters from JSON file.
@@ -219,7 +231,7 @@ def download(
 
     # The dataValueSets endpoint does not support data elements UIDs as parameters,
     # only datasets.
-    if not analytics:
+    if mode.lower() == "raw":
 
         csv = dhis.data_value_sets(
             datasets=dataset,
@@ -238,43 +250,44 @@ def download(
 
     # When using the analytics API, two types of requests can be performed:
     # aggregated analytics tables, and raw analytics tables.
+    elif mode.lower() == "analytics":
+
+        csv = dhis.analytics(
+            periods=period,
+            start_date=start,
+            end_date=end,
+            org_units=org_unit,
+            org_unit_groups=org_unit_group,
+            org_unit_levels=org_unit_level,
+            data_elements=data_element,
+            data_element_groups=data_element_group,
+            indicators=indicator,
+            indicator_groups=indicator_group,
+            category_option_combos=category_option_combo,
+            programs=program,
+        )
+        output_file = f"{output_dir}/analytics.csv"
+
+    elif mode.lower() == "analytics-raw":
+
+        csv = dhis.analytics_raw_data(
+            periods=period,
+            start_date=start,
+            end_date=end,
+            org_units=org_unit,
+            org_unit_groups=org_unit_group,
+            org_unit_levels=org_unit_level,
+            data_elements=data_element,
+            data_element_groups=data_element_group,
+            indicators=indicator,
+            indicator_groups=indicator_group,
+            category_option_combos=category_option_combo,
+            programs=program,
+        )
+        output_file = f"{output_dir}/analytics_raw_data.csv"
+
     else:
-
-        if aggregate:
-
-            csv = dhis.analytics(
-                periods=period,
-                start_date=start,
-                end_date=end,
-                org_units=org_unit,
-                org_unit_groups=org_unit_group,
-                org_unit_levels=org_unit_level,
-                data_elements=data_element,
-                data_element_groups=data_element_group,
-                indicators=indicator,
-                indicator_groups=indicator_group,
-                category_option_combos=category_option_combo,
-                programs=program,
-            )
-            output_file = f"{output_dir}/analytics.csv"
-
-        else:
-
-            csv = dhis.analytics_raw_data(
-                periods=period,
-                start_date=start,
-                end_date=end,
-                org_units=org_unit,
-                org_unit_groups=org_unit_group,
-                org_unit_levels=org_unit_level,
-                data_elements=data_element,
-                data_element_groups=data_element_group,
-                indicators=indicator,
-                indicator_groups=indicator_group,
-                category_option_combos=category_option_combo,
-                programs=program,
-            )
-            output_file = f"{output_dir}/analytics_raw_data.csv"
+        raise DHIS2ExtractError(f"{mode} is an invalid request mode.")
 
     if not fs.exists(output_file) or overwrite:
         with fs.open(output_file, "w") as f:
@@ -792,6 +805,14 @@ def transform(input_dir, output_dir, overwrite):
     input_dir = input_dir.rstrip("/")
     fs_input = filesystem(input_dir)
     fs_output = filesystem(output_dir)
+
+    # S3FileSystem.mkdirs() will automatically create a new
+    # bucket if permissions allow it and we do not want that.
+    if output_dir.startswith("s3://"):
+        bucket = output_dir.split("//")[-1].split("/")[0]
+        if not _s3_bucket_exists(fs_output, bucket):
+            raise DHIS2ExtractError(f"S3 bucket {bucket} does not exist.")
+
     fs_output.mkdirs(output_dir, exist_ok=True)
     fs_output.mkdirs(metadata_output_dir, exist_ok=True)
 
