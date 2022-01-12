@@ -915,6 +915,10 @@ def _transform_org_units(metadata: dict) -> pd.DataFrame:
     df = pd.DataFrame.from_dict(metadata.get("organisationUnits"))
     df = df[["id", "code", "shortName", "name", "path", "geometry"]]
     df.columns = ["ou_uid", "ou_code", "ou_shortname", "ou_name", "path", "geometry"]
+    df["ou_level"] = df.path.apply(lambda x: x.count("/"))
+    df = df[
+        ["ou_uid", "ou_code", "ou_shortname", "ou_name", "ou_level", "path", "geometry"]
+    ]  # Reorder columns
     return df
 
 
