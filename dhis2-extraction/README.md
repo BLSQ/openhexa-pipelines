@@ -79,7 +79,8 @@ Options:
   -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
   --children / --no-children      Include children of selected org units.
-  -m, --mode TEXT                 Request mode.
+  -m, --mode [analytics|analytics-raw|raw]
+                                  DHIS2 API endpoint to use
   --metadata-only                 Only download metadata.
   --overwrite                     Overwrite existing file.
   --help                          Show this message and exit.
