@@ -522,6 +522,18 @@ def test_join_metadata(
     assert (merge.level_1_name == "Sierra Leone").all()
 
 
+def test_add_empty_rows():
+    extract = pd.read_csv(
+        os.path.join(os.path.dirname(__file__), "data", "extract.csv")
+    )
+    df = dhis2extract._add_empty_rows(
+        extract, index_columns=["dx_uid", "coc_uid", "period", "ou_uid"]
+    )
+    assert len(extract) == 25
+    assert len(df) == 60
+    assert len(df[pd.isna(df.value)]) >= 1
+
+
 @pytest.mark.skip(reason="responses not mocked")
 def test_download_data_value_sets():
     runner = CliRunner()

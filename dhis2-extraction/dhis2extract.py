@@ -805,9 +805,12 @@ def _check_dhis2_period(date: str) -> bool:
 @click.option("--input-dir", "-i", type=str, help="Input directory.")
 @click.option("--output-dir", "-o", type=str, help="Output directory.")
 @click.option(
+    "--empty-rows", is_flag=True, default=False, help="Empty rows for missing data."
+)
+@click.option(
     "--overwrite", is_flag=True, default=False, help="Overwrite existing files."
 )
-def transform(input_dir, output_dir, overwrite):
+def transform(input_dir, output_dir, empty_rows, overwrite):
     """Transform raw data from DHIS2 into formatted CSV files."""
     output_dir = output_dir.rstrip("/")
     metadata_output_dir = f"{output_dir}/metadata"
@@ -920,6 +923,12 @@ def transform(input_dir, output_dir, overwrite):
         with fs_input.open(fpath_input) as f:
             api_response = pd.read_csv(f)
         extract = transform(api_response)
+
+        if empty_rows:
+            extract = _add_empty_rows(
+                extract, index_columns=["dx_uid", "coc_uid", "period", "ou_uid"]
+            )
+
         extract = _join_from_metadata(
             extract, data_elements, indicators, coc, org_units
         )
@@ -1136,6 +1145,34 @@ def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
     ]
     df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
     return df
+
+
+def _add_empty_rows(
+    dataframe: pd.DataFrame, index_columns: typing.List[str]
+) -> pd.DataFrame:
+    """Create new rows with NaN values as missing data.
+
+    A MultiIndex is generated for the input dataframe based on the
+    column names identified in `index_columns`. In the output
+    dataframe, a new row with NaN values is added for each combination
+    of index column (e.g. dx_uid + coc_uid + ou_uid + period) without
+    any data.
+    """
+    multi_index = pd.MultiIndex.from_product(
+        iterables=[dataframe[column].unique() for column in index_columns],
+        names=index_columns,
+    )
+    dataframe_ = dataframe.set_index(index_columns)
+    nan_filled = pd.DataFrame(
+        index=multi_index,
+        columns=[col for col in dataframe.columns if col not in index_columns],
+    )
+
+    for idx in nan_filled.index:
+        if idx in dataframe_.index:
+            nan_filled.loc[idx] = dataframe_.loc[idx]
+
+    return nan_filled.reset_index(drop=False)
 
 
 def _dx_type(dx_uid: str, data_elements: pd.DataFrame, indicators: pd.DataFrame) -> str:
