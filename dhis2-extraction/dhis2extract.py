@@ -303,6 +303,7 @@ METADATA_TABLES = {
     "organisationUnits": "id,code,shortName,name,path,level,geometry",
     "organisationUnitGroups": "id,code,shortName,name,organisationUnits",
     "dataElements": "id,code,shortName,name,aggregationType,zeroIsSignificant",
+    "dataElementGroups": "id,code,shortName,name,dataElements",
     "indicators": "id,code,shortName,name,numerator,denominator,annualized",
     "indicatorGroups": "id,name,indicators",
     "dataSets": "id,code,shortName,name,periodType,dataSetElements,organisationUnits,indicators",
@@ -345,6 +346,7 @@ class DHIS2:
             - organisationUnits
             - organisationUnitGroups
             - dataElements
+            - dataElementGroups
             - indicators
             - indicatorGroups
             - dataSets
@@ -830,6 +832,7 @@ def transform(input_dir, output_dir, overwrite):
         ("organisation_units.csv", _transform_org_units),
         ("organisation_unit_groups.csv", _transform_org_unit_groups),
         ("data_elements.csv", _transform_data_elements),
+        ("data_element_groups.csv", _transform_data_element_groups),
         ("indicators.csv", _transform_indicators),
         ("indicator_groups.csv", _transform_indicator_groups),
         ("datasets.csv", _transform_datasets),
@@ -966,6 +969,17 @@ def _transform_data_elements(metadata: dict) -> pd.DataFrame:
         "aggregation_type",
         "zero_is_significant",
     ]
+    return df
+
+
+def _transform_data_element_groups(metadata: dict) -> pd.DataFrame:
+    """Transform data element groups metadata into a formatted DataFrame."""
+    df = pd.DataFrame.from_dict(metadata.get("dataElementGroups"))
+    df = df[["id", "name", "dataElements"]]
+    df.columns = ["deg_uid", "deg_name", "data_elements"]
+    df["data_elements"] = df.data_elements.apply(
+        lambda x: ";".join(de.get("id") for de in x)
+    )
     return df
 
 

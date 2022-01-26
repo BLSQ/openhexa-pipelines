@@ -46,7 +46,7 @@ def demo():
 
 
 def test_dhis2_get_metadata(demo):
-    assert len(demo.metadata) == 11
+    assert len(demo.metadata) == 12
     assert len(demo.metadata.get("organisationUnits")) == 7860
 
 
@@ -329,6 +329,13 @@ def test_transform_data_elements(raw_metadata):
     assert len(df) > 10
     assert "FTRrcoaog83" in df.dx_uid.unique()
     for column in ["dx_uid", "dx_name"]:
+        assert column in df.columns
+
+
+def test_transform_data_element_groups(raw_metadata):
+    df = dhis2extract._transform_data_element_groups(raw_metadata)
+    assert len(df) > 1
+    for column in ["deg_uid", "deg_name"]:
         assert column in df.columns
 
 
@@ -677,6 +684,7 @@ def test_download_transform():
             "indicator_groups.csv",
             "indicators.csv",
             "data_elements.csv",
+            "data_element_groups.csv",
             "organisation_unit_groups.csv",
             "organisation_units.csv",
         ]:
