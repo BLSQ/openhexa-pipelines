@@ -186,6 +186,18 @@ def download(
     output_dir = output_dir.rstrip("/")
     fs = filesystem(output_dir)
 
+    # Check for existing files at the beginning of the function to
+    # avoid making useless API calls.
+    for fname in (
+        "data_value_sets.csv",
+        "analytics.csv",
+        "analytics_raw_data.csv",
+        "metadata.json",
+    ):
+        fpath = f"{output_dir}/{fname}"
+        if fs.exists(fpath) and not overwrite:
+            raise FileExistsError(f"File {fpath} already exists.")
+
     # S3FileSystem.mkdirs() will automatically create a new
     # bucket if permissions allow it and we do not want that.
     if output_dir.startswith("s3://"):
@@ -220,12 +232,9 @@ def download(
         program = params.get("program", program)
 
     output_meta = f"{output_dir}/metadata.json"
-    if fs.exists(output_meta) and not overwrite:
-        logger.debug("Output metadata file already exists. Skipping.")
-    else:
-        with fs.open(output_meta, "w") as f:
-            logger.debug(f"Writing metadata to {output_meta}.")
-            json.dump(dhis.metadata, f)
+    with fs.open(output_meta, "w") as f:
+        logger.debug(f"Writing metadata to {output_meta}.")
+        json.dump(dhis.metadata, f)
 
     if metadata_only:
         return
@@ -290,12 +299,9 @@ def download(
     else:
         raise DHIS2ExtractError(f"{mode} is an invalid request mode.")
 
-    if not fs.exists(output_file) or overwrite:
-        with fs.open(output_file, "w") as f:
-            logger.debug(f"Writing CSV data to {output_file}.")
-            f.write(csv)
-    else:
-        logger.debug("Output CSV file already exists. Skipping.")
+    with fs.open(output_file, "w") as f:
+        logger.debug(f"Writing CSV data to {output_file}.")
+        f.write(csv)
 
 
 # Metadata tables and fields to extract from the DHIS2 instance
@@ -804,7 +810,7 @@ def _check_dhis2_period(date: str) -> bool:
 def transform(input_dir, output_dir, overwrite):
     """Transform raw data from DHIS2 into formatted CSV files."""
     output_dir = output_dir.rstrip("/")
-    metadata_output_dir = os.path.join(output_dir, "metadata")
+    metadata_output_dir = f"{output_dir}/metadata"
     input_dir = input_dir.rstrip("/")
     fs_input = filesystem(input_dir)
     fs_output = filesystem(output_dir)
@@ -847,40 +853,40 @@ def transform(input_dir, output_dir, overwrite):
 
         fpath = f"{metadata_output_dir}/{fname}"
 
-        # Transform metadata and write output dataframe to disk
-        if not fs_output.exists(fpath) or overwrite:
-            logger.info(f"Creating metadata table {fname}.")
-            df = transform(metadata)
-            with fs_output.open(fpath, "w") as f:
-                df.to_csv(f, index=False)
+        if fs_output.exists(fpath) and not overwrite:
+            raise FileExistsError(f"File {fpath} already exists.")
 
-        # Skip if output file already exists and --overwrite is not set
-        else:
-            logger.info(f"{fname} already exists. Skipping.")
-            continue
+        # Transform metadata and write output dataframe to disk
+        logger.info(f"Creating metadata table {fname}.")
+        df = transform(metadata)
+        with fs_output.open(fpath, "w") as f:
+            df.to_csv(f, index=False)
 
     # Create a GPKG with all org units for which we have geometries
     fpath = f"{metadata_output_dir}/organisation_units.gpkg"
-    if not fs_output.exists(fpath) or overwrite:
-        logger.info("Creating org units geopackage.")
-        with fs_output.open(f"{metadata_output_dir}/organisation_units.csv") as f:
-            df = pd.read_csv(f)
-            geodf = _transform_org_units_geo(df)
-        # Multi-layered write with the Geopackage driver does not seem to work
-        # correctly in Geopandas when using a file handle, that is why we do
-        # not use fs_output.open() here. I don't know why it only works with
-        # a file path
-        with tempfile.NamedTemporaryFile() as tmpf:
-            for level in sorted(geodf.ou_level.unique()):
-                geodf_lvl = geodf[geodf.ou_level == level]
-                geodf_lvl.to_file(
-                    f"{tmpf.name}.gpkg", driver="GPKG", layer=f"LEVEL_{level}"
-                )
-            fs_output.put(
-                f"{tmpf.name}.gpkg", f"{metadata_output_dir}/organisation_units.gpkg"
+    if fs_output.exists(fpath) and not overwrite:
+        raise FileExistsError(f"File {fpath} already exists.")
+
+    logger.info("Creating org units geopackage.")
+    fpath = f"{metadata_output_dir}/organisation_units.gpkg"
+    if fs_output.exists(fpath) and not overwrite:
+        raise FileExistsError(f"File {fpath} already exists.")
+
+    with fs_output.open(f"{metadata_output_dir}/organisation_units.csv") as f:
+        df = pd.read_csv(f)
+        geodf = _transform_org_units_geo(df)
+
+    # Multi-layered write with the Geopackage driver does not seem to work
+    # correctly in Geopandas when using a file handle, that is why we do
+    # not use fs_output.open() here. I don't know why it only works with
+    # a file path
+    with tempfile.NamedTemporaryFile() as tmpf:
+        for level in sorted(geodf.ou_level.unique()):
+            geodf_lvl = geodf[geodf.ou_level == level]
+            geodf_lvl.to_file(
+                f"{tmpf.name}.gpkg", driver="GPKG", layer=f"LEVEL_{level}"
             )
-    else:
-        logger.info(f"{os.path.basename(fpath)} already exists. Skipping.")
+        fs_output.put(f"{tmpf.name}.gpkg", fpath)
 
     # These metadata tables are needed to join element names and full org unit
     # hierarchy into the final extract.
@@ -906,9 +912,8 @@ def transform(input_dir, output_dir, overwrite):
         if not fs_input.exists(fpath_input):
             continue
 
-        if fs_input.exists(fpath_output) and not overwrite:
-            logger.info(f"{os.path.basename(fpath_output)} already exists. Skipping.")
-            continue
+        if fs_output.exists(fpath_output) and not overwrite:
+            raise FileExistsError(f"File {fpath_output} already exists.")
 
         logger.info(f"Processing API response {fpath_input}.")
 
