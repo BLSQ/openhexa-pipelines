@@ -86,6 +86,11 @@ def filesystem(target_path: str) -> AbstractFileSystem:
     return fs_class(client_kwargs=client_kwargs)
 
 
+def send_email_report(email_address: str, success: bool):
+    """ Send an report email with the status to somebody """
+    print("SEND EMAIL", os.environ.get("EMAIL_HOST"), success)
+
+
 @click.group()
 def cli():
     pass
@@ -149,6 +154,7 @@ def success(
             config=config,
         )
         f.write(content)
+    send_email_report("test@bluesquarehub.com", success=True)
 
 
 @cli.command()
@@ -209,6 +215,7 @@ def failure(
             config=config,
         )
         f.write(content)
+    send_email_report("test@bluesquarehub.com", success=True)
 
 
 if __name__ == "__main__":
