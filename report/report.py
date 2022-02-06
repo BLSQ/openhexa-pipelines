@@ -2,6 +2,10 @@ import datetime
 import json
 import logging
 import os
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import click
 from fsspec import AbstractFileSystem
@@ -86,9 +90,66 @@ def filesystem(target_path: str) -> AbstractFileSystem:
     return fs_class(client_kwargs=client_kwargs)
 
 
-def send_email_report(email_address: str, success: bool):
+PLAIN_MAIL_TEMPLATE = """
+Hello Pipeline Owner,
+
+The pipeline %(dag_id)s has finished its run.
+Finish time: %(end_run_time)s UTC
+Status: %(status)s
+
+The report is available in S3.
+"""
+
+HTML_MAIL_TEMPLATE = """
+<html>
+    <body>
+        <p>
+            Hello Pipeline Owner,<br><br>
+            The pipeline %(dag_id)s has finished its run.<br>
+            Finish time: %(run_time)s UTC<br>
+            Status: %(status_str)s<br><br>
+            The report is available in S3.
+        </p>
+    </body>
+</html>
+"""
+
+
+def send_email_report(email_address: str, dag_id: str, success: bool):
     """ Send an report email with the status to somebody """
-    print("SEND EMAIL", os.environ.get("EMAIL_HOST"), success)
+    email_host = os.environ.get("EMAIL_HOST")
+    email_port = int(os.environ.get("EMAIL_PORT"))
+    email_host_user = os.environ.get("EMAIL_HOST_USER")
+    email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
+    email_pretty_from = os.environ.get("DEFAULT_FROM_EMAIL")
+
+    if not (
+        email_host
+        and email_port
+        and email_host_user
+        and email_host_password
+        and email_pretty_from
+    ):
+        logger.error("send_email_report(): missconfiguration, abort")
+        return
+
+    info = {
+        "dag_id": dag_id,
+        "run_time": datetime.utcnow().strftime(),
+        "status_str": "Success" if success else "Failure",
+    }
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = f"Pipeline {dag_id} run: {info['status_str']}"
+    message["From"] = email_pretty_from
+    message["To"] = email_address
+    message.attach(MIMEText(PLAIN_MAIL_TEMPLATE % info, "plain"))
+    message.attach(MIMEText(HTML_MAIL_TEMPLATE % info, "html"))
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+    with smtplib.SMTP_SSL(email_host, email_port, context=context) as server:
+        server.login(email_host_user, email_host_password)
+        server.sendmail(email_host_user, email_address, message.as_string())
 
 
 @click.group()
@@ -125,6 +186,13 @@ def cli():
 @click.option(
     "--config", "-c", type=str, required=True, help="Configuration used for the run."
 )
+@click.option(
+    "--email_report",
+    "-e",
+    type=str,
+    required=False,
+    help="Send a copy of the report by email",
+)
 def success(
     output_dir: str,
     pipeline_type: str,
@@ -134,6 +202,7 @@ def success(
     headline: str,
     info: str,
     config: str,
+    email_report: str,
 ):
     """Generates a success report for the pipeline run."""
 
@@ -154,7 +223,8 @@ def success(
             config=config,
         )
         f.write(content)
-    send_email_report("test@bluesquarehub.com", success=True)
+    if email_report:
+        send_email_report(email_report, dag_id=pipeline_type, success=True)
 
 
 @cli.command()
@@ -186,6 +256,13 @@ def success(
 @click.option(
     "--config", "-c", type=str, required=True, help="Configuration used for the run."
 )
+@click.option(
+    "--email_report",
+    "-e",
+    type=str,
+    required=False,
+    help="Send a copy of the report by email",
+)
 def failure(
     output_dir: str,
     pipeline_type: str,
@@ -195,6 +272,7 @@ def failure(
     headline: str,
     info: str,
     config: str,
+    email_report: str,
 ):
     """Generates an error report for the pipeline run."""
 
@@ -215,7 +293,8 @@ def failure(
             config=config,
         )
         f.write(content)
-    send_email_report("test@bluesquarehub.com", success=True)
+    if email_report:
+        send_email_report(email_report, dag_id=pipeline_type, success=True)
 
 
 if __name__ == "__main__":
