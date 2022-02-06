@@ -94,7 +94,7 @@ PLAIN_MAIL_TEMPLATE = """
 Hello Pipeline Owner,
 
 The pipeline %(dag_id)s has finished its run.
-Finish time: %(end_run_time)s UTC
+Finish time: %(run_time)s UTC
 Status: %(status)s
 
 The report is available in S3.
