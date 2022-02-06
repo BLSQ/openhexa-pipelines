@@ -95,7 +95,7 @@ Hello Pipeline Owner,
 
 The pipeline %(dag_id)s has finished its run.
 Finish time: %(run_time)s UTC
-Status: %(status)s
+Status: %(status_str)s
 
 The report is available in S3.
 """
