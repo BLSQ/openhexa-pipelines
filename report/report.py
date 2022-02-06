@@ -135,7 +135,7 @@ def send_email_report(email_address: str, dag_id: str, success: bool):
 
     info = {
         "dag_id": dag_id,
-        "run_time": datetime.utcnow().strftime(),
+        "run_time": datetime.datetime.utcnow().strftime(),
         "status_str": "Success" if success else "Failure",
     }
 
