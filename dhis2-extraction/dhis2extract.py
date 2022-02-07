@@ -1132,49 +1132,6 @@ def _transform(data: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _transform_analytics(data: pd.DataFrame) -> pd.DataFrame:
-    """Transform analytics API output into a formatted DataFrame."""
-    COLUMNS = {
-        "Data": "dx_uid",
-        "Category option combo": "coc_uid",
-        "Period": "period",
-        "Organisation unit": "ou_uid",
-        "Value": "value",
-    }
-    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
-    df = data.rename(columns=COLUMNS)
-    return df
-
-
-def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
-    """Transform dataValueSets API output into a formatted DataFrame."""
-    COLUMNS = {
-        "dataelement": "dx_uid",
-        "categoryoptioncombo": "coc_uid",
-        "period": "period",
-        "orgunit": "ou_uid",
-        "value": "value",
-        "lastupdated": "last_updated",
-    }
-    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
-    df = data.rename(columns=COLUMNS)
-    return df
-
-
-def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
-    """Transform analytics/rawData API output into a formatted DataFrame."""
-    COLUMNS = {
-        "Data": "dx_uid",
-        "Category option combo": "coc_uid",
-        "Unnamed: 3": "period",
-        "Organisation unit": "ou_uid",
-        "Value": "value",
-    }
-    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
-    df = data.rename(columns=COLUMNS)
-    return df
-
-
 def _add_empty_rows(
     dataframe: pd.DataFrame, index_columns: typing.List[str]
 ) -> pd.DataFrame:
