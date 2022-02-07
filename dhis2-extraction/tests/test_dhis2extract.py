@@ -407,7 +407,7 @@ def test_transform_analytics(raw_metadata):
     fpath = os.path.join(
         os.path.dirname(__file__), "responses", "analytics", "response01.csv"
     )
-    df = dhis2extract._transform_analytics(pd.read_csv(fpath))
+    df = dhis2extract._transform(pd.read_csv(fpath))
     assert len(df) == 25
     assert "Boy3QwztgeZ" in df.dx_uid.unique()
     assert "rQLFnNXXIL0" in df.coc_uid.unique()
@@ -420,7 +420,7 @@ def test_transform_data_value_sets(raw_metadata):
     fpath = os.path.join(
         os.path.dirname(__file__), "responses", "dataValueSets", "response01.csv"
     )
-    df = dhis2extract._transform_data_value_sets(pd.read_csv(fpath))
+    df = dhis2extract._transform(pd.read_csv(fpath))
     assert len(df) == 302
     assert "dY4OCwl0Y7Y" in df.dx_uid.unique()
     assert "J2Qf1jtZuj8" in df.coc_uid.unique()
@@ -433,7 +433,7 @@ def test_transform_analytics_raw_data(raw_metadata):
     fpath = os.path.join(
         os.path.dirname(__file__), "responses", "analyticsRawData", "response01.csv"
     )
-    df = dhis2extract._transform_analytics_raw_data(pd.read_csv(fpath))
+    df = dhis2extract._transform(pd.read_csv(fpath))
     assert len(df) == 17
     assert "l6byfWFUGaP" in df.dx_uid.unique()
     assert "Prlt0C1RF0s" in df.coc_uid.unique()

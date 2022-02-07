@@ -781,8 +781,10 @@ def _dimension_param(
         dimension.append("dx:" + ";".join(programs))
     if category_option_combos:
         dimension.append("co:" + ";".join(category_option_combos))
-    else:
+    elif not indicators:
         # Always add at least an empty coc argument to get COC UIDs in output
+        # except if requesting indicators data as it would make the request fails
+        # with error E7114
         dimension.append("co:")
     return dimension
 
@@ -901,13 +903,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     coc = pd.read_csv(f"{metadata_output_dir}/category_option_combos.csv", index_col=0)
 
     # Transform API response
-    transform_functions = [
-        ("analytics.csv", _transform_analytics),
-        ("analytics_raw_data.csv", _transform_analytics_raw_data),
-        ("data_value_sets.csv", _transform_data_value_sets),
-    ]
-
-    for fname, transform in transform_functions:
+    for fname in ["analytics.csv", "analytics_raw_data.csv", "data_value_sets.csv"]:
 
         fpath_input = f"{input_dir}/{fname}"
         fpath_output = f"{output_dir}/extract.csv"
@@ -922,7 +918,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
         with fs_input.open(fpath_input) as f:
             api_response = pd.read_csv(f)
-        extract = transform(api_response)
+        extract = _transform(api_response)
 
         if empty_rows:
             extract = _add_empty_rows(
@@ -1114,36 +1110,68 @@ def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
     return df
 
 
+def _transform(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform API response into a formatted dataframe."""
+    COLUMNS = {
+        "Data": "dx_uid",
+        "dataelement": "dx_uid",
+        "Category option combo": "coc_uid",
+        "categoryoptioncombo": "coc_uid",
+        "Period": "period",
+        "Unnamed: 3": "period",
+        "period": "period",
+        "Organisation unit": "ou_uid",
+        "orgunit": "ou_uid",
+        "Value": "value",
+        "value": "value",
+        "lastupdated": "last_updated",
+    }
+    columns_in_data = {src: dst for src, dst in COLUMNS.items() if src in data.columns}
+    df = data[[col for col in columns_in_data]]
+    df = data.rename(columns=columns_in_data)
+    return df
+
+
 def _transform_analytics(data: pd.DataFrame) -> pd.DataFrame:
     """Transform analytics API output into a formatted DataFrame."""
-    df = data[["Data", "Category option combo", "Period", "Organisation unit", "Value"]]
-    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
+    COLUMNS = {
+        "Data": "dx_uid",
+        "Category option combo": "coc_uid",
+        "Period": "period",
+        "Organisation unit": "ou_uid",
+        "Value": "value",
+    }
+    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
+    df = data.rename(columns=COLUMNS)
     return df
 
 
 def _transform_data_value_sets(data: pd.DataFrame) -> pd.DataFrame:
     """Transform dataValueSets API output into a formatted DataFrame."""
-    df = data[
-        [
-            "dataelement",
-            "categoryoptioncombo",
-            "period",
-            "orgunit",
-            "value",
-            "lastupdated",
-        ]
-    ]
-    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value", "last_updated"]
-    df["last_updated"] = df.last_updated.apply(lambda x: x[:10])
+    COLUMNS = {
+        "dataelement": "dx_uid",
+        "categoryoptioncombo": "coc_uid",
+        "period": "period",
+        "orgunit": "ou_uid",
+        "value": "value",
+        "lastupdated": "last_updated",
+    }
+    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
+    df = data.rename(columns=COLUMNS)
     return df
 
 
 def _transform_analytics_raw_data(data: pd.DataFrame) -> pd.DataFrame:
     """Transform analytics/rawData API output into a formatted DataFrame."""
-    df = data[
-        ["Data", "Category option combo", "Unnamed: 3", "Organisation unit", "Value"]
-    ]
-    df.columns = ["dx_uid", "coc_uid", "period", "ou_uid", "value"]
+    COLUMNS = {
+        "Data": "dx_uid",
+        "Category option combo": "coc_uid",
+        "Unnamed: 3": "period",
+        "Organisation unit": "ou_uid",
+        "Value": "value",
+    }
+    df = data.drop(columns=[c for c in data.columns if c not in COLUMNS])
+    df = data.rename(columns=COLUMNS)
     return df
 
 
@@ -1158,6 +1186,7 @@ def _add_empty_rows(
     of index column (e.g. dx_uid + coc_uid + ou_uid + period) without
     any data.
     """
+    index_columns = [c for c in index_columns if c in dataframe]
     multi_index = pd.MultiIndex.from_product(
         iterables=[dataframe[column].unique() for column in index_columns],
         names=index_columns,
@@ -1249,9 +1278,12 @@ def _join_from_metadata(
     extract["dx_type"] = extract.dx_uid.apply(
         lambda uid: _dx_type(uid, data_elements, indicators)
     )
-    extract["coc_name"] = extract.coc_uid.apply(
-        lambda uid: category_option_combos.at[uid, "coc_name"]
-    )
+
+    # in some cases the extract does not contain any COC info
+    if "coc_uid" in extract:
+        extract["coc_name"] = extract.coc_uid.apply(
+            lambda uid: category_option_combos.at[uid, "coc_name"]
+        )
 
     # Max number of hierarchical levels in the instance
     levels = len(organisation_units.path.max().split("/")) - 1
