@@ -20,12 +20,14 @@ certifi==2021.10.8
     #   pyproj
     #   rasterio
     #   requests
+    #   sentry-sdk
 cftime==1.5.2
     # via netcdf4
 charset-normalizer==2.0.12
     # via requests
 click==8.0.3
     # via
+    #   -r requirements.in
     #   click-plugins
     #   cligj
     #   fiona
@@ -47,6 +49,8 @@ gdal==3.3.2
     # via -r requirements.in
 geopandas==0.10.2
     # via -r requirements.in
+greenlet==1.1.2
+    # via sqlalchemy
 idna==3.3
     # via requests
 munch==2.5.0
@@ -90,6 +94,8 @@ rasterstats==0.16.0
     # via -r requirements.in
 requests==2.27.1
     # via -r requirements.in
+sentry-sdk==1.5.5
+    # via -r requirements.in
 shapely==1.8.0
     # via
     #   -r requirements.in
@@ -103,8 +109,12 @@ six==1.16.0
     #   python-dateutil
 snuggs==1.4.7
     # via rasterio
+sqlalchemy==1.4.31
+    # via -r requirements.in
 urllib3==1.26.8
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 xarray==0.21.1
     # via -r requirements.in
 

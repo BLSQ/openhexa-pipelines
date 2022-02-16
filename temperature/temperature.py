@@ -8,6 +8,8 @@ import datetime
 import enum
 import logging
 import os
+import string
+from calendar import monthrange
 from datetime import date
 from typing import List
 
@@ -20,6 +22,7 @@ import requests
 import xarray
 from pyproj import CRS
 from rasterstats import zonal_stats
+from sqlalchemy import create_engine
 
 # common is a script to set parameters on production
 try:
@@ -57,7 +60,10 @@ def sync(start: str, end: str, output_dir: str, variable: str, overwrite: bool):
     os.makedirs(output_dir, exist_ok=True)
     gdt = GlobalDailyTemperature(data_dir=output_dir)
     gdt.sync(
-        start_year=start.year, end_year=end.year, variable=variable, overwrite=overwrite
+        start_year=start.year,
+        end_year=end.year,
+        variable=variable,
+        overwrite=overwrite,
     )
 
 
@@ -120,37 +126,206 @@ def daily(
 @click.option("--start", type=str, required=True, help="start date of extraction")
 @click.option("--end", type=str, required=True, help="end date of extraction")
 @click.option("--areas", type=str, required=True, help="aggregation areas")
-@click.option("--daily", type=str, required=True, help="input daily data file")
+@click.option("--daily-file", type=str, required=True, help="input daily data file")
+@click.option("--weekly-file", type=str, required=True, help="output weekly data file")
 @click.option("--areas-index", type=str, required=False, help="index column name")
 @click.option(
-    "--overwrite", is_flag=True, default=False, help="overwrite existing files"
+    "--weekly-table",
+    type=str,
+    required=False,
+    help="append the weekly data to an SQL table",
 )
+@click.option("--db-user", type=str, required=False, help="DB username")
+@click.option("--db-password", type=str, required=False, help="DB password")
+@click.option("--db-host", type=str, required=False, help="DB hostname")
+@click.option("--db-port", type=int, required=False, help="DB port")
+@click.option("--db-name", type=str, required=False, help="DB name")
 def weekly(
-    start: str, end: str, areas: str, daily: str, areas_index: str, overwrite: bool
+    start: str,
+    end: str,
+    areas: str,
+    daily_file: str,
+    weekly_file: str,
+    areas_index: str,
+    weekly_table: str,
+    db_user: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_name: str,
 ):
     start = datetime.datetime.strptime(start, "%Y-%m-%d")
     end = datetime.datetime.strptime(end, "%Y-%m-%d")
-    daily = pd.read_csv(daily, index_col=0)
+    daily = pd.read_csv(daily_file, index_col=0)
     daily.index = pd.to_datetime(daily.index)
     areas = gpd.read_file(areas)
     areas.set_index(areas_index, inplace=True)
 
+    all_weeks = []
     for epiweek in epiweek_range(start, end):
         weekly = daily[epiweek.start : epiweek.end].mean()  # noqa
-        weekly.rename(f"{epiweek.year}W{epiweek.week:0>2}", inplace=True)
-        areas = areas.merge(weekly, left_index=True, right_index=True)
+        weekly = pd.DataFrame({"mean_temp": weekly}).reset_index()
+        weekly.columns = [areas_index, "mean_temp"]
+        weekly["epi_year"] = epiweek.year
+        weekly["epi_week"] = epiweek.week
+        weekly["start_date"] = epiweek.start
+        weekly["mid_date"] = epiweek.start + (epiweek.end - epiweek.start) / 2
+        weekly["end_date"] = epiweek.end
+        all_weeks.append(weekly)
+
+    all_weeks_df = pd.concat(all_weeks).reset_index(drop=True)
+    all_weeks_df.to_csv(weekly_file, mode="w", header=True)
+
+    if weekly_table:
+        con = create_engine(
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
+
+        # remove potential SQL injection
+        # we can't use params={} from read_sql because it escape the table name
+        # which makes the query invalid
+        table = "".join(
+            [c for c in weekly_table if c in string.ascii_letters + string.digits + "_"]
+        )
+
+        try:
+            # select the last data in the table
+            max_year, max_week = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_week::int) as max_week
+                from "%(table)s"
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+        except Exception:
+            max_year, max_week = None, None
+
+        if max_year and max_week:
+            all_weeks_df[
+                (all_weeks_df.epi_year >= max_year) & (all_weeks_df.epi_week > max_week)
+            ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
+        else:
+            all_weeks_df.to_sql(
+                table, con, if_exists="append", index=False, chunksize=4096
+            )
 
 
 @cli.command()
 @click.option("--start", type=str, required=True, help="start date of extraction")
 @click.option("--end", type=str, required=True, help="end date of extraction")
 @click.option("--areas", type=str, required=True, help="aggregation areas")
-@click.option("--daily", type=str, required=True, help="input daily data file")
-@click.option("--areas_index", type=str, required=False, help="index column name")
+@click.option("--daily-file", type=str, required=True, help="input daily data file")
+@click.option(
+    "--monthly-file", type=str, required=True, help="output monthly data file"
+)
+@click.option("--areas-index", type=str, required=False, help="index column name")
+@click.option(
+    "--monthly-table",
+    type=str,
+    required=False,
+    help="append the monthly data to an SQL table",
+)
+@click.option("--db-user", type=str, required=False, help="DB username")
+@click.option("--db-password", type=str, required=False, help="DB password")
+@click.option("--db-host", type=str, required=False, help="DB hostname")
+@click.option("--db-port", type=int, required=False, help="DB port")
+@click.option("--db-name", type=str, required=False, help="DB name")
 def monthly(
-    start: str, end: str, areas: str, daily: str, areas_index: str, overwrite: bool
+    start: str,
+    end: str,
+    areas: str,
+    daily_file: str,
+    monthly_file: str,
+    areas_index: str,
+    monthly_table: str,
+    db_user: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_name: str,
 ):
-    pass
+    start = datetime.datetime.strptime(start, "%Y-%m-%d")
+    end = datetime.datetime.strptime(end, "%Y-%m-%d")
+    daily = pd.read_csv(daily_file, index_col=0)
+    daily.index = pd.to_datetime(daily.index)
+    areas = gpd.read_file(areas)
+    areas.set_index(areas_index, inplace=True)
+
+    all_months = []
+    year, month = start.year, start.month
+    while year <= end.year and month <= end.month:
+        first_day_month = datetime.datetime(year, month, 1)
+        last_day_month = datetime.datetime(year, month, monthrange(year, month)[1])
+        monthly = daily[first_day_month:last_day_month].mean()  # noqa
+        monthly = pd.DataFrame({"mean_temp": monthly}).reset_index()
+        monthly.columns = [areas_index, "mean_temp"]
+        monthly["epi_year"] = year
+        monthly["epi_month"] = month
+        monthly["start_date"] = first_day_month
+        monthly["mid_date"] = first_day_month + (last_day_month - first_day_month) / 2
+        monthly["end_date"] = last_day_month
+        all_months.append(monthly)
+
+        if month < 12:
+            month += 1
+        else:
+            year += 1
+            month = 1
+
+    all_months_df = pd.concat(all_months).reset_index(drop=True)
+    all_months_df.to_csv(monthly_file, mode="w", header=True)
+
+    if monthly_table:
+        con = create_engine(
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
+
+        # remove potential SQL injection
+        # we can't use params={} from read_sql because it escape the table name
+        # which makes the query invalid
+        table = "".join(
+            [
+                c
+                for c in monthly_table
+                if c in string.ascii_letters + string.digits + "_"
+            ]
+        )
+
+        try:
+            # select the last data in the table
+            max_year, max_month = pd.read_sql(
+                """
+                select
+                    max(epi_year::int) as max_year,
+                    max(epi_month::int) as max_month
+                from "%(table)s"
+                where (epi_year::int) = (
+                    select max(epi_year::int) as max_year
+                    from "%(table)s"
+                )
+            """
+                % {"table": table},
+                con,
+            ).values[0]
+        except Exception:
+            max_year, max_month = None, None
+
+        if max_year and max_month:
+            all_months_df[
+                (all_months_df.epi_year >= max_year)
+                & (all_months_df.epi_month > max_month)
+            ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
+        else:
+            all_months_df.to_sql(
+                table, con, if_exists="append", index=False, chunksize=4096
+            )
 
 
 class EpiSystem(enum.Enum):
@@ -414,7 +589,12 @@ class GlobalDailyTemperature:
                 raise FileNotFoundError(f"Data not found at {fp}.")
 
             ds = xarray.open_dataset(fp)
-            data = ds[variable].sel(time=np.datetime64(day)).values
+            try:
+                data = ds[variable].sel(time=np.datetime64(day)).values
+            except KeyError:
+                logger.warning("Datetime %s not found in dataset", day)
+                day += datetime.timedelta(days=1)
+                continue
 
             stats = zonal_stats(
                 vectors=geoms,
