@@ -1,0 +1,15 @@
+GDAL==3.2.2
+pandas
+requests
+shapely
+appdirs
+rasterio
+xarray
+numpy
+geopandas
+pyproj
+rasterstats
+netcdf4
+sentry-sdk
+sqlalchemy
+click
