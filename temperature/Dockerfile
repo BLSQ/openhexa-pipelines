@@ -5,6 +5,9 @@ LABEL maintainer="jstilmant@bluesquarehub.com"
 RUN mkdir /app
 WORKDIR /app
 
+RUN apt-get update
+RUN apt-get install -y libgdal-dev
+
 COPY requirements.txt .
 RUN pip install -r /app/requirements.txt
 
