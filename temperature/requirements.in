@@ -13,3 +13,6 @@ netcdf4
 sentry-sdk
 sqlalchemy
 click
+fsspec
+s3fs
+gcsfs

@@ -11,6 +11,8 @@ import os
 import string
 from calendar import monthrange
 from datetime import date
+from functools import lru_cache
+from time import monotonic
 from typing import List
 
 import click
@@ -20,8 +22,13 @@ import pandas as pd
 import rasterio
 import requests
 import xarray
+from fsspec import AbstractFileSystem
+from fsspec.implementations.http import HTTPFileSystem
+from fsspec.implementations.local import LocalFileSystem
+from gcsfs import GCSFileSystem
 from pyproj import CRS
 from rasterstats import zonal_stats
+from s3fs import S3FileSystem
 from sqlalchemy import create_engine
 
 # common is a script to set parameters on production
@@ -41,6 +48,27 @@ logger = logging.getLogger(__name__)
 @click.group()
 def cli():
     pass
+
+
+def filesystem(target_path: str) -> AbstractFileSystem:
+    """Guess filesystem based on path"""
+
+    client_kwargs = {}
+    if "://" in target_path:
+        target_protocol = target_path.split("://")[0]
+        if target_protocol == "s3":
+            fs_class = S3FileSystem
+            client_kwargs = {"endpoint_url": os.environ.get("AWS_S3_ENDPOINT")}
+        elif target_protocol == "gcs":
+            fs_class = GCSFileSystem
+        elif target_protocol == "http" or target_protocol == "https":
+            fs_class = HTTPFileSystem
+        else:
+            raise ValueError(f"Protocol {target_protocol} not supported.")
+    else:
+        fs_class = LocalFileSystem
+
+    return fs_class(client_kwargs=client_kwargs)
 
 
 @cli.command()
@@ -477,21 +505,21 @@ class GlobalDailyTemperature:
         r.raise_for_status()
         content_length = int(r.headers.get("Content-Length"))
 
-        if os.path.isfile(dst_file) and not overwrite:
-            if os.path.getsize(dst_file) == content_length:
+        fs = filesystem(dst_file)
+        if fs.exists(dst_file) and not overwrite:
+            if fs.size(dst_file) == content_length:
                 logger.info(f"Dataset {dst_file} is already up-to-date.")
                 return dst_file
 
-        os.makedirs(os.path.dirname(dst_file), exist_ok=True)
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
-            with open(dst_file, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
+        reply = requests.get(url)
+        reply.raise_for_status()
+        tmp_name = "/tmp/" + str(monotonic())
+        open(tmp_name, "wb").write(reply.content)
+        fs.put(tmp_name, dst_file)
+
         logger.info(f"Downloaded {dst_file} from {url}.")
 
-        if os.path.getsize(dst_file) != content_length:
+        if fs.size(dst_file) != content_length:
             raise IOError(f"Remote and local sizes of {dst_file} differ.")
 
         return dst_file
@@ -566,12 +594,21 @@ class GlobalDailyTemperature:
         dataframe
            dataframe of shape (n_days, n_areas).
         """
+
+        @lru_cache(maxsize=100)
+        def retreive_data(dir, fname):
+            fp = os.path.join(self.data_dir, fname)
+            fs = filesystem(fp)
+            if not fs.exists(fp):
+                raise FileNotFoundError(f"Data not found at {fp}.")
+            loc_name = "/tmp/" + str(monotonic())
+            fs.download(fp, loc_name)
+            return loc_name
+
         timeserie = pd.DataFrame(columns=areas.index)
 
         # get some common raster metadata
-        fp = os.path.join(self.data_dir, f"{variable}.{start.year}.nc")
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(f"Data not found at {fp}.")
+        fp = retreive_data(self.data_dir, f"{variable}.{start.year}.nc")
         with rasterio.open(fp) as src:
             transform = src.transform
             nodata = src.nodata
@@ -583,11 +620,7 @@ class GlobalDailyTemperature:
 
         day = start
         while day <= end:
-
-            fp = os.path.join(self.data_dir, f"{variable}.{day.year}.nc")
-            if not os.path.isfile(fp):
-                raise FileNotFoundError(f"Data not found at {fp}.")
-
+            fp = retreive_data(self.data_dir, f"{variable}.{day.year}.nc")
             ds = xarray.open_dataset(fp)
             try:
                 data = ds[variable].sel(time=np.datetime64(day)).values
