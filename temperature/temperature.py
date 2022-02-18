@@ -130,7 +130,8 @@ def daily(
     # available and append data to existing file
     mode = "w"
     header = True
-    if os.path.isfile(output_file) and not overwrite:
+    fs = filesystem(output_file)
+    if fs.exists(output_file) and not overwrite:
         daily = pd.read_csv(output_file, index_col=0)
         daily.index = pd.to_datetime(daily.index)
         start = max(start.date(), daily.index.max().date())
