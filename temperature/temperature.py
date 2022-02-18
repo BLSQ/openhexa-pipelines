@@ -297,7 +297,7 @@ def monthly(
 
     all_months = []
     year, month = start.year, start.month
-    while year <= end.year and month <= end.month:
+    while year < end.year or month <= end.month:
         first_day_month = datetime.datetime(year, month, 1)
         last_day_month = datetime.datetime(year, month, monthrange(year, month)[1])
         monthly = daily[first_day_month:last_day_month].mean()  # noqa
