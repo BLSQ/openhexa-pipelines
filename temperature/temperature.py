@@ -135,6 +135,7 @@ def daily(
         daily = pd.read_csv(output_file, index_col=0)
         daily.index = pd.to_datetime(daily.index)
         start = max(start.date(), daily.index.max().date())
+        start = datetime.datetime(start.year, start.month, start.day)
         mode = "a"
         header = False
 
