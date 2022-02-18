@@ -144,6 +144,8 @@ protobuf==3.19.4
     # via
     #   google-api-core
     #   google-cloud-storage
+psycopg2==2.9.3
+    # via -r requirements.in
 pyasn1==0.4.8
     # via
     #   pyasn1-modules

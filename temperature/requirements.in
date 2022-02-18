@@ -16,3 +16,4 @@ click
 fsspec
 s3fs
 gcsfs
+psycopg2
