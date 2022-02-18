@@ -133,7 +133,7 @@ def daily(
     if os.path.isfile(output_file) and not overwrite:
         daily = pd.read_csv(output_file, index_col=0)
         daily.index = pd.to_datetime(daily.index)
-        start = max(start, daily.index.max().date())
+        start = max(start.date(), daily.index.max().date())
         mode = "a"
         header = False
 
