@@ -602,6 +602,9 @@ class GlobalDailyTemperature:
             if not fs.exists(fp):
                 raise FileNotFoundError(f"Data not found at {fp}.")
             loc_name = "/tmp/" + str(monotonic())
+            # re-add extension to filename for compatibility with GDAL
+            if "." in fname:
+                loc_name += f".{fname.split('.')[-1]}"
             fs.download(fp, loc_name)
             return loc_name
 
