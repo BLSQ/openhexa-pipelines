@@ -149,7 +149,7 @@ def daily(
         n_geoms = len(areas)
         n_valid = len(areas[areas.is_valid])
         areas.geometry = areas.buffer(0)
-        logger.info(f"Cleaned {len(n_geoms - n_valid)} invalid geometries.")
+        logger.info(f"Cleaned {n_geoms - n_valid} invalid geometries.")
 
     gdt = GlobalDailyTemperature(data_dir=input_dir)
     mean = gdt.calc_daily_stats(
