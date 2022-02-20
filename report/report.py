@@ -93,7 +93,7 @@ def filesystem(target_path: str) -> AbstractFileSystem:
 PLAIN_MAIL_TEMPLATE = """
 Hello Pipeline Owner,
 
-The pipeline %(dag_id)s has finished its run.
+The pipeline %(pipeline)s has finished its run.
 Finish time: %(run_time)s UTC
 Status: %(status_str)s
 
@@ -105,7 +105,7 @@ HTML_MAIL_TEMPLATE = """
     <body>
         <p>
             Hello Pipeline Owner,<br><br>
-            The pipeline %(dag_id)s has finished its run.<br>
+            The pipeline %(pipeline)s has finished its run.<br>
             Finish time: %(run_time)s UTC<br>
             Status: %(status_str)s<br><br>
             The report is available in S3.
@@ -115,7 +115,7 @@ HTML_MAIL_TEMPLATE = """
 """
 
 
-def send_email_report(email_address: str, dag_id: str, success: bool):
+def send_email_report(email_address: str, pipeline: str, success: bool):
     """ Send an report email with the status to somebody """
     email_host = os.environ.get("EMAIL_HOST")
     email_port = int(os.environ.get("EMAIL_PORT"))
@@ -134,13 +134,13 @@ def send_email_report(email_address: str, dag_id: str, success: bool):
         return
 
     info = {
-        "dag_id": dag_id,
+        "pipeline": pipeline,
         "run_time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         "status_str": "Success" if success else "Failure",
     }
 
     message = MIMEMultipart("alternative")
-    message["Subject"] = f"Pipeline {dag_id} run: {info['status_str']}"
+    message["Subject"] = f"Pipeline {pipeline} run: {info['status_str']}"
     message["From"] = email_pretty_from
     message["To"] = email_address
     message.attach(MIMEText(PLAIN_MAIL_TEMPLATE % info, "plain"))
@@ -224,7 +224,7 @@ def success(
         )
         f.write(content)
     if email_report:
-        send_email_report(email_report, dag_id=pipeline_type, success=True)
+        send_email_report(email_report, pipeline=headline, success=True)
 
 
 @cli.command()
@@ -294,7 +294,7 @@ def failure(
         )
         f.write(content)
     if email_report:
-        send_email_report(email_report, dag_id=pipeline_type, success=True)
+        send_email_report(email_report, pipeline=headline, success=True)
 
 
 if __name__ == "__main__":
