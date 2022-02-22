@@ -200,7 +200,11 @@ def extract(
 
         if max_year and max_week:
             weekly_data[
-                (weekly_data.epi_year >= max_year) & (weekly_data.epi_week > max_week)
+                (weekly_data.epi_year > max_year)
+                | (
+                    (weekly_data.epi_year == max_year)
+                    & (weekly_data.epi_week > max_week)
+                )
             ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
         else:
             weekly_data.to_sql(
@@ -256,8 +260,11 @@ def extract(
 
         if max_year and max_month:
             monthly_data[
-                (monthly_data.epi_year >= max_year)
-                & (monthly_data.epi_month > max_month)
+                (monthly_data.epi_year > max_year)
+                | (
+                    (monthly_data.epi_year == max_year)
+                    & (monthly_data.epi_month > max_month)
+                )
             ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
         else:
             monthly_data.to_sql(
@@ -611,7 +618,7 @@ def monthly_stats(
 
     year, month = start.year, start.month
 
-    while year <= end.year and month <= end.month:
+    while year < end.year or (year == end.year and month <= end.month):
 
         days_in_month = [d for d in _iter_month_days(year, month)]
 

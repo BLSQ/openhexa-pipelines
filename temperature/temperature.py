@@ -246,7 +246,11 @@ def weekly(
 
         if max_year and max_week:
             all_weeks_df[
-                (all_weeks_df.epi_year >= max_year) & (all_weeks_df.epi_week > max_week)
+                (all_weeks_df.epi_year > max_year)
+                | (
+                    (all_weeks_df.epi_year == max_year)
+                    & (all_weeks_df.epi_week > max_week)
+                )
             ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
         else:
             all_weeks_df.to_sql(
@@ -297,7 +301,7 @@ def monthly(
 
     all_months = []
     year, month = start.year, start.month
-    while year < end.year or month <= end.month:
+    while year < end.year or (year == end.year and month <= end.month):
         first_day_month = datetime.datetime(year, month, 1)
         last_day_month = datetime.datetime(year, month, monthrange(year, month)[1])
         monthly = daily[first_day_month:last_day_month].mean()  # noqa
@@ -356,8 +360,11 @@ def monthly(
 
         if max_year and max_month:
             all_months_df[
-                (all_months_df.epi_year >= max_year)
-                & (all_months_df.epi_month > max_month)
+                (all_months_df.epi_year > max_year)
+                | (
+                    (all_months_df.epi_year == max_year)
+                    & (all_months_df.epi_month > max_month)
+                )
             ].to_sql(table, con, if_exists="append", index=False, chunksize=4096)
         else:
             all_months_df.to_sql(
