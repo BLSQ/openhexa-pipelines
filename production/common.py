@@ -71,11 +71,11 @@ if "HEXA_PIPELINE_TOKEN" in os.environ:
 
     # to help debug...
     print("Hexa env update, variables:")
-    for var in os.environ:
+    for var in sorted(os.environ):
         new_var = "(from hexa)" if var in data["env"] else ""
         print(f"Var {var} {new_var}")
 
     if data["files"]:
         print("Hexa files injection:")
-        for path in data["files"]:
+        for path in sorted(data["files"]):
             print(f"File {path} added")
