@@ -9,6 +9,8 @@ import logging
 import logging.config
 import os
 
+import requests
+
 logger = logging.getLogger(__name__)
 logger.info("Execute common")
 
@@ -49,3 +51,20 @@ if "SENTRY_DSN" in os.environ:
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
+
+if "HEXA_PIPELINE_TOKEN" in os.environ:
+    token = os.environ["HEXA_PIPELINE_TOKEN"]
+    r = requests.post(
+        os.environ["HEXA_CREDENTIALS_URL"],
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=10,
+    )
+    r.raise_for_status()
+    data = r.json()
+
+    os.environ.update(data["env"])
+
+    for name, encoded_content in data["files"].items():
+        content = encoded_content.encode().decode("base64")
+        with (open(name, "w")) as f:
+            f.write(content)
