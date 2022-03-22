@@ -192,6 +192,9 @@ def download(
     """Download data from a DHIS2 instance via its web API."""
     dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
+    print("BEGIN VAR STAGE")
+    print(os.environ)
+    print("END VAR STAGE")
     fs = filesystem(output_dir)
 
     # Check for existing files at the beginning of the function to
