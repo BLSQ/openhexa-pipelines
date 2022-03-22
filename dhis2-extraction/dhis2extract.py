@@ -21,8 +21,9 @@ from shapely.geometry import shape
 # common is a script to set parameters on production
 try:
     import common  # noqa: F401
-except ImportError:
+except ImportError as e:
     # ignore import error -> work anyway (but define logging)
+    print(f"Common code import error: {e}")
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
         level=logging.INFO,
