@@ -8,8 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r /app/requirements.txt
 
-COPY docker-entrypoint.sh .
-COPY report.py .
+COPY docker-entrypoint.sh report.py common.py* .
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["report"]
