@@ -294,7 +294,7 @@ def failure(
         )
         f.write(content)
     if email_report:
-        send_email_report(email_report, pipeline=headline, success=True)
+        send_email_report(email_report, pipeline=headline, success=False)
 
 
 if __name__ == "__main__":
