@@ -3,3 +3,4 @@ gcsfs==2021.8.1
 fsspec
 pytest
 click
+sentry-sdk
