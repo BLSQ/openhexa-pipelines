@@ -81,6 +81,6 @@ class Api(BaseApi):
             params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
             r = self.get(endpoint, params=params, **kwargs)
             logger.info(f"Request URL: {r.url}")
-            df = df.append(pd.read_csv(StringIO(r.content.decode())))
+            df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))
 
         return MergedResponse(r, df.to_csv().encode("utf8"))
