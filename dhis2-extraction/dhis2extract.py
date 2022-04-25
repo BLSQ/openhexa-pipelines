@@ -851,12 +851,6 @@ def _dimension_param(
     elif add_empty_co_arg:
         # add at least an empty coc argument to get COC UIDs in output
         dimension.append("co:")
-
-    elif not indicators:
-        # Always add at least an empty coc argument to get COC UIDs in output
-        # except if requesting indicators data as it would make the request fails
-        # with error E7114
-        dimension.append("co:")
     return dimension
 
 
