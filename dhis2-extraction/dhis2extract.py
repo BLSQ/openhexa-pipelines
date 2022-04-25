@@ -992,6 +992,10 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
             extract, data_elements, indicators, coc, org_units
         )
 
+        for column in extract.columns:
+            if column.startswith("Unnamed"):
+                extract.drop(columns=column, inplace=True)
+
         with fs_output.open(fpath_output, "w") as f:
             extract.to_csv(f, index=False)
 
