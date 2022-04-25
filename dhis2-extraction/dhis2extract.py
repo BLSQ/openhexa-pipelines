@@ -4,6 +4,7 @@ import os
 import re
 import tempfile
 import typing
+from itertools import product
 
 import click
 import geopandas as gpd
@@ -21,9 +22,8 @@ from shapely.geometry import shape
 # common is a script to set parameters on production
 try:
     import common  # noqa: F401
-except ImportError as e:
+except ImportError:
     # ignore import error -> work anyway (but define logging)
-    print(f"Common code import error: {e}")
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
         level=logging.INFO,
@@ -73,20 +73,13 @@ def cli():
 
 
 @cli.command()
-@click.option(
-    "--instance",
-    "-i",
-    type=str,
-    required=True,
-    help="DHIS2 instance URL.",
-    envvar="DHIS2_INPUT_URL",
-)
+@click.option("--instance", "-i", type=str, required=True, help="DHIS2 instance URL.")
 @click.option(
     "--username",
     "-u",
     type=str,
     required=True,
-    envvar="DHIS2_INPUT_USERNAME",
+    envvar="DHIS2_USERNAME",
     help="DHIS2 username.",
 )
 @click.option(
@@ -94,7 +87,7 @@ def cli():
     "-p",
     type=str,
     required=True,
-    envvar="DHIS2_INPUT_PASSWORD",
+    envvar="DHIS2_PASSWORD",
     help="DHIS2 password.",
 )
 @click.option("--output-dir", "-o", type=str, required=True, help="Output directory.")
@@ -622,16 +615,13 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
-            add_empty_co_arg=not indicators,
         )
 
-        r = self.api.get(
+        r = self.api.chunked_get(
             "analytics/rawData",
-            params={
-                "dimension": dimension,
-                "startDate": start_date,
-                "endDate": end_date,
-            },
+            params={"dimension": None, "startDate": start_date, "endDate": end_date},
+            chunk_on=("dimension", self.chunk_dimension_param(dimension)),
+            chunk_size=1,
             file_type="csv",
             timeout=self.timeout,
         )
@@ -734,16 +724,74 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
-            add_empty_co_arg=False,
         )
 
-        r = self.api.get(
-            "analytics",
-            params={"dimension": dimension},
+        r = self.api.chunked_get(
+            "analytics/rawData",
+            params={"dimension": None, "startDate": start_date, "endDate": end_date},
+            chunk_on=("dimension", self.chunk_dimension_param(dimension)),
+            chunk_size=1,
             file_type="csv",
             timeout=self.timeout,
         )
+
         return r.content.decode()
+
+    def chunk_dimension_param(
+        self, src_dimension_param: typing.List[str], chunk_size: int = 50
+    ):
+        """Create chunks from dimension params if needed.
+
+        If the "ou:", "dx:" or "pe:" syntax refer to too many elements, split
+        the request into multiple chunks of of max length <chunk_size>. Also
+        supports the "ou:LEVEL-" syntax.
+        """
+        ou_params = []
+        pe_params = []
+        dx_params = []
+        other_params = []
+
+        for param in src_dimension_param:
+
+            if param.startswith("ou:"):
+                if "LEVEL" in param:
+                    level = int(param[-1])
+                    org_units = self.org_units_per_lvl(level)
+                else:
+                    org_units = param[3:].split(";")
+                for i in range(0, len(org_units), chunk_size):
+                    ou_params.append(
+                        f"ou:{';'.join([ou for ou in org_units[i:i+chunk_size]])}"
+                    )
+
+            elif param.startswith("dx:"):
+                data_elements = param[3:].split(";")
+                for i in range(0, len(data_elements), chunk_size):
+                    dx_params.append(
+                        f"dx:{';'.join([dx for dx in data_elements[i:i+chunk_size]])}"
+                    )
+
+            elif param.startswith("pe:"):
+                periods = param[3:].split(";")
+                for i in range(0, len(periods), chunk_size):
+                    pe_params.append(
+                        f"pe:{';'.join([pe for pe in periods[i:i+chunk_size]])}"
+                    )
+
+            else:
+                other_params.append(param)
+
+        chunks = []
+        if pe_params:
+            for ou_param, dx_param, pe_param in product(
+                ou_params, dx_params, pe_params
+            ):
+                chunks.append(other_params + [ou_param, dx_param, pe_param])
+        else:
+            for ou_param, dx_param in product(ou_params, dx_params):
+                chunks.append(other_params + [ou_param, dx_param])
+
+        return chunks
 
 
 def _dimension_param(
@@ -794,6 +842,12 @@ def _dimension_param(
         dimension.append("co:" + ";".join(category_option_combos))
     elif add_empty_co_arg:
         # add at least an empty coc argument to get COC UIDs in output
+        dimension.append("co:")
+
+    elif not indicators:
+        # Always add at least an empty coc argument to get COC UIDs in output
+        # except if requesting indicators data as it would make the request fails
+        # with error E7114
         dimension.append("co:")
     return dimension
 
