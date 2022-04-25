@@ -747,7 +747,7 @@ class DHIS2:
         return r.content.decode()
 
     def chunk_dimension_param(
-        self, src_dimension_param: typing.List[str], chunk_size: int = 25
+        self, src_dimension_param: typing.List[str], chunk_size: int = 10
     ):
         """Create chunks from dimension params if needed.
 
