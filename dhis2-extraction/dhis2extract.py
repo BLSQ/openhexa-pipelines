@@ -732,6 +732,7 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
+            add_empty_co_arg=False,
         )
 
         r = self.api.chunked_get(
@@ -813,7 +814,7 @@ def _dimension_param(
     indicator_groups: typing.Sequence[str] = None,
     category_option_combos: typing.Sequence[str] = None,
     programs: typing.Sequence[str] = None,
-    add_empty_co_arg: bool = False,
+    add_empty_co_arg: bool = True,
 ) -> typing.Sequence[str]:
     """Format dimension API parameter.
 
