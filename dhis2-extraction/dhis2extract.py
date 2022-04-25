@@ -22,8 +22,9 @@ from shapely.geometry import shape
 # common is a script to set parameters on production
 try:
     import common  # noqa: F401
-except ImportError:
+except ImportError as e:
     # ignore import error -> work anyway (but define logging)
+    print(f"Common code import error: {e}")
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
         level=logging.INFO,
@@ -73,13 +74,20 @@ def cli():
 
 
 @cli.command()
-@click.option("--instance", "-i", type=str, required=True, help="DHIS2 instance URL.")
+@click.option(
+    "--instance",
+    "-i",
+    type=str,
+    required=True,
+    help="DHIS2 instance URL.",
+    envvar="DHIS2_INPUT_URL",
+)
 @click.option(
     "--username",
     "-u",
     type=str,
     required=True,
-    envvar="DHIS2_USERNAME",
+    envvar="DHIS2_INPUT_USERNAME",
     help="DHIS2 username.",
 )
 @click.option(
@@ -87,7 +95,7 @@ def cli():
     "-p",
     type=str,
     required=True,
-    envvar="DHIS2_PASSWORD",
+    envvar="DHIS2_INPUT_PASSWORD",
     help="DHIS2 password.",
 )
 @click.option("--output-dir", "-o", type=str, required=True, help="Output directory.")
