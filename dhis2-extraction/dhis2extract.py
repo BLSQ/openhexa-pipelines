@@ -996,6 +996,8 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
             if column.startswith("Unnamed"):
                 extract.drop(columns=column, inplace=True)
 
+        extract.dropna(axis=1, how="all", inplace=True)
+
         with fs_output.open(fpath_output, "w") as f:
             extract.to_csv(f, index=False)
 
