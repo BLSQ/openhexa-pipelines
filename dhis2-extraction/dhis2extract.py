@@ -727,7 +727,7 @@ class DHIS2:
         )
 
         r = self.api.chunked_get(
-            "analytics/rawData",
+            "analytics",
             params={"dimension": None, "startDate": start_date, "endDate": end_date},
             chunk_on=("dimension", self.chunk_dimension_param(dimension)),
             chunk_size=1,
