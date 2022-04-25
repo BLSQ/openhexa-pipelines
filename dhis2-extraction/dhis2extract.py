@@ -4,6 +4,7 @@ import os
 import re
 import tempfile
 import typing
+from itertools import product
 
 import click
 import geopandas as gpd
@@ -622,16 +623,13 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
-            add_empty_co_arg=not indicators,
         )
 
-        r = self.api.get(
+        r = self.api.chunked_get(
             "analytics/rawData",
-            params={
-                "dimension": dimension,
-                "startDate": start_date,
-                "endDate": end_date,
-            },
+            params={"dimension": None, "startDate": start_date, "endDate": end_date},
+            chunk_on=("dimension", self.chunk_dimension_param(dimension)),
+            chunk_size=1,
             file_type="csv",
             timeout=self.timeout,
         )
@@ -737,13 +735,72 @@ class DHIS2:
             add_empty_co_arg=False,
         )
 
-        r = self.api.get(
+        r = self.api.chunked_get(
             "analytics",
-            params={"dimension": dimension},
+            params={"dimension": None, "startDate": start_date, "endDate": end_date},
+            chunk_on=("dimension", self.chunk_dimension_param(dimension)),
+            chunk_size=1,
             file_type="csv",
             timeout=self.timeout,
         )
+
         return r.content.decode()
+
+    def chunk_dimension_param(
+        self, src_dimension_param: typing.List[str], chunk_size: int = 50
+    ):
+        """Create chunks from dimension params if needed.
+
+        If the "ou:", "dx:" or "pe:" syntax refer to too many elements, split
+        the request into multiple chunks of of max length <chunk_size>. Also
+        supports the "ou:LEVEL-" syntax.
+        """
+        ou_params = []
+        pe_params = []
+        dx_params = []
+        other_params = []
+
+        for param in src_dimension_param:
+
+            if param.startswith("ou:"):
+                if "LEVEL" in param:
+                    level = int(param[-1])
+                    org_units = self.org_units_per_lvl(level)
+                else:
+                    org_units = param[3:].split(";")
+                for i in range(0, len(org_units), chunk_size):
+                    ou_params.append(
+                        f"ou:{';'.join([ou for ou in org_units[i:i+chunk_size]])}"
+                    )
+
+            elif param.startswith("dx:"):
+                data_elements = param[3:].split(";")
+                for i in range(0, len(data_elements), chunk_size):
+                    dx_params.append(
+                        f"dx:{';'.join([dx for dx in data_elements[i:i+chunk_size]])}"
+                    )
+
+            elif param.startswith("pe:"):
+                periods = param[3:].split(";")
+                for i in range(0, len(periods), chunk_size):
+                    pe_params.append(
+                        f"pe:{';'.join([pe for pe in periods[i:i+chunk_size]])}"
+                    )
+
+            else:
+                other_params.append(param)
+
+        chunks = []
+        if pe_params:
+            for ou_param, dx_param, pe_param in product(
+                ou_params, dx_params, pe_params
+            ):
+                chunks.append(other_params + [ou_param, dx_param, pe_param])
+        else:
+            for ou_param, dx_param in product(ou_params, dx_params):
+                chunks.append(other_params + [ou_param, dx_param])
+
+        return chunks
 
 
 def _dimension_param(
@@ -937,6 +994,12 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         extract = _join_from_metadata(
             extract, data_elements, indicators, coc, org_units
         )
+
+        for column in extract.columns:
+            if column.startswith("Unnamed"):
+                extract.drop(columns=column, inplace=True)
+
+        extract.dropna(axis=1, how="all", inplace=True)
 
         with fs_output.open(fpath_output, "w") as f:
             extract.to_csv(f, index=False)

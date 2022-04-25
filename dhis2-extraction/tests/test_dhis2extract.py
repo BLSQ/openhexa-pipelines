@@ -67,7 +67,7 @@ def test_data_value_sets_01(demo):
     with open(os.path.join(responses_dir, "dataValueSets", "response01.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+startDate=.+"),
+            url=re.compile(".+/dataValueSets.csv.+startDate=.*"),
             body=f.read(),
             status=200,
         )
@@ -88,7 +88,7 @@ def test_data_value_sets_02(demo):
     with open(os.path.join(responses_dir, "dataValueSets", "response02.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+period=202004.+"),
+            url=re.compile(".+/dataValueSets.csv.+period=202004.*"),
             body=f.read(),
             status=200,
         )
@@ -129,7 +129,7 @@ def test_data_value_sets_04(demo, raw_metadata):
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+period=202008.+"),
+            url=re.compile(".+/dataValueSets.csv.+period=202008.*"),
             body=f.read(),
             status=200,
         )
@@ -152,7 +152,7 @@ def test_data_value_sets_05(demo):
     with open(os.path.join(responses_dir, "dataValueSets", "response04.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/dataValueSets.csv.+children=True.+period=202008.+"),
+            url=re.compile(".+/dataValueSets.csv.+children=True.+period=202008.*"),
             body=f.read(),
             status=200,
         )
@@ -174,7 +174,7 @@ def test_analytics_01(demo):
     with open(os.path.join(responses_dir, "analytics", "response01.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/analytics.csv.+pe%3A202001%3B202002%3B202003.+"),
+            url=re.compile(".+/analytics.csv.+pe%3A202001%3B202002%3B202003.*"),
             body=f.read(),
             status=200,
         )
@@ -195,7 +195,7 @@ def test_analytics_02(demo):
     with open(os.path.join(responses_dir, "analytics", "response02.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/analytics.csv.+pe%3A202004%3B202006.+"),
+            url=re.compile(".+/analytics.csv.+pe%3A202004%3B202006.*"),
             body=f.read(),
             status=200,
         )
@@ -236,7 +236,7 @@ def test_analytics_raw_data_02(demo):
     with open(os.path.join(responses_dir, "analyticsRawData", "response02.csv")) as f:
         responses.add(
             responses.GET,
-            url=re.compile(".+/analytics/rawData.csv.+pe%3A202004%3B202006.+"),
+            url=re.compile(".+/analytics/rawData.csv.+pe%3A202004%3B202006.*"),
             body=f.read(),
             status=200,
         )

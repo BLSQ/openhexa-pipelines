@@ -1,9 +1,18 @@
+import logging
 import typing
 from io import StringIO
 
 import pandas as pd
 from dhis2 import Api as BaseApi
 from requests import Response
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
 
 
 class MergedResponse:
@@ -71,6 +80,7 @@ class Api(BaseApi):
         for i in range(0, len(chunk_parameter_values), chunk_size):
             params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
             r = self.get(endpoint, params=params, **kwargs)
-            df = df.append(pd.read_csv(StringIO(r.content.decode())))
+            logger.info(f"Request URL: {r.url}")
+            df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))
 
         return MergedResponse(r, df.to_csv().encode("utf8"))
