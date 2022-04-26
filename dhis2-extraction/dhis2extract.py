@@ -155,7 +155,7 @@ def cli():
 @click.option(
     "--mode",
     "-m",
-    type=Choice(["analytics", "analytics-raw", "raw"], case_sensitive=False),
+    type=Choice(["analytics", "raw"], case_sensitive=False),
     default="analytics",
     help="DHIS2 API endpoint to use",
 )
