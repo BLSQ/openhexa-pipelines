@@ -708,9 +708,13 @@ class DHIS2:
         if (start_date and not _check_dhis2_period(start_date)) or (
             end_date and not _check_dhis2_period(end_date)
         ):
-            raise DHIS2ExtractError(
-                "Start and end dates must be in DHIS2 period format."
-            )
+            # if start and end dates are provided in ISO format, default to
+            # monthly DHIS2 period format
+            if _check_iso_date(start_date) and _check_iso_date(end_date):
+                start_date = start_date[:7].replace("-", "")
+                end_date = end_date[:7].replace("-", "")
+            else:
+                raise DHIS2ExtractError("Unrecognized format for start and end dates.")
 
         # The analytics API doesn't support start and end dates, only periods.
         # Here, start and end dates are assumed to be in the DHIS2 format and
