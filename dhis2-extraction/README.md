@@ -31,15 +31,9 @@ Dimension parameters (periods, org units, datasets, data elements, indicators, p
 
 With the `--metadata-only` flag, only the metadata tables are downloaded.
 
-The program may perform requests to 3 different DHIS2 API endpoints: `api/dataValueSet`, `api/analytics`, or `api/analytics/rawData`:
+The program may perform requests to 3 different DHIS2 API endpoints: `api/dataValueSet`, or `api/analytics`:
 
-**Exporting raw data values from the analytics tables** (default)  
-`--mode analytics-raw`  
-The `api/analytics/rawData` endpoint from DHIS2 is used.
-Data values are exported from the analytics tables as raw data values, i.e. no temporal aggregation is performed.
-Note: data for children of the provided org. units will also be collected.
-
-**Exporting aggregated data values from the analytics tables**  
+**Exporting aggregated data values from the analytics tables**  (default)
 `--mode analytics`  
 The `api/analytics` endpoint from DHIS2 is used.
 Data values are exported from the analytics tables and aggregated according to the `period` dimension, *e.g.* data will be aggregated per year if periods were provided as DHIS2 years.
@@ -79,7 +73,7 @@ Options:
   -prg, --program TEXT            Program UID. *
   --from-json TEXT                Load parameters from a JSON file.
   --children / --no-children      Include children of selected org units.
-  -m, --mode [analytics|analytics-raw|raw]
+  -m, --mode [analytics|raw]
                                   DHIS2 API endpoint to use
   --metadata-only                 Only download metadata.
   --overwrite                     Overwrite existing file.
