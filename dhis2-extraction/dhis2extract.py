@@ -751,7 +751,11 @@ class DHIS2:
         return r.content.decode()
 
     def chunk_dimension_param(
-        self, src_dimension_param: typing.List[str], chunk_size: int = 10
+        self,
+        src_dimension_param: typing.List[str],
+        chunk_size_ou: int = 50,
+        chunk_size_pe: int = 10,
+        chunk_size_dx: int = 10,
     ):
         """Create chunks from dimension params if needed.
 
@@ -772,23 +776,23 @@ class DHIS2:
                     org_units = self.org_units_per_lvl(level)
                 else:
                     org_units = param[3:].split(";")
-                for i in range(0, len(org_units), chunk_size):
+                for i in range(0, len(org_units), chunk_size_ou):
                     ou_params.append(
-                        f"ou:{';'.join([ou for ou in org_units[i:i+chunk_size]])}"
+                        f"ou:{';'.join([ou for ou in org_units[i:i+chunk_size_ou]])}"
                     )
 
             elif param.startswith("dx:"):
                 data_elements = param[3:].split(";")
-                for i in range(0, len(data_elements), chunk_size):
+                for i in range(0, len(data_elements), chunk_size_dx):
                     dx_params.append(
-                        f"dx:{';'.join([dx for dx in data_elements[i:i+chunk_size]])}"
+                        f"dx:{';'.join([dx for dx in data_elements[i:i+chunk_size_dx]])}"
                     )
 
             elif param.startswith("pe:"):
                 periods = param[3:].split(";")
-                for i in range(0, len(periods), chunk_size):
+                for i in range(0, len(periods), chunk_size_pe):
                     pe_params.append(
-                        f"pe:{';'.join([pe for pe in periods[i:i+chunk_size]])}"
+                        f"pe:{';'.join([pe for pe in periods[i:i+chunk_size_pe]])}"
                     )
 
             else:
