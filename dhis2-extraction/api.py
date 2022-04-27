@@ -1,9 +1,12 @@
 import logging
 import typing
 from io import StringIO
+from time import sleep
+from typing import List, Union
 
 import pandas as pd
 from dhis2 import Api as BaseApi
+from dhis2.exceptions import RequestException
 from requests import Response
 
 logging.basicConfig(
@@ -34,6 +37,37 @@ class MergedResponse:
 
 
 class Api(BaseApi):
+    def get(
+        self,
+        endpoint: str,
+        file_type: str = "json",
+        params: Union[dict, List[tuple]] = None,
+        stream: bool = False,
+        timeout: int = None,
+        max_retries: int = 3,
+    ) -> Response:
+
+        retries = 0
+        while retries < max_retries:
+            try:
+                r = self._make_request(
+                    "get",
+                    endpoint,
+                    params=params,
+                    file_type=file_type,
+                    stream=stream,
+                    timeout=timeout,
+                )
+                break
+            except RequestException:
+                logger.info("Request failed. Retrying in 3s...")
+                sleep(3)
+                retries += 1
+                continue
+
+        r.raise_for_status()
+        return r
+
     def chunked_get(
         self,
         endpoint: str,
