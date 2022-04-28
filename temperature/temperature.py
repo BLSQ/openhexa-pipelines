@@ -100,7 +100,7 @@ def daily(
     end = datetime.strptime(end, "%Y-%m-%d")
 
     daily_stats = daily_zonal_statistics(
-        dataset=input_dir,
+        data_dir=input_dir,
         geoms=boundaries.geometry,
         start=start,
         end=end,
