@@ -736,7 +736,7 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
-            add_empty_co_arg=False,
+            add_empty_co_arg=True,
         )
 
         r = self.api.chunked_get(
