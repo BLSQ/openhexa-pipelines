@@ -4,18 +4,16 @@
 #
 #    pip-compile requirements.in
 #
-affine==2.3.0
-    # via
-    #   rasterio
-    #   rasterstats
-aiobotocore==2.1.1
+affine==2.3.1
+    # via rasterio
+aiobotocore==2.2.0
     # via s3fs
 aiohttp==3.8.1
     # via
     #   aiobotocore
     #   gcsfs
     #   s3fs
-aioitertools==0.9.0
+aioitertools==0.10.0
     # via aiobotocore
 aiosignal==1.2.0
     # via aiohttp
@@ -28,7 +26,7 @@ attrs==21.4.0
     #   aiohttp
     #   fiona
     #   rasterio
-botocore==1.23.24
+botocore==1.24.21
     # via aiobotocore
 cachetools==5.0.0
     # via google-auth
@@ -39,13 +37,13 @@ certifi==2021.10.8
     #   rasterio
     #   requests
     #   sentry-sdk
-cftime==1.5.2
+cftime==1.6.0
     # via netcdf4
 charset-normalizer==2.0.12
     # via
     #   aiohttp
     #   requests
-click==8.0.3
+click==8.1.2
     # via
     #   -r requirements.in
     #   click-plugins
@@ -60,58 +58,59 @@ cligj==0.7.2
     # via
     #   fiona
     #   rasterio
-    #   rasterstats
 decorator==5.1.1
     # via gcsfs
 fiona==1.8.21
-    # via
-    #   geopandas
-    #   rasterstats
+    # via geopandas
 frozenlist==1.3.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2022.01.0
+fsspec==2022.3.0
     # via
     #   -r requirements.in
     #   gcsfs
     #   s3fs
-gcsfs==2022.1.0
+gcsfs==2022.3.0
     # via -r requirements.in
 gdal==3.2.2
     # via -r requirements.in
 geopandas==0.10.2
     # via -r requirements.in
-google-api-core==2.5.0
+google-api-core==2.7.2
     # via
     #   google-cloud-core
     #   google-cloud-storage
-google-auth==2.6.0
+google-auth==2.6.6
     # via
     #   gcsfs
     #   google-api-core
     #   google-auth-oauthlib
     #   google-cloud-core
     #   google-cloud-storage
-google-auth-oauthlib==0.4.6
+google-auth-oauthlib==0.5.1
     # via gcsfs
-google-cloud-core==2.2.2
+google-cloud-core==2.3.0
     # via google-cloud-storage
-google-cloud-storage==2.1.0
+google-cloud-storage==2.3.0
     # via gcsfs
 google-crc32c==1.3.0
     # via google-resumable-media
-google-resumable-media==2.2.1
+google-resumable-media==2.3.2
     # via google-cloud-storage
-googleapis-common-protos==1.54.0
+googleapis-common-protos==1.56.0
     # via google-api-core
 greenlet==1.1.2
     # via sqlalchemy
+h5netcdf==1.0.0
+    # via -r requirements.in
+h5py==3.6.0
+    # via h5netcdf
 idna==3.3
     # via
     #   requests
     #   yarl
-jmespath==0.10.0
+jmespath==1.0.0
     # via botocore
 multidict==6.0.2
     # via
@@ -121,26 +120,28 @@ munch==2.5.0
     # via fiona
 netcdf4==1.5.8
     # via -r requirements.in
-numpy==1.22.2
+numpy==1.22.3
     # via
     #   -r requirements.in
     #   cftime
+    #   h5py
     #   netcdf4
     #   pandas
     #   rasterio
-    #   rasterstats
     #   snuggs
     #   xarray
 oauthlib==3.2.0
     # via requests-oauthlib
 packaging==21.3
-    # via xarray
-pandas==1.4.1
+    # via
+    #   h5netcdf
+    #   xarray
+pandas==1.4.2
     # via
     #   -r requirements.in
     #   geopandas
     #   xarray
-protobuf==3.19.4
+protobuf==3.20.1
     # via
     #   google-api-core
     #   google-cloud-storage
@@ -152,11 +153,11 @@ pyasn1==0.4.8
     #   rsa
 pyasn1-modules==0.2.8
     # via google-auth
-pyparsing==3.0.7
+pyparsing==3.0.8
     # via
     #   packaging
     #   snuggs
-pyproj==3.3.0
+pyproj==3.3.1
     # via
     #   -r requirements.in
     #   geopandas
@@ -164,13 +165,9 @@ python-dateutil==2.8.2
     # via
     #   botocore
     #   pandas
-pytz==2021.3
+pytz==2022.1
     # via pandas
 rasterio==1.2.10
-    # via
-    #   -r requirements.in
-    #   rasterstats
-rasterstats==0.16.0
     # via -r requirements.in
 requests==2.27.1
     # via
@@ -183,17 +180,14 @@ requests-oauthlib==1.3.1
     # via google-auth-oauthlib
 rsa==4.8
     # via google-auth
-s3fs==2022.1.0
+s3fs==2022.3.0
     # via -r requirements.in
-sentry-sdk==1.5.5
+sentry-sdk==1.5.10
     # via -r requirements.in
-shapely==1.8.0
+shapely==1.8.1.post1
     # via
     #   -r requirements.in
     #   geopandas
-    #   rasterstats
-simplejson==3.17.6
-    # via rasterstats
 six==1.16.0
     # via
     #   fiona
@@ -202,18 +196,18 @@ six==1.16.0
     #   python-dateutil
 snuggs==1.4.7
     # via rasterio
-sqlalchemy==1.4.31
+sqlalchemy==1.4.36
     # via -r requirements.in
-typing-extensions==4.1.1
+typing-extensions==4.2.0
     # via aioitertools
-urllib3==1.26.8
+urllib3==1.26.9
     # via
     #   botocore
     #   requests
     #   sentry-sdk
-wrapt==1.13.3
+wrapt==1.14.0
     # via aiobotocore
-xarray==0.21.1
+xarray==2022.3.0
     # via -r requirements.in
 yarl==1.7.2
     # via aiohttp

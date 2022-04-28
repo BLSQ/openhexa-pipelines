@@ -8,8 +8,8 @@ xarray
 numpy
 geopandas
 pyproj
-rasterstats
 netcdf4
+h5netcdf
 sentry-sdk
 sqlalchemy
 click
