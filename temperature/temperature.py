@@ -9,7 +9,7 @@ import os
 import string
 import tempfile
 from datetime import date, datetime, timedelta
-from typing import List
+from typing import List, Tuple
 
 import click
 import fsspec
@@ -85,7 +85,6 @@ def daily(
     overwrite: bool,
 ):
     """Compute daily zonal statistics."""
-    dataset = merge_datasets(input_dir)
     boundaries = gpd.read_file(boundaries)
     boundaries = fix_geometries(boundaries)
 
@@ -101,7 +100,7 @@ def daily(
     end = datetime.strptime(end, "%Y-%m-%d")
 
     daily_stats = daily_zonal_statistics(
-        dataset=dataset,
+        dataset=input_dir,
         geoms=boundaries.geometry,
         start=start,
         end=end,
@@ -427,33 +426,41 @@ def sync_data(
     return data_dir
 
 
-def merge_datasets(data_dir: str, variable: str = "t") -> xr.Dataset:
-    """Merge all raw source data files into a single netCDF file.
-
-    Which files are selected depends on the variable filter ("t" for all
-    variables, "tmin", or "tmax").
-    """
+def get_date_range(data_dir: str) -> Tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
+    """Get min and max date available in raw files found in a directory."""
     fs = filesystem(data_dir)
-    raw_files = []
-    for fp in fs.ls(data_dir):
-        fn = os.path.basename(fp)
-        if fn.startswith(variable) and fn.endswith(".nc"):
-            raw_files.append(fp)
+    min_year = 3000
+    max_year = 0
+    for fp in fs.glob(os.path.join(data_dir, "*.nc")):
+        year = int(os.path.basename(fp).split(".")[1])
+        if year < min_year:
+            min_year = year
+            min_year_fp = fp
+        if year > max_year:
+            max_year = year
+            max_year_fp = fp
 
-    for i, fp in enumerate(raw_files):
+    with fs.open(min_year_fp) as f:
+        with xr.open_dataset(f) as ds:
+            min_date = ds.time.values.min()
 
-        fs = filesystem(data_dir)
+    with fs.open(max_year_fp) as f:
+        with xr.open_dataset(f) as ds:
+            max_date = ds.time.values.max()
 
-        with tempfile.NamedTemporaryFile() as tmp_file:
-            fs.get(fp, tmp_file.name)
-            ds = xr.open_dataset(tmp_file.name, engine="h5netcdf").load()
-            if i == 0:
-                merge = ds.copy(deep=True)
-            else:
-                merge = xr.merge((merge, ds))
-            logger.info(f"Merged measurements from {fp}.")
-            ds.close()
+    return pd.to_datetime(min_date), pd.to_datetime(max_date)
 
+
+def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
+    """Get yearly data for both tmin and tmax."""
+    fs = filesystem(data_dir)
+    datasets = []
+    for fp in fs.glob(os.path.join(data_dir, f"*{year}.nc")):
+        with fs.open(fp) as f:
+            ds = xr.open_dataset(f)
+            ds.load()
+            datasets.append(ds)
+    merge = xr.merge(datasets)
     return merge
 
 
@@ -473,7 +480,7 @@ def rotate_raster(data: np.ndarray) -> np.ndarray:
 
 
 def daily_zonal_statistics(
-    dataset: xr.Dataset,
+    data_dir: str,
     geoms: gpd.GeoSeries,
     start: datetime,
     end: datetime,
@@ -486,8 +493,8 @@ def daily_zonal_statistics(
 
     Parameters
     ----------
-    dataset : xarray dataset
-        Input dataset.
+    data_dir : str
+        Input data directory (with raw .nc files).
     geoms : GeoSeries
         Input aggregation areas as shapely geometries.
     start : datetime
@@ -502,8 +509,10 @@ def daily_zonal_statistics(
     xarray dataset
         Dataset with daily aggregated data of shape (n_geoms, n_days).
     """
-    start = pd.to_datetime(max(np.datetime64(start), dataset.time.min().values))
-    end = pd.to_datetime(min(np.datetime64(end), dataset.time.max().values))
+    # do not process dates without any data available
+    min_date, max_date = get_date_range(data_dir)
+    start = max(start, min_date)
+    end = min(end, max_date)
 
     # world wgs 84
     transform = rasterio.Affine(0.5, 0.0, -180, 0.0, -0.5, 90.0)
@@ -529,14 +538,25 @@ def daily_zonal_statistics(
 
     data = {}
     drange = pd.date_range(start, end)
+
     for var in ("tmin", "tmax"):
+
         data[var] = []
+        year = start.year
+        ds = get_yearly_data(data_dir, year)
+
         for day in drange:
+
+            if day.year != year:
+                year = day.year
+                ds = get_yearly_data(data_dir, day.year)
+
+            measurements_day = ds[var].sel(time=day).values
+
             means = []
             for j in range(0, len(geoms)):
-                values = dataset[var].sel(time=day).values
-                values = values[areas[j, :, :]]
-                means.append(values[~np.isnan(values)].mean())
+                measurements_area = measurements_day[areas[j, :, :]]
+                means.append(measurements_area[~np.isnan(measurements_area)].mean())
             data[var].append(means)
 
     ds = xr.Dataset(
