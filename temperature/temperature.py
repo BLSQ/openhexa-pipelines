@@ -114,9 +114,13 @@ def daily(
         else:
             raise FileExistsError(f"{output_file} already exists.")
 
+    # xarray supports writing to File-like objects only with the scipy engine.
+    # we want the h5netcdf engine so we create a temporary file to be able to
+    # provide a file path to xr.dataset.to_netcdf()
     fs.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with fs.open(output_file, mode="w") as f:
-        daily_stats.to_netcdf(f, mode="w", engine="h5netcdf")
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        daily_stats.to_netcdf(tmp_file.name, engine="h5netcdf")
+        fs.put(tmp_file.name, output_file)
         logger.info(f"Daily zonal stats saved into {output_file}.")
 
 
