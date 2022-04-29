@@ -116,7 +116,7 @@ def daily(
 
     fs.makedirs(os.path.dirname(output_file), exist_ok=True)
     with fs.open(output_file, mode="w") as f:
-        daily_stats.to_netcdf(f, mode="w")
+        daily_stats.to_netcdf(f, mode="w", engine="h5netcdf")
         logger.info(f"Daily zonal stats saved into {output_file}.")
 
 
