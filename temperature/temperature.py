@@ -444,12 +444,12 @@ def get_date_range(data_dir: str) -> Tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
             max_year = year
             max_year_fp = fp
 
-    with fs.open(min_year_fp) as f:
-        with xr.open_dataset(f) as ds:
+    with fs.open(min_year_fp, "rb") as f:
+        with xr.open_dataset(f, engine="h5netcdf") as ds:
             min_date = ds.time.values.min()
 
-    with fs.open(max_year_fp) as f:
-        with xr.open_dataset(f) as ds:
+    with fs.open(max_year_fp, "rb") as f:
+        with xr.open_dataset(f, engine="h5netcdf") as ds:
             max_date = ds.time.values.max()
 
     return pd.to_datetime(min_date), pd.to_datetime(max_date)
@@ -461,8 +461,8 @@ def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
     fs = filesystem(data_dir)
     datasets = []
     for fp in fs.glob(os.path.join(data_dir, f"*{year}.nc")):
-        with fs.open(fp) as f:
-            ds = xr.open_dataset(f)
+        with fs.open(fp, "rb") as f:
+            ds = xr.open_dataset(f, engine="h5netcdf")
             ds.load()
             logger.info(f"Loaded {fp}")
             datasets.append(ds)
