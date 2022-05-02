@@ -464,7 +464,9 @@ def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
         with fs.open(fp) as f:
             ds = xr.open_dataset(f)
             ds.load()
+            logger.info(f"Loaded {fp}")
             datasets.append(ds)
+            ds.close()
     merge = xr.merge(datasets)
     logger.info(f"Merged {len(datasets)} datasets.")
     return merge
@@ -561,7 +563,7 @@ def daily_zonal_statistics(
                 year = day.year
                 ds = get_yearly_data(data_dir, day.year)
 
-            logger.info(str(day))
+            # logger.info(str(day))
 
             measurements_day = ds[var].sel(time=day).values
 
