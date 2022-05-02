@@ -457,6 +457,7 @@ def get_date_range(data_dir: str) -> Tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
 
 def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
     """Get yearly data for both tmin and tmax."""
+    logger.info(f"Loading data from {data_dir} for year {year}.")
     fs = filesystem(data_dir)
     datasets = []
     for fp in fs.glob(os.path.join(data_dir, f"*{year}.nc")):
@@ -465,6 +466,7 @@ def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
             ds.load()
             datasets.append(ds)
     merge = xr.merge(datasets)
+    logger.info(f"Merged {len(datasets)} datasets.")
     return merge
 
 
@@ -480,6 +482,7 @@ def rotate_raster(data: np.ndarray) -> np.ndarray:
     arr = np.empty_like(data)
     arr[0:360, :360] = data[0:360, 360:]
     arr[0:360, 360:] = data[0:360, :360]
+    logger.info(f"Rotated raster of shape {data.shape}.")
     return arr
 
 
@@ -517,6 +520,8 @@ def daily_zonal_statistics(
     min_date, max_date = get_date_range(data_dir)
     start = max(start, min_date)
     end = min(end, max_date)
+    logger.info(f"Start date {str(start)}")
+    logger.info(f"End date {str(end)}")
 
     # world wgs 84
     transform = rasterio.Affine(0.5, 0.0, -180, 0.0, -0.5, 90.0)
@@ -525,6 +530,7 @@ def daily_zonal_statistics(
     # cannot be rasterized into the same layer as some vector layers will
     # overlap when rasterized if all_touched is set to True
     areas = np.empty(shape=(len(geoms), 360, 720), dtype=np.bool_)
+    logger.info(f"Rasterizing masks for {len(areas)} geometries.")
     for i, geom in enumerate(geoms):
         area = rasterize(
             [geom],
@@ -554,6 +560,8 @@ def daily_zonal_statistics(
             if day.year != year:
                 year = day.year
                 ds = get_yearly_data(data_dir, day.year)
+
+            logger.info(str(day))
 
             measurements_day = ds[var].sel(time=day).values
 
