@@ -548,23 +548,20 @@ def daily_zonal_statistics(
             logger.warn(f"No cell covered by input geometry (index={i}).")
         areas[i, :, :] = area == 1
 
-    data = {}
+    data = {"tmin": [], "tmax": []}
     drange = pd.date_range(start, end)
 
-    for var in ("tmin", "tmax"):
+    year = start.year
+    ds = get_yearly_data(data_dir, year)
 
-        data[var] = []
-        year = start.year
-        ds = get_yearly_data(data_dir, year)
+    for day in drange:
 
-        for day in drange:
+        if day.year != year:
+            year = day.year
+            ds.close()
+            ds = get_yearly_data(data_dir, day.year)
 
-            if day.year != year:
-                year = day.year
-                ds = get_yearly_data(data_dir, day.year)
-
-            # logger.info(str(day))
-
+        for var in ("tmin", "tmax"):
             measurements_day = ds[var].sel(time=day).values
 
             means = []
