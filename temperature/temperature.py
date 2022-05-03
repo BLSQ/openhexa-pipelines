@@ -85,7 +85,9 @@ def daily(
     overwrite: bool,
 ):
     """Compute daily zonal statistics."""
-    boundaries = gpd.read_file(boundaries)
+    fs = filesystem(boundaries)
+    with fs.open(boundaries) as f:
+        boundaries = gpd.read_file(f, driver="GPKG")
     boundaries = fix_geometries(boundaries)
 
     # make sure boundaries are in lat/lon coordinates
