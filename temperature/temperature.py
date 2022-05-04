@@ -462,15 +462,21 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
 
     Return an array of shape (n_vars, n_days, height, width) with n_vars=2 (tmin and tmax).
     """
-    dst_data = []
+    dst_arrays = []
     fs = filesystem(data_dir)
     for var in ("tmin", "tmax"):
         fp = os.path.join(data_dir, f"{var}.{year}.nc")
-        with fs.open(fp) as f:
-            src_data = xr.open_dataarray(f)
-            dst_data.append(src_data.values.astype(np.float64))
-            src_data.close()
-    return np.array(dst_data, dtype=np.float64, copy=True)
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            fs.get(fp, tmp_file.name)
+            src_ds = xr.open_dataarray(tmp_file.name)
+            dst_arrays.append(src_ds.values.astype(np.float64).copy())
+            src_ds.close()
+        logger.info(f"Loaded measurements from file {fp}.")
+    dst_ndarray = np.asarray(dst_arrays, dtype=np.float64)
+    logger.info(
+        f"Converted measurement values to a ndarray of shape {dst_ndarray.shape} and size {round((dst_ndarray.size * dst_ndarray.itemsize) / 1024 * 1024), 2}MB."
+    )
+    return dst_ndarray
 
 
 def rotate_raster(data: np.ndarray) -> np.ndarray:
