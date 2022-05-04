@@ -3,6 +3,7 @@
 See <https://psl.noaa.gov/data/gridded/data.cpc.globaltemp.html>.
 """
 
+import calendar
 import enum
 import logging
 import os
@@ -457,6 +458,36 @@ def get_date_range(data_dir: str) -> Tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
     return pd.to_datetime(min_date), pd.to_datetime(max_date)
 
 
+def get_monthly_data(data_dir: str, year: int, month: int) -> np.ndarray:
+    """Get daily measurements for a given month and both tmin and tmax."""
+
+    min_date = pd.to_datetime(datetime(year, month, 1))
+    max_date = pd.to_datetime(
+        datetime(year, month, calendar.monthrange(year, month)[1])
+    )
+
+    fs = filesystem(data_dir, cache=True)
+    with fs.open(os.path.join(data_dir, f"tmin.{year}.nc")) as f_tmin, fs.open(
+        os.path.join(data_dir, f"tmax.{year}.nc")
+    ) as f_tmax:
+        ds_tmin = xr.open_dataset(f_tmin, engine="h5netcdf")
+        ds_tmax = xr.open_dataset(f_tmax, engine="h5netcdf")
+        # assume that time index is identical in tmin and tmax datasets
+        selection = (ds_tmin.time >= min_date) & (ds_tmin.time <= max_date)
+        merge = xr.merge(
+            (ds_tmin.tmin.sel(time=selection), ds_tmax.tmax.sel(time=selection)),
+        )
+
+        dst_array = np.array(
+            [merge.tmin.values, merge.tmax.values], dtype=np.float32, copy=True
+        )
+
+    logger.info(
+        f"Converted measurement values to a ndarray of shape {dst_array.shape} and size {round((dst_array.size * dst_array.itemsize) / 1024 * 1024), 2}MB."
+    )
+    return dst_array
+
+
 def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
     """Get yearly data for both tmin and tmax.
 
@@ -557,24 +588,22 @@ def daily_zonal_statistics(
     data = {"tmin": [], "tmax": []}
     drange = [day for day in pd.date_range(start, end)]
 
-    year = start.year
-    measurements = get_yearly_data(data_dir, year)
-    logger.info(f"Loaded data for year {year}.")
+    current_month = start.month
+    measurements = get_monthly_data(data_dir, start.year, start.month)
+    logger.info(f"Loaded data for year {start.strftime('%Y-%m')}.")
 
     for day in drange:
 
-        logger.info(f"Computing zonal stats for {day.strftime('%Y-%m-%d')}.")
+        logger.info(f"Computing zonal stats for {day.strftime('%Y-%m')}.")
 
         # each new year, reload measurements
-        if day.year != year:
-            year = day.year
-            measurements = get_yearly_data(data_dir, year)
-            logger.info(f"Loaded data for year {year}.")
+        if day.month != current_month:
+            current_month = day.month
+            measurements = get_monthly_data(data_dir, day.year, day.month)
+            logger.info(f"Loaded data for {day.strftime('%Y-%m')}.")
 
         for i, var in enumerate(("tmin", "tmax")):
-            # temporal index of measurements in yearly data is equal to julian day
-            jday = day.toordinal() - datetime(day.year, 1, 1).toordinal()
-            measurements_day = measurements[i, jday, :, :]
+            measurements_day = measurements[i, day.day - 1, :, :]
 
             means = []
             for j in range(0, len(geoms)):
