@@ -464,7 +464,7 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
     """
     dst_data = []
     fs = filesystem(data_dir)
-    for var in "tmin", "tmax":
+    for var in ("tmin", "tmax"):
         fp = os.path.join(data_dir, f"{var}.{year}.nc")
         with fs.open(fp) as f:
             src_data = xr.open_dataarray(f)
