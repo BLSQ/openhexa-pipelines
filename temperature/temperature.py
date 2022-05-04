@@ -468,9 +468,9 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
         fp = os.path.join(data_dir, f"{var}.{year}.nc")
         with fs.open(fp) as f:
             src_data = xr.open_dataarray(f)
-            dst_data.append(src_data.values.copy())
+            dst_data.append(src_data.values.astype(np.float64))
             src_data.close()
-    return np.array(dst_data)
+    return np.array(dst_data, dtype=np.float64, copy=True)
 
 
 def rotate_raster(data: np.ndarray) -> np.ndarray:
