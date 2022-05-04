@@ -457,21 +457,23 @@ def get_date_range(data_dir: str) -> Tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
     return pd.to_datetime(min_date), pd.to_datetime(max_date)
 
 
-def get_yearly_data(data_dir: str, year: int) -> xr.Dataset:
-    """Get yearly data for both tmin and tmax."""
-    logger.info(f"Loading data from {data_dir} for year {year}.")
+def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
+    """Get yearly data for both tmin and tmax.
+
+    Return an array of shape (n_vars, n_days, height, width) with n_vars=2 (tmin and tmax).
+    """
+    days = pd.date_range(start=datetime(year, 1, 1), end=datetime(year, 12, 31))
+    dst_array = np.empty(shape=(2, len(days), 360, 720))
+
+    dst_data = []
     fs = filesystem(data_dir)
-    datasets = []
-    for fp in fs.glob(os.path.join(data_dir, f"*{year}.nc")):
-        with fs.open(fp, "rb") as f:
-            ds = xr.open_dataset(f, engine="h5netcdf")
-            ds.load()
-            logger.info(f"Loaded {fp}")
-            datasets.append(ds)
-            ds.close()
-    merge = xr.merge(datasets)
-    logger.info(f"Merged {len(datasets)} datasets.")
-    return merge
+    for i, var in enumerate(("tmin", "tmax")):
+        fp = os.path.join(data_dir, f"{var}.{year}.nc")
+        with fs.open(fp) as f:
+            src_data = xr.open_dataarray(f)
+            dst_data.append(src_data.values)
+
+    return np.array(dst_data)
 
 
 def rotate_raster(data: np.ndarray) -> np.ndarray:
@@ -554,24 +556,29 @@ def daily_zonal_statistics(
     drange = pd.date_range(start, end)
 
     year = start.year
-    ds = get_yearly_data(data_dir, year)
+    measurements = get_yearly_data(data_dir, year)
 
     for day in drange:
 
+        # each new year, reload measurements
         if day.year != year:
             year = day.year
-            ds.close()
-            ds = get_yearly_data(data_dir, day.year)
+            measurements = get_yearly_data(data_dir, year)
 
-        for var in ("tmin", "tmax"):
-            measurements_day = ds[var].sel(time=day).values
+        for i, var in enumerate(("tmin", "tmax")):
+            # temporal index of measurements in yearly data is equal to julian day
+            jday = day.toordinal() - datetime(day.year, 1, 1).toordinal()
+            measurements_day = measurements[i, jday, :, :]
 
             means = []
             for j in range(0, len(geoms)):
+                # get the subset of the measurements which are covered by the
+                # rasterized input geometry
                 measurements_area = measurements_day[areas[j, :, :]]
                 means.append(measurements_area[~np.isnan(measurements_area)].mean())
             data[var].append(means)
 
+    # return result as a structured 3d xarray dataset of shape (2, n_areas, n_days)
     ds = xr.Dataset(
         data_vars={
             "tmin": (["area", "time"], np.array(data["tmin"]).T),
