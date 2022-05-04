@@ -473,6 +473,8 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
             src_data = xr.open_dataarray(f)
             dst_data.append(src_data.values)
 
+    logger.info(f"Loaded data from year {year}.")
+
     return np.array(dst_data)
 
 
@@ -488,7 +490,6 @@ def rotate_raster(data: np.ndarray) -> np.ndarray:
     arr = np.empty_like(data)
     arr[0:360, :360] = data[0:360, 360:]
     arr[0:360, 360:] = data[0:360, :360]
-    logger.info(f"Rotated raster of shape {data.shape}.")
     return arr
 
 
@@ -578,6 +579,7 @@ def daily_zonal_statistics(
                 means.append(measurements_area[~np.isnan(measurements_area)].mean())
             data[var].append(means)
 
+    logger.info(f"Extracted daily zonal statistics for {len(drange)} days.")
     # return result as a structured 3d xarray dataset of shape (2, n_areas, n_days)
     ds = xr.Dataset(
         data_vars={
