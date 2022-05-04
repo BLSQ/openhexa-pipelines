@@ -468,7 +468,8 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
         fp = os.path.join(data_dir, f"{var}.{year}.nc")
         with fs.open(fp) as f:
             src_data = xr.open_dataarray(f)
-            dst_data.append(src_data.values)
+            dst_data.append(src_data.values.copy())
+            src_data.close()
 
     logger.info(f"Loaded data from year {year}.")
 
