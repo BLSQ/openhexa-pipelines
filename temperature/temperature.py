@@ -558,6 +558,8 @@ def daily_zonal_statistics(
 
     for day in drange:
 
+        logger.info(f"Computing zonal stats for {day.strftime('%Y-%m-%d')}.")
+
         # each new year, reload measurements
         if day.year != year:
             year = day.year
