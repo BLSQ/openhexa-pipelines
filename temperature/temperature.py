@@ -470,9 +470,6 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
             src_data = xr.open_dataarray(f)
             dst_data.append(src_data.values.copy())
             src_data.close()
-
-    logger.info(f"Loaded data from year {year}.")
-
     return np.array(dst_data)
 
 
@@ -556,6 +553,7 @@ def daily_zonal_statistics(
 
     year = start.year
     measurements = get_yearly_data(data_dir, year)
+    logger.info(f"Loaded data for year {year}.")
 
     for day in drange:
 
@@ -565,6 +563,7 @@ def daily_zonal_statistics(
         if day.year != year:
             year = day.year
             measurements = get_yearly_data(data_dir, year)
+            logger.info(f"Loaded data for year {year}.")
 
         for i, var in enumerate(("tmin", "tmax")):
             # temporal index of measurements in yearly data is equal to julian day
