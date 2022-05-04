@@ -462,12 +462,9 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
 
     Return an array of shape (n_vars, n_days, height, width) with n_vars=2 (tmin and tmax).
     """
-    days = pd.date_range(start=datetime(year, 1, 1), end=datetime(year, 12, 31))
-    dst_array = np.empty(shape=(2, len(days), 360, 720))
-
     dst_data = []
     fs = filesystem(data_dir)
-    for i, var in enumerate(("tmin", "tmax")):
+    for var in enumerate("tmin", "tmax"):
         fp = os.path.join(data_dir, f"{var}.{year}.nc")
         with fs.open(fp) as f:
             src_data = xr.open_dataarray(f)
