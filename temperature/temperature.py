@@ -552,7 +552,7 @@ def daily_zonal_statistics(
         areas[i, :, :] = area == 1
 
     data = {"tmin": [], "tmax": []}
-    drange = pd.date_range(start, end)
+    drange = [day for day in pd.date_range(start, end)]
 
     year = start.year
     measurements = get_yearly_data(data_dir, year)
