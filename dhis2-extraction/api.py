@@ -63,7 +63,8 @@ class Api(BaseApi):
                 logger.info("Request failed. Retrying in 3s...")
                 sleep(3)
                 retries += 1
-                continue
+                if retries >= max_retries:
+                    raise
 
         r.raise_for_status()
         return r
