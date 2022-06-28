@@ -741,7 +741,7 @@ class DHIS2:
 
         r = self.api.chunked_get(
             "analytics",
-            params={"dimension": None, "startDate": start_date, "endDate": end_date},
+            params={"dimension": None},
             chunk_on=("dimension", self.chunk_dimension_param(dimension)),
             chunk_size=1,
             file_type="csv",
