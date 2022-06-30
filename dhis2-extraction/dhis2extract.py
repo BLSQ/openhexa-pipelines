@@ -214,6 +214,13 @@ def download(
         if not _s3_bucket_exists(fs, bucket):
             raise DHIS2ExtractError(f"S3 bucket {bucket} does not exist.")
 
+    # as of today we do not support requesting data elements and indicators at
+    # the same time
+    if (data_element or data_element_group) and (indicator or indicator_group):
+        raise DHIS2ExtractError(
+            "Cannot extract data elements and indicators at the same time."
+        )
+
     fs.mkdirs(output_dir, exist_ok=True)
 
     # Load dimension parameters from JSON file.
@@ -725,6 +732,13 @@ class DHIS2:
         if not periods and (start_date and end_date):
             periods = get_range(Period(start_date), Period(end_date))
 
+        # do not add an empty CO parameter to the request if we want indicators
+        # instead of data elements
+        if indicators or indicator_groups:
+            add_empty_co_arg = False
+        else:
+            add_empty_co_arg = True
+
         dimension = _dimension_param(
             periods,
             org_units,
@@ -736,7 +750,7 @@ class DHIS2:
             indicator_groups,
             category_option_combos,
             programs,
-            add_empty_co_arg=True,
+            add_empty_co_arg=add_empty_co_arg,
         )
 
         r = self.api.chunked_get(
