@@ -381,11 +381,14 @@ def _download(url: str, dst_file: str, timeout: int = 60):
     """Download file at URL."""
     r = requests.get(url, stream=True, timeout=timeout)
     r.raise_for_status()
+    content_type = r.headers.get("Content-Type")
     with open(dst_file, "wb") as f:
-        if url.endswith(".gz"):
+        if content_type == "application/x-gzip":
             f.write(gzip.decompress(r.content))
-        else:
+        elif content_type == "image/tiff":
             f.write(r.content)
+        else:
+            raise Exception(f"Unrecognized content type: {content_type}")
     return dst_file
 
 
