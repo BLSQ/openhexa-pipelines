@@ -1055,8 +1055,8 @@ def _transform_org_units_geo(org_units: pd.DataFrame) -> gpd.GeoDataFrame:
 def _transform_org_unit_groups(metadata: dict) -> pd.DataFrame:
     """Transform org unit groups metadata into a formatted DataFrame."""
     df = pd.DataFrame.from_dict(metadata.get("organisationUnitGroups"))
-    df = df[["id", "code", "shortName", "name", "organisationUnits"]]
-    df.columns = ["oug_uid", "oug_code", "oug_shortname", "oug_name", "org_units"]
+    df = df[["id", "shortName", "name", "organisationUnits"]]
+    df.columns = ["oug_uid", "oug_shortname", "oug_name", "org_units"]
     df["org_units"] = df.org_units.apply(lambda x: ";".join(ou.get("id") for ou in x))
     return df
 
