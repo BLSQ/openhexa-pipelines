@@ -1029,13 +1029,19 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
     """Transform org units metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "ou_uid",
+        "code": "ou_code",
+        "shortName": "ou_shortname",
+        "name": "ou_name",
+        "path": "path",
+        "geometry": "geometry",
+    }
     df = pd.DataFrame.from_dict(metadata.get("organisationUnits"))
-    df = df[["id", "code", "shortName", "name", "path", "geometry"]]
-    df.columns = ["ou_uid", "ou_code", "ou_shortname", "ou_name", "path", "geometry"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["ou_level"] = df.path.apply(lambda x: x.count("/"))
-    df = df[
-        ["ou_uid", "ou_code", "ou_shortname", "ou_name", "ou_level", "path", "geometry"]
-    ]  # Reorder columns
     return df
 
 
@@ -1054,33 +1060,44 @@ def _transform_org_units_geo(org_units: pd.DataFrame) -> gpd.GeoDataFrame:
 
 def _transform_org_unit_groups(metadata: dict) -> pd.DataFrame:
     """Transform org unit groups metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "oug_uid",
+        "shortName": "oug_shortname",
+        "name": "oug_name",
+        "organisationUnits": "org_units",
+    }
     df = pd.DataFrame.from_dict(metadata.get("organisationUnitGroups"))
-    df = df[["id", "shortName", "name", "organisationUnits"]]
-    df.columns = ["oug_uid", "oug_shortname", "oug_name", "org_units"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["org_units"] = df.org_units.apply(lambda x: ";".join(ou.get("id") for ou in x))
     return df
 
 
 def _transform_data_elements(metadata: dict) -> pd.DataFrame:
     """Transform data elements metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "dx_uid",
+        "code": "dx_code",
+        "shortName": "dx_shortname",
+        "name": "dx_name",
+        "aggregationType": "aggregation_type",
+        "zeroIsSignificant": "zero_is_significant",
+    }
     df = pd.DataFrame.from_dict(metadata.get("dataElements"))
-    df = df[["id", "code", "shortName", "name", "aggregationType", "zeroIsSignificant"]]
-    df.columns = [
-        "dx_uid",
-        "dx_code",
-        "dx_shortname",
-        "dx_name",
-        "aggregation_type",
-        "zero_is_significant",
-    ]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     return df
 
 
 def _transform_data_element_groups(metadata: dict) -> pd.DataFrame:
     """Transform data element groups metadata into a formatted DataFrame."""
+    COLUMNS = {"id": "deg_uid", "name": "deg_name", "dataElements": "data_elements"}
     df = pd.DataFrame.from_dict(metadata.get("dataElementGroups"))
-    df = df[["id", "name", "dataElements"]]
-    df.columns = ["deg_uid", "deg_name", "data_elements"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["data_elements"] = df.data_elements.apply(
         lambda x: ";".join(de.get("id") for de in x)
     )
@@ -1089,27 +1106,29 @@ def _transform_data_element_groups(metadata: dict) -> pd.DataFrame:
 
 def _transform_indicators(metadata: dict) -> pd.DataFrame:
     """Transform indicators metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "dx_uid",
+        "code": "dx_code",
+        "shortName": "dx_shortname",
+        "name": "dx_name",
+        "numerator": "numerator",
+        "denominator": "denominator",
+        "annualized": "annualized",
+    }
     df = pd.DataFrame.from_dict(metadata.get("indicators"))
-    df = df[
-        ["id", "code", "shortName", "name", "numerator", "denominator", "annualized"]
-    ]
-    df.columns = [
-        "dx_uid",
-        "dx_code",
-        "dx_shortname",
-        "dx_name",
-        "numerator",
-        "denominator",
-        "annualized",
-    ]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     return df
 
 
 def _transform_indicator_groups(metadata: dict) -> pd.DataFrame:
     """Transform indicator groups metadata into a formatted DataFrame."""
+    COLUMNS = {"id": "ing_uid", "name": "ing_name", "indicators": "indicators"}
     df = pd.DataFrame.from_dict(metadata.get("indicatorGroups"))
-    df = df[["id", "name", "indicators"]]
-    df.columns = ["ing_uid", "ing_name", "indicators"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["indicators"] = df.indicators.apply(
         lambda x: ";".join(indicator.get("id") for indicator in x)
     )
@@ -1118,29 +1137,20 @@ def _transform_indicator_groups(metadata: dict) -> pd.DataFrame:
 
 def _transform_datasets(metadata: dict) -> pd.DataFrame:
     """Transform datasets metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "ds_uid",
+        "code": "ds_code",
+        "shortName": "ds_short_name",
+        "name": "ds_name",
+        "periodType": "period_type",
+        "dataSetElements": "data_elements",
+        "organisationUnits": "org_units",
+        "indicators": "indicators",
+    }
     df = pd.DataFrame.from_dict(metadata.get("dataSets"))
-    df = df[
-        [
-            "id",
-            "code",
-            "shortName",
-            "name",
-            "periodType",
-            "dataSetElements",
-            "organisationUnits",
-            "indicators",
-        ]
-    ]
-    df.columns = [
-        "ds_uid",
-        "ds_code",
-        "ds_short_name",
-        "ds_name",
-        "period_type",
-        "data_elements",
-        "org_units",
-        "indicators",
-    ]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["data_elements"] = df.data_elements.apply(
         lambda x: ";".join([dx.get("dataElement").get("id") for dx in x])
     )
@@ -1153,17 +1163,31 @@ def _transform_datasets(metadata: dict) -> pd.DataFrame:
 
 def _transform_programs(metadata: dict) -> pd.DataFrame:
     """Transform programs metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "program_uid",
+        "shortName": "program_shortname",
+        "name": "program_name",
+    }
     df = pd.DataFrame.from_dict(metadata.get("programs"))
-    df = df[["id", "shortName", "name"]]
-    df.columns = ["program_uid", "program_shortname", "program_name"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     return df
 
 
 def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
     """Transform category combos metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "cc_uid",
+        "code": "cc_code",
+        "name": "cc_name",
+        "dataDimensionType": "data_dimension_type",
+        "categories": "categories",
+    }
     df = pd.DataFrame.from_dict(metadata.get("categoryCombos"))
-    df = df[["id", "code", "name", "dataDimensionType", "categories"]]
-    df.columns = ["cc_uid", "cc_code", "cc_name", "data_dimension_type", "categories"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["categories"] = df.categories.apply(
         lambda x: ";".join([cc.get("id") for cc in x])
     )
@@ -1172,31 +1196,47 @@ def _transform_cat_combos(metadata: dict) -> pd.DataFrame:
 
 def _transform_cat_options(metadata: dict) -> pd.DataFrame:
     """Transform category options metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "co_uid",
+        "code": "co_code",
+        "shortName": "co_shortname",
+        "name": "co_name",
+    }
     df = pd.DataFrame.from_dict(metadata.get("categoryOptions"))
-    df = df[["id", "code", "shortName", "name"]]
-    df.columns = ["co_uid", "co_code", "co_shortname", "co_name"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     return df
 
 
 def _transform_categories(metadata: dict) -> pd.DataFrame:
     """Transform categories metadata into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "cat_uid",
+        "code": "cat_code",
+        "name": "cat_name",
+        "dataDimension": "data_dimension",
+    }
     df = pd.DataFrame.from_dict(metadata.get("categories"))
-    df = df[["id", "code", "name", "dataDimension"]]
-    df.columns = ["cat_uid", "cat_code", "cat_name", "data_dimension"]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     return df
 
 
 def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
     """Transform category option combos into a formatted DataFrame."""
+    COLUMNS = {
+        "id": "coc_uid",
+        "code": "coc_code",
+        "name": "coc_name",
+        "categoryCombo": "category_combo",
+        "categoryOptions": "category_options",
+    }
     df = pd.DataFrame.from_dict(metadata.get("categoryOptionCombos"))
-    df = df[["id", "code", "name", "categoryCombo", "categoryOptions"]]
-    df.columns = [
-        "coc_uid",
-        "coc_code",
-        "coc_name",
-        "category_combo",
-        "category_options",
-    ]
+    columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
+    df = df[columns.keys()]
+    df = df.rename(columns=columns)
     df["category_combo"] = df.category_combo.apply(lambda x: x.get("id"))
     df["category_options"] = df.category_options.apply(
         lambda x: ";".join([co.get("id") for co in x])
