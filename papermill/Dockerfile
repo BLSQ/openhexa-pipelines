@@ -104,7 +104,8 @@ RUN pip install \
     'cowsay==4.*' \
     'fake-useragent==0.*' \
     'hdx-python-api==5.*' \
-    'tabpy==2.*'
+    'tabpy==2.*' \
+    'sentry_sdk'
 
 # Jupyter extensions
 RUN mamba install -c conda-forge --yes \
