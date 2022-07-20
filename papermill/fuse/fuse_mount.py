@@ -8,7 +8,7 @@ import time
 
 # b64("{}") == b'e30='
 aws_fuse_config = json.loads(
-    base64.b64decode(os.environ["AWS_S3_FUSE_CONFIG"], b"e30=")
+    base64.b64decode(os.environ.get("AWS_S3_FUSE_CONFIG", b"e30="))
 )
 if aws_fuse_config:
     os.putenv("AWSACCESSKEYID", aws_fuse_config["AWS_ACCESS_KEY_ID"])
