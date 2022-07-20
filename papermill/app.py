@@ -2,7 +2,6 @@
 import argparse
 import datetime
 import logging
-import os
 
 import fuse_mount  # noqa: F401
 
@@ -80,9 +79,6 @@ logger.info(
     out_notebook,
     parameters,
 )
-
-for k in sorted(os.environ):
-    logger.info("VARS %s", k)
 
 pm.execute_notebook(args.in_nb, out_notebook, parameters=parameters, progress_bar=False)
 
