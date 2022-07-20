@@ -69,8 +69,11 @@ def dumb_cast(v):
 
 
 parameters = {k: dumb_cast(v) for k, v in parameters.items()}
+
+# inject execution date, if present
 execution_date = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")
 out_notebook = args.out_nb.replace("%DATE", execution_date)
+
 logger.info(
     "Papermill pipeline start, in %s, out %s, parameters %s",
     args.in_nb,
