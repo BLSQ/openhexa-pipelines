@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
+import datetime
 import logging
+
+import fuse_mount  # noqa: F401
 
 import papermill as pm
 
@@ -66,10 +69,14 @@ def dumb_cast(v):
 
 
 parameters = {k: dumb_cast(v) for k, v in parameters.items()}
+execution_date = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")
+out_notebook = args.out_nb.replace("%DATE", execution_date)
 logger.info(
     "Papermill pipeline start, in %s, out %s, parameters %s",
     args.in_nb,
-    args.out_nb,
+    out_notebook,
     parameters,
 )
-pm.execute_notebook(args.in_nb, args.out_nb, parameters=parameters, progress_bar=False)
+pm.execute_notebook(args.in_nb, out_notebook, parameters=parameters, progress_bar=False)
+
+import fuse_umount  # noqa: F401, E402
