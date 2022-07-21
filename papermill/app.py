@@ -3,8 +3,6 @@ import argparse
 import datetime
 import logging
 
-import fuse_mount  # noqa: F401
-
 import papermill as pm
 
 # comon is a script to set parameters on production
@@ -17,6 +15,9 @@ except ImportError as e:
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+# import fuse mount script _after_ env variables injection
+import fuse_mount  # noqa: F401, E402
 
 logger = logging.getLogger("papermill_app")
 
@@ -82,4 +83,5 @@ logger.info(
 
 pm.execute_notebook(args.in_nb, out_notebook, parameters=parameters, progress_bar=False)
 
+# umount at the end
 import fuse_umount  # noqa: F401, E402

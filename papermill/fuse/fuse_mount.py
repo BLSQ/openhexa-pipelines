@@ -16,6 +16,7 @@ if aws_fuse_config:
     os.putenv("AWSSESSIONTOKEN", aws_fuse_config["AWS_SESSION_TOKEN"])
 
     for bucket in filter(None, aws_fuse_config["buckets"]):
+        print("mount", bucket)
         path_to_mount = f"/home/jovyan/s3-{bucket['name']}"
         region_url = f"https://s3-{bucket['region']}.amazonaws.com/"
         subprocess.run(["mkdir", "-p", path_to_mount])
