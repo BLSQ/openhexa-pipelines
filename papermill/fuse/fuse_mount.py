@@ -6,6 +6,8 @@ import os
 import subprocess
 import time
 
+subprocess.run(["sudo", "apt-get", "install", "-y", "strace"])
+
 # b64("{}") == b'e30='
 aws_fuse_config = json.loads(
     base64.b64decode(os.environ.get("AWS_S3_FUSE_CONFIG", b"e30="))
@@ -22,6 +24,8 @@ if aws_fuse_config:
         subprocess.run(["mkdir", "-p", path_to_mount])
         subprocess.run(
             [
+                "strace",
+                "-f",
                 "s3fs",
                 bucket["name"],
                 path_to_mount,
@@ -30,11 +34,11 @@ if aws_fuse_config:
                 "-o",
                 "url=" + region_url,
                 # Debug
-                # "-o",
-                # "dbglevel=info",
+                "-o",
+                "dbglevel=info",
                 # "-f",
-                # "-o",
-                # "curldbg",
+                "-o",
+                "curldbg",
             ]
             + (["-o", "ro"] if bucket["mode"] == "RO" else [])
         )
