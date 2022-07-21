@@ -5,6 +5,7 @@
 #   instead of crashing everything.
 # - pipelines should work without it. So please import it in pipelines in try/except ImportError.
 
+import base64
 import logging
 import logging.config
 import os
@@ -65,8 +66,9 @@ if "HEXA_PIPELINE_TOKEN" in os.environ:
     os.environ.update(data["env"])
 
     for name, encoded_content in data["files"].items():
-        content = encoded_content.encode().decode("base64")
-        with (open(name, "w")) as f:
+        content = base64.b64decode(encoded_content.encode())
+        name = name.replace("~", os.environ["HOME"])
+        with open(name, "wb") as f:
             f.write(content)
 
     # to help debug...
