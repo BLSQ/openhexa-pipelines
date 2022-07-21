@@ -13,9 +13,16 @@ aws_fuse_config = json.loads(
     base64.b64decode(os.environ.get("AWS_S3_FUSE_CONFIG", b"e30="))
 )
 if aws_fuse_config:
+    for key, value in aws_fuse_config.items():
+        print("AWS FUSE CONFIG:", key, len(value))
+
     os.putenv("AWSACCESSKEYID", aws_fuse_config["AWS_ACCESS_KEY_ID"])
     os.putenv("AWSSECRETACCESSKEY", aws_fuse_config["AWS_SECRET_ACCESS_KEY"])
     os.putenv("AWSSESSIONTOKEN", aws_fuse_config["AWS_SESSION_TOKEN"])
+
+    os.putenv("AWS_ACCESS_KEY_ID", aws_fuse_config["AWS_ACCESS_KEY_ID"])
+    os.putenv("AWS_SECRET_ACCESS_KEY", aws_fuse_config["AWS_SECRET_ACCESS_KEY"])
+    os.putenv("AWS_SESSION_TOKEN", aws_fuse_config["AWS_SESSION_TOKEN"])
 
     for bucket in filter(None, aws_fuse_config["buckets"]):
         print("mount", bucket)
