@@ -6,33 +6,25 @@ import os
 import subprocess
 import time
 
-subprocess.run(["sudo", "apt-get", "install", "-y", "strace"])
-
 # b64("{}") == b'e30='
 aws_fuse_config = json.loads(
     base64.b64decode(os.environ.get("AWS_S3_FUSE_CONFIG", b"e30="))
 )
 if aws_fuse_config:
-    for key, value in aws_fuse_config.items():
-        print("AWS FUSE CONFIG:", key, len(value))
-
-    os.putenv("AWSACCESSKEYID", aws_fuse_config["AWS_ACCESS_KEY_ID"])
-    os.putenv("AWSSECRETACCESSKEY", aws_fuse_config["AWS_SECRET_ACCESS_KEY"])
-    os.putenv("AWSSESSIONTOKEN", aws_fuse_config["AWS_SESSION_TOKEN"])
-
-    os.putenv("AWS_ACCESS_KEY_ID", aws_fuse_config["AWS_ACCESS_KEY_ID"])
-    os.putenv("AWS_SECRET_ACCESS_KEY", aws_fuse_config["AWS_SECRET_ACCESS_KEY"])
-    os.putenv("AWS_SESSION_TOKEN", aws_fuse_config["AWS_SESSION_TOKEN"])
+    os.environ.update(
+        {
+            "AWSACCESSKEYID": aws_fuse_config["AWS_ACCESS_KEY_ID"],
+            "AWSSECRETACCESSKEY": aws_fuse_config["AWS_SECRET_ACCESS_KEY"],
+            "AWSSESSIONTOKEN": aws_fuse_config["AWS_SESSION_TOKEN"],
+        }
+    )
 
     for bucket in filter(None, aws_fuse_config["buckets"]):
-        print("mount", bucket)
         path_to_mount = f"/home/jovyan/s3-{bucket['name']}"
         region_url = f"https://s3-{bucket['region']}.amazonaws.com/"
         subprocess.run(["mkdir", "-p", path_to_mount])
         subprocess.run(
             [
-                "strace",
-                "-f",
                 "s3fs",
                 bucket["name"],
                 path_to_mount,
@@ -41,11 +33,11 @@ if aws_fuse_config:
                 "-o",
                 "url=" + region_url,
                 # Debug
-                "-o",
-                "dbglevel=info",
+                # "-o",
+                # "dbglevel=info",
                 # "-f",
-                "-o",
-                "curldbg",
+                # "-o",
+                # "curldbg",
             ]
             + (["-o", "ro"] if bucket["mode"] == "RO" else [])
         )
