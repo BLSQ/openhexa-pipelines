@@ -505,7 +505,7 @@ def get_yearly_data(data_dir: str, year: int) -> np.ndarray:
         logger.info(f"Loaded measurements from file {fp}.")
     dst_ndarray = np.asarray(dst_arrays, dtype=np.float64)
     logger.info(
-        f"Converted measurement values to a ndarray of shape {dst_ndarray.shape} and size {round((dst_ndarray.size * dst_ndarray.itemsize) / 1024 * 1024), 2}MB."
+        f"Converted measurement values to a ndarray of shape {dst_ndarray.shape} and size {round((dst_ndarray.size * dst_ndarray.itemsize) / (1024 * 1024), 2)}MB."
     )
     return dst_ndarray
 
@@ -594,7 +594,7 @@ def daily_zonal_statistics(
 
     for day in drange:
 
-        logger.info(f"Computing zonal stats for {day.strftime('%Y-%m')}.")
+        logger.info(f"Computing zonal stats for {day.strftime('%Y-%m-%d')}.")
 
         # each new year, reload measurements
         if day.month != current_month:
