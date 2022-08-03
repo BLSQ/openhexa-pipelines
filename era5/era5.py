@@ -48,22 +48,9 @@ def cli():
     "--start", type=str, required=True, help="start date of period to process"
 )
 @click.option("--end", type=str, required=True, help="end date of period to process")
-@click.option("--boundaries", type=str, required=True, help="aggregation boundaries")
-@click.option(
-    "--column-name", type=str, required=True, help="column name for boundary name"
-)
-@click.option(
-    "--column-id", type=str, required=True, help="column name for boundary unique ID"
-)
+@click.option("--extent", type=str, required=True, help="vector file used as extent")
 @click.option(
     "--cds-variable", type=str, required=True, help="CDS variable of interest"
-)
-@click.option(
-    "--agg-function",
-    type=str,
-    required=False,
-    default="mean",
-    help="spatial aggregation function",
 )
 @click.option(
     "--hours",
@@ -72,13 +59,6 @@ def cli():
     default="12:00",
     help="hour of the day (or ALL)",
 )
-@click.option("--csv", type=str, required=False, help="output CSV file")
-@click.option("--db-user", type=str, required=False, help="database username")
-@click.option("--db-password", type=str, required=False, help="database password")
-@click.option("--db-host", type=str, required=False, help="database hostname")
-@click.option("--db-port", type=int, required=False, help="database port")
-@click.option("--db-name", type=str, required=False, help="database name")
-@click.option("--db_table", type=str, required=False, help="database table")
 @click.option(
     "--cds-api-key",
     type=str,
@@ -93,29 +73,119 @@ def cli():
     envvar="CDS_API_UID",
     help="CDS user ID",
 )
-@click.option("--cache-dir", type=str, required=False, help="cache data directory")
+@click.option("--output-dir", type=str, required=True, help="output data directory")
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing data"
 )
-def aggregate(
+def download(
     start: str,
     end: str,
+    extent: str,
+    cds_variable: str,
+    hours: str,
+    cds_api_key: str,
+    cds_api_uid: str,
+    output_dir: str,
+    overwrite: bool,
+):
+    """Download daily CDS data for a given area."""
+    # get download extent from vector file
+    fs = filesystem(extent)
+    with tempfile.NamedTemporaryFile(suffix=".gpkg") as tmp_file:
+        fs.get(extent, tmp_file.name)
+        extent_data = gpd.read_file(tmp_file.name)
+        if extent_data.crs != "EPSG:4326":
+            extent_data = extent_data.to_crs("EPSG:4326")
+        xmin, ymin, xmax, ymax = extent_data.total_bounds
+
+    # cds api expects (lat_min, lon_min, lat_max, lon_max) format
+    # we add/subtract 0.1 degrees as a buffer area
+    bounds = [
+        round(ymin, 1) - 0.1,
+        round(xmin, 1) - 0.1,
+        round(ymax, 1) + 0.1,
+        round(xmax, 1) + 0.1,
+    ]
+
+    # parse hours of the day
+    # cds api expects a list of hours (e.g. ["06:00", "12:00"])
+    # with the ALL keyword, all available hours are requested
+    if hours.lower() == "all":
+        hours = "ALL"
+    else:
+        hours = hours.split(",")
+
+    # parse start and end dates
+    start = datetime.strptime(start, "%Y-%m-%d")
+    end = datetime.strptime(end, "%Y-%m-%d")
+
+    era = Era5(variable=cds_variable, bounds=bounds)
+    era.init_cdsapi(api_key=cds_api_key, api_uid=cds_api_uid)
+
+    # monthly download
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        date_ = start
+        while date_ <= end:
+
+            fname = f"{cds_variable}_{date_.year:04}{date_.month:02}.nc"
+            dst_file = os.path.join(output_dir, fname)
+            fs = filesystem(dst_file)
+            fs.makedirs(os.path.dirname(dst_file), exist_ok=True)
+
+            if fs.exists(dst_file) and not overwrite:
+                logger.info(f"{fname} already exists, skipping")
+                date_ = date_ + relativedelta(months=1)
+                continue
+
+            try:
+                datafile = era.download(
+                    date_.year, date_.month, hours, os.path.join(tmp_dir, fname)
+                )
+                fs.put(datafile, dst_file)
+                logger.info(f"Downloaded {fname}")
+            except Era5MissingData:
+                logger.info(
+                    f"Missing data for period {date_.year:04}{date_.month:02}, skipping"
+                )
+                return
+
+            date_ = date_ + relativedelta(months=1)
+
+    return
+
+
+@cli.command()
+@click.option("--input-dir", type=str, required=True, help="input data directory")
+@click.option("--boundaries", type=str, required=True, help="aggregation boundaries")
+@click.option("--cds-variable", type=str, required=True, help="cds variable name")
+@click.option(
+    "--agg-function", type=str, default="mean", help="spatial aggregation function"
+)
+@click.option("--csv", type=str, required=False, help="output CSV file")
+@click.option("--db-user", type=str, required=False, help="output database username")
+@click.option(
+    "--db-password", type=str, required=False, help="output database password"
+)
+@click.option("--db-host", type=str, required=False, help="output database hostname")
+@click.option("--db-port", type=int, required=False, help="output database port")
+@click.option("--db-name", type=str, required=False, help="output database name")
+@click.option("--db_table", type=str, required=False, help="output database table")
+@click.option(
+    "--overwrite", is_flag=True, default=False, help="overwrite existing data"
+)
+def daily(
+    input_dir: str,
     boundaries: str,
-    column_name: str,
-    column_id: str,
     cds_variable: str,
     agg_function: str,
-    hours: str,
     csv: str,
     db_user: str,
     db_password: str,
     db_host: str,
-    db_port: int,
+    db_port: str,
     db_name: str,
     db_table: str,
-    cds_api_key: str,
-    cds_api_uid: str,
-    cache_dir: str,
     overwrite: bool,
 ):
     # make sure that at least 1 output option has been correctly set, i.e. db
@@ -132,10 +202,6 @@ def aggregate(
     with tempfile.NamedTemporaryFile(suffix=".gpkg") as tmp_file:
         fs.get(boundaries, tmp_file.name)
         boundaries_data = gpd.read_file(tmp_file.name)
-    if column_id not in boundaries_data.columns:
-        raise ValueError(f"Column {column_id} not found")
-    if column_name not in boundaries_data.columns:
-        raise ValueError(f"Column {column_name} not found")
     boundaries_data = fix_geometries(boundaries_data)
     if not boundaries_data.crs:
         boundaries_data.crs = "EPSG:4326"
@@ -152,86 +218,60 @@ def aggregate(
     else:
         raise ValueError(f"Aggregation function {agg_function} not supported")
 
-    # hour of the day
-    if hours.lower() == "all":
-        hours = "ALL"
-    else:
-        hours = hours.split(",")
-
-    start = datetime.strptime(start, "%Y-%m-%d")
-    end = datetime.strptime(end, "%Y-%m-%d")
-
-    # find latest processed date in csv and/or postgres table
-    # only later dates will be processed except if overwrite = False
-    fs = filesystem(csv)
-    with tempfile.NamedTemporaryFile(suffix=".csv") as tmp_file:
-        csv_mode = "w"  # write mode
-        if fs.exists(csv):
-            if overwrite:
-                fs.remove(csv)
-            else:
-                fs.get(csv, tmp_file.name)
-                max_date = _max_date_csv(tmp_file.name)
-                if max_date > start:
-                    start = max_date + relativedelta(months=1)
-                    csv_mode = "a"  # append mode
-
-    bounds = (40.0, -22.0, -36.0, 62.0)  # Africa
-    era = Era5(variable=cds_variable, bounds=bounds, cache_dir=cache_dir)
-    era.init_cdsapi(api_key=cds_api_key, api_uid=cds_api_uid)
+    fs = filesystem(input_dir)
+    src_files = fs.glob(os.path.join(input_dir, f"{cds_variable}*.nc"))
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
+        # compute zonal statistics for each available source file and concatenate
+        # the resulting dataframes
         extracts = []
-        date_ = start
-        while date_ <= end:
-            fname = f"{cds_variable}_{date_.year:04}{date_.month:02}.nc"
-            try:
-                datafile = era.download(
-                    date_.year, date_.month, hours, os.path.join(tmp_dir, fname)
-                )
-            except Era5MissingData:
-                logger.info(f"Missing data for period {date_.year:04}{date_.month:02}")
-                return
+
+        for src_fp in src_files:
+            tmp_fp = os.path.join(tmp_dir, os.path.basename(src_fp))
+            fs.get(src_fp, tmp_fp)
             extracts.append(
                 zonal_stats(
                     boundaries=boundaries_data,
-                    datafile=datafile,
+                    datafile=tmp_fp,
                     agg_function=agg_function,
-                    column_id=column_id,
-                    column_name=column_name,
                 )
             )
-            date_ = date_ + relativedelta(months=1)
-        df = pd.concat(extracts, ignore_index=True)
+        df = pd.concat(extracts)
 
         # temperature from K to C
         if "temperature" in cds_variable:
-            df.value = df.value - 273.15
+            df["value"] = df.value - 273.15
 
         # precipitation m to mm
         if cds_variable == "total_precipitation":
-            df.value = df.value * 1000
+            df["value"] = df.value * 1000
 
         if csv:
             tmp_file = os.path.join(tmp_dir, "extract.csv")
-            df.to_csv(tmp_file, index=False, mode=csv_mode)
+            df.to_csv(tmp_file, index=False)
+            fs.makedirs(os.path.dirname(csv), exist_ok=True)
             fs.put(tmp_file, csv)
+            logger.info(f"Output written to {csv}")
+
         if db_table:
             db_table_safe = _safe_from_injection(db_table)
             con = create_engine(
                 f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             )
-            df.to_sql(
-                db_table_safe,
-                con,
-                index=False,
-                if_exists="replace" if overwrite else "append",
-            )
+            df.to_sql(db_table_safe, con, index=False, if_exists="replace")
+            logger.info(f"Output written into table {db_table} in database {db_name}")
+
+    return
 
 
 @cli.command()
 @click.option("--src-file", type=str, required=True, help="source daily data")
+@click.option(
+    "--frequency",
+    type=click.Choice(["weekly", "monthly"]),
+    help="temporal aggregation frequency",
+)
 @click.option(
     "--agg-function", type=str, default="mean", help="function for temporal aggregation"
 )
@@ -245,8 +285,9 @@ def aggregate(
 @click.option(
     "--overwrite", is_flag=True, default=False, help="overwrite existing data"
 )
-def weekly(
+def aggregate(
     src_file: str,
+    frequency: str,
     agg_function: str,
     csv: str,
     db_user: str,
@@ -257,6 +298,7 @@ def weekly(
     db_table: str,
     overwrite: bool,
 ):
+    """Perform weekly or monthly temporal aggregation on daily data."""
     # make sure that at least 1 output option has been correctly set, i.e. db
     # table and/or csv file
     db_params = [db_user, db_password, db_host, db_port, db_name, db_table]
@@ -283,37 +325,66 @@ def weekly(
         fs.put(src_file, tmp_file)
         logger.info(f"Using daily data from {src_file}")
 
-        daily = pd.read_csv(
-            tmp_file, parse_dates=[2]
-        )  # third column should be "period"
+        daily = pd.read_csv(tmp_file)
+        daily["period"] = pd.to_datetime(daily.period)
         logger.info(f"Loaded {len(daily.period.unique())} days of data")
 
-        daily["epi_week"] = daily.period.apply(lambda day: str(EpiWeek(day)))
-        grouped = daily.groupby(by=["id", "epi_week"])
+        # create a temporary ID to identify rows corresponding to the same
+        # area/district these rows should have equal values for all original
+        # columns, so we use the hash of these values as a temporary area ID
+        orig_columns = [
+            col for col in daily.columns if col not in ("period", "value", "geometry")
+        ]
+
+        def _hash_values(row):
+            values = row[orig_columns].values
+            return hash(values[~pd.isna(values)].tobytes())
+
+        daily["tmp_id"] = daily.apply(_hash_values, axis=1)
+
+        # weekly
+        if frequency.lower() == "weekly":
+            daily["epi_week"] = daily.period.apply(lambda day: str(EpiWeek(day)))
+            grouped = daily.groupby(by=["tmp_id", "epi_week"])
+
+        # monthly
+        elif frequency.lower() == "monthly":
+            daily["month"] = daily.period.apply(lambda day: day.strftime("%Y%m"))
+            grouped = daily.groupby(by=["tmp_id", "month"])
+
+        else:
+            raise ValueError("Invalid temporal frequency")
 
         def _agg_function(values):
-            """Same as agg function but returns NA if the number of values is less
-            than 7 (week incomplete)."""
-            if len(values) < 7:
+            """Same as agg function but returns NA if week or month is incomplete."""
+            if frequency == "weekly":
+                min_values = 7
+            else:
+                min_values = 28  # todo: use monthrange for exact number of days
+            if len(values) < min_values:
                 return pd.NA
             return agg_function(values)
 
-        weekly = grouped.aggregate(
-            {"id": "first", "name": "first", "period": "first", "value": _agg_function}
-        )
-        weekly = weekly.drop(columns=["id"]).reset_index()
+        agg_functions = {col: "first" for col in orig_columns}
+        agg_functions["period"] = "first"
+        agg_functions["value"] = _agg_function
+
+        aggregated = grouped.aggregate(agg_functions)
+        aggregated = aggregated.reset_index()
+        new_period_column = "epi_week" if frequency == "weekly" else "month"
+        aggregated = aggregated.sort_values(by=[new_period_column, "tmp_id"])
 
         # drop rows with nodata values
-        orig_length = len(weekly)
-        weekly = weekly.dropna()
-        logger.info(f"Dropped {orig_length - len(weekly)} rows with nodata values")
+        orig_length = len(aggregated)
+        aggregated = aggregated[~pd.isna(aggregated.value)]
+        logger.info(f"Dropped {orig_length - len(aggregated)} rows with nodata values")
 
         # reorder columns
-        weekly = weekly[["id", "name", "epi_week", "value"]]
+        aggregated = aggregated[orig_columns + [new_period_column, "value"]]
 
         if csv:
             tmp_file = os.path.join(tmp_dir, "extract.csv")
-            weekly.to_csv(tmp_file, index=False)
+            aggregated.to_csv(tmp_file, index=False)
             fs.put(tmp_file, csv)
             logger.info(f"Written CSV output into {csv}")
         if db_table:
@@ -321,7 +392,7 @@ def weekly(
             con = create_engine(
                 f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             )
-            weekly.to_sql(
+            aggregated.to_sql(
                 db_table_safe,
                 con,
                 index=False,
@@ -441,8 +512,6 @@ def zonal_stats(
     boundaries: gpd.GeoDataFrame,
     datafile: str,
     agg_function: Callable,
-    column_id: str,
-    column_name: str,
     variable_name: str = None,
 ):
     """Extract aggregated value for each area and time step.
@@ -455,10 +524,6 @@ def zonal_stats(
         Path to input dataset.
     agg_function : callable
         Function for spatial aggregation.
-    column_id : str
-        Column name in boundaries geodataframe with area ID.
-    column_name : str
-        Column name in boundaries geodataframe with area name.
     variable_name : str, optional
         Variable name in input dataset. If not set, first variable found will be
         used.
@@ -522,16 +587,14 @@ def zonal_stats(
                 data[(data >= 0) & (data != nodata) & (areas[i, :, :])]
             )
 
-            records.append(
-                {
-                    "id": boundaries.at[area, column_id],
-                    "name": boundaries.at[area, column_name],
-                    "period": period,
-                    "value": value,
-                }
-            )
+            record = boundaries.loc[area].drop("geometry").to_dict()
+            record["period"] = period
+            record["value"] = value
+            records.append(record)
+
             logger.debug(f"Aggregated measurements for area {i} (value = {value})")
         logger.info(f"Finished aggregation for period {period}")
+
     return pd.DataFrame(records)
 
 

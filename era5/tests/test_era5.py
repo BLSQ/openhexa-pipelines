@@ -82,8 +82,6 @@ def test_zonal_stats():
         ),
         datafile=os.path.join(tests_datadir, "2m_temperature.nc"),
         agg_function=np.mean,
-        column_id="GID_1",
-        column_name="NAME_1",
         variable_name=None,
     )
 
@@ -100,7 +98,7 @@ def test_fix_geometries():
     era5.fix_geometries(bfa)
 
 
-def test_cli_aggregate(mocker):
+def test_cli_download(mocker):
 
     tests_datadir = os.path.join(os.path.dirname(__file__), "data")
 
@@ -108,47 +106,77 @@ def test_cli_aggregate(mocker):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        cache_dir = os.path.join(tmp_dir, "cache")
-        os.makedirs(cache_dir)
+        download_dir = os.path.join(tmp_dir, "download")
+        os.makedirs(download_dir)
 
         # mock the retrieve method of cdsapi to copy local file instead of
         # downloading a new file
         def mock_retrieve(*args, **kwargs):
+            request = args[2]
+            fname = f"2m_temperature_{request['year']}{request['month']:02}.nc"
             shutil.copyfile(
-                os.path.join(tests_datadir, "2m_temperature.nc"),
+                os.path.join(tests_datadir, fname),
                 args[3],  # target parameter
             )
-            return
 
         mocker.patch("era5.cdsapi.Client.retrieve", mock_retrieve)
 
         result = runner.invoke(
-            era5.aggregate,
+            era5.download,
             [
                 "--start",
-                "2020-01-01",
+                "2020-10-01",
                 "--end",
-                "2020-01-31",
+                "2021-02-15",
+                "--extent",
+                os.path.join(tests_datadir, "bfa_gadm_level1.geojson"),
+                "--cds-variable",
+                "2m_temperature",
+                "--hours",
+                "06:00,12:00,18:00",
+                "--output-dir",
+                download_dir,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "2m_temperature_202011.nc" in os.listdir(download_dir)
+
+
+def test_cli_daily():
+
+    tests_datadir = os.path.join(os.path.dirname(__file__), "data")
+
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        input_dir = os.path.join(tmp_dir, "download")
+        os.makedirs(input_dir)
+        for fname in (
+            "2m_temperature_202010.nc",
+            "2m_temperature_202011.nc",
+            "2m_temperature_202012.nc",
+            "2m_temperature_202101.nc",
+            "2m_temperature_202102.nc",
+        ):
+            shutil.copyfile(
+                os.path.join(tests_datadir, fname), os.path.join(input_dir, fname)
+            )
+
+        result = runner.invoke(
+            era5.daily,
+            [
+                "--input-dir",
+                input_dir,
                 "--boundaries",
                 os.path.join(tests_datadir, "bfa_gadm_level1.geojson"),
-                "--column-name",
-                "NAME_1",
-                "--column-id",
-                "GID_1",
                 "--cds-variable",
                 "2m_temperature",
                 "--agg-function",
                 "mean",
-                "--hours",
-                "06:00,12:00,18:00",
                 "--csv",
                 os.path.join(tmp_dir, "data.csv"),
-                "--cds-api-key",
-                "0000",
-                "--cds-api-uid",
-                "0000",
-                "--cache-dir",
-                cache_dir,
             ],
         )
 
@@ -158,26 +186,51 @@ def test_cli_aggregate(mocker):
 
 def test_cli_weekly():
 
+    tests_datadir = os.path.join(os.path.dirname(__file__), "data")
+
     runner = CliRunner()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        src_file = os.path.join(
-            os.path.dirname(__file__), "data", "total_precipitation.csv"
-        )
-        dst_file = os.path.join(tmp_dir, "total_precipitation_weekly.csv")
-
         result = runner.invoke(
-            era5.weekly,
+            era5.aggregate,
             [
                 "--src-file",
-                src_file,
+                os.path.join(tests_datadir, "2m_temperature.csv"),
+                "--frequency",
+                "weekly",
                 "--agg-function",
-                "sum",
+                "mean",
                 "--csv",
-                dst_file,
+                os.path.join(tmp_dir, "data.csv"),
             ],
         )
 
         assert result.exit_code == 0
-        assert os.path.isfile(dst_file)
+        assert os.path.isfile(os.path.join(tmp_dir, "data.csv"))
+
+
+def test_cli_monthly():
+
+    tests_datadir = os.path.join(os.path.dirname(__file__), "data")
+
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        result = runner.invoke(
+            era5.aggregate,
+            [
+                "--src-file",
+                os.path.join(tests_datadir, "2m_temperature.csv"),
+                "--frequency",
+                "monthly",
+                "--agg-function",
+                "mean",
+                "--csv",
+                os.path.join(tmp_dir, "data.csv"),
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.isfile(os.path.join(tmp_dir, "data.csv"))
