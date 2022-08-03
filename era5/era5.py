@@ -166,11 +166,14 @@ def aggregate(
     with tempfile.NamedTemporaryFile(suffix=".csv") as tmp_file:
         csv_mode = "w"  # write mode
         if fs.exists(csv):
-            fs.get(csv, tmp_file.name)
-            max_date = _max_date_csv(tmp_file.name)
-            if max_date > start:
-                start = max_date + relativedelta(months=1)
-                csv_mode = "a"  # append mode
+            if overwrite:
+                fs.remove(csv)
+            else:
+                fs.get(csv, tmp_file.name)
+                max_date = _max_date_csv(tmp_file.name)
+                if max_date > start:
+                    start = max_date + relativedelta(months=1)
+                    csv_mode = "a"  # append mode
 
     bounds = (40.0, -22.0, -36.0, 62.0)  # Africa
     era = Era5(variable=cds_variable, bounds=bounds, cache_dir=cache_dir)
@@ -218,7 +221,12 @@ def aggregate(
             con = create_engine(
                 f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             )
-            df.to_sql(db_table_safe, con, index=False, if_exists="append")
+            df.to_sql(
+                db_table_safe,
+                con,
+                index=False,
+                if_exists="replace" if overwrite else "append",
+            )
 
 
 class Era5MissingData(Exception):
@@ -236,7 +244,7 @@ def _safe_from_injection(db_table: str) -> str:
 def _max_date_csv(src_file: str) -> datetime:
     """Get max processed date in csv file."""
     data = pd.read_csv(src_file)
-    max_date = pd.to_datetime(data.start_date).max().to_pydatetime()
+    max_date = pd.to_datetime(data.period).max().to_pydatetime()
     return max_date
 
 
@@ -244,7 +252,7 @@ def _max_date_sql(db_table: str, con: Engine) -> datetime:
     """Get max processed date in sql table."""
     db_table = _safe_from_injection(db_table)
     dates = pd.read_sql_query(
-        f"SELECT start_date FROM {db_table};", con, parse_dates=["start_date"]
+        f"SELECT start_date FROM {db_table};", con, parse_dates=["period"]
     )
     max_date = dates.max()[0].to_pydatetime()
     return max_date
