@@ -114,8 +114,6 @@ def test_cli_aggregate(mocker):
         # mock the retrieve method of cdsapi to copy local file instead of
         # downloading a new file
         def mock_retrieve(*args, **kwargs):
-            print(args)
-            print(kwargs)
             shutil.copyfile(
                 os.path.join(tests_datadir, "2m_temperature.nc"),
                 args[3],  # target parameter
@@ -156,3 +154,30 @@ def test_cli_aggregate(mocker):
 
         assert result.exit_code == 0
         assert os.path.isfile(os.path.join(tmp_dir, "data.csv"))
+
+
+def test_cli_weekly():
+
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        src_file = os.path.join(
+            os.path.dirname(__file__), "data", "total_precipitation.csv"
+        )
+        dst_file = os.path.join(tmp_dir, "total_precipitation_weekly.csv")
+
+        result = runner.invoke(
+            era5.weekly,
+            [
+                "--src-file",
+                src_file,
+                "--agg-function",
+                "sum",
+                "--csv",
+                dst_file,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.isfile(dst_file)

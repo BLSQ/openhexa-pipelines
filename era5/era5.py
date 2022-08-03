@@ -1,9 +1,10 @@
+import enum
 import logging
 import os
 import string
 import tempfile
 from calendar import monthrange
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Callable, List, Tuple
 
 import cdsapi
@@ -182,15 +183,15 @@ def aggregate(
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         extracts = []
-        date = start
-        while date <= end:
-            fname = f"{cds_variable}_{date.year:04}{date.month:02}.nc"
+        date_ = start
+        while date_ <= end:
+            fname = f"{cds_variable}_{date_.year:04}{date_.month:02}.nc"
             try:
                 datafile = era.download(
-                    date.year, date.month, hours, os.path.join(tmp_dir, fname)
+                    date_.year, date_.month, hours, os.path.join(tmp_dir, fname)
                 )
             except Era5MissingData:
-                logger.info(f"Missing data for period {date.year:04}{date.month:02}")
+                logger.info(f"Missing data for period {date_.year:04}{date_.month:02}")
                 return
             extracts.append(
                 zonal_stats(
@@ -201,7 +202,7 @@ def aggregate(
                     column_name=column_name,
                 )
             )
-            date = date + relativedelta(months=1)
+            date_ = date_ + relativedelta(months=1)
         df = pd.concat(extracts, ignore_index=True)
 
         # temperature from K to C
@@ -227,6 +228,106 @@ def aggregate(
                 index=False,
                 if_exists="replace" if overwrite else "append",
             )
+
+
+@cli.command()
+@click.option("--src-file", type=str, required=True, help="source daily data")
+@click.option(
+    "--agg-function", type=str, default="mean", help="function for temporal aggregation"
+)
+@click.option("--csv", type=str, required=False, help="output csv file")
+@click.option("--db-user", type=str, required=False, help="database username")
+@click.option("--db-password", type=str, required=False, help="database password")
+@click.option("--db-host", type=str, required=False, help="database hostname")
+@click.option("--db-port", type=int, required=False, help="database port")
+@click.option("--db-name", type=str, required=False, help="database name")
+@click.option("--db_table", type=str, required=False, help="database table")
+@click.option(
+    "--overwrite", is_flag=True, default=False, help="overwrite existing data"
+)
+def weekly(
+    src_file: str,
+    agg_function: str,
+    csv: str,
+    db_user: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_name: str,
+    db_table: str,
+    overwrite: bool,
+):
+    # make sure that at least 1 output option has been correctly set, i.e. db
+    # table and/or csv file
+    db_params = [db_user, db_password, db_host, db_port, db_name, db_table]
+    if any(db_params) and not all(db_params):
+        raise ValueError("All database parameters must be specified")
+    if not csv and not all(db_params):
+        raise ValueError("No output specified")
+
+    # temporal aggregation function
+    if agg_function.lower() == "mean":
+        agg_function = np.mean
+    elif agg_function.lower() == "median":
+        agg_function = np.median
+    elif agg_function.lower() == "sum":
+        agg_function = np.sum
+    else:
+        raise ValueError(f"Aggregation function {agg_function} not supported")
+
+    fs = filesystem(src_file)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        tmp_file = os.path.join(tmp_dir, os.path.basename(src_file))
+        fs.put(src_file, tmp_file)
+        logger.info(f"Using daily data from {src_file}")
+
+        daily = pd.read_csv(
+            tmp_file, parse_dates=[2]
+        )  # third column should be "period"
+        logger.info(f"Loaded {len(daily.period.unique())} days of data")
+
+        daily["epi_week"] = daily.period.apply(lambda day: str(EpiWeek(day)))
+        grouped = daily.groupby(by=["id", "epi_week"])
+
+        def _agg_function(values):
+            """Same as agg function but returns NA if the number of values is less
+            than 7 (week incomplete)."""
+            if len(values) < 7:
+                return pd.NA
+            return agg_function(values)
+
+        weekly = grouped.aggregate(
+            {"id": "first", "name": "first", "period": "first", "value": _agg_function}
+        )
+        weekly = weekly.drop(columns=["id"]).reset_index()
+
+        # drop rows with nodata values
+        orig_length = len(weekly)
+        weekly = weekly.dropna()
+        logger.info(f"Dropped {orig_length - len(weekly)} rows with nodata values")
+
+        # reorder columns
+        weekly = weekly[["id", "name", "epi_week", "value"]]
+
+        if csv:
+            tmp_file = os.path.join(tmp_dir, "extract.csv")
+            weekly.to_csv(tmp_file, index=False)
+            fs.put(tmp_file, csv)
+            logger.info(f"Written CSV output into {csv}")
+        if db_table:
+            db_table_safe = _safe_from_injection(db_table)
+            con = create_engine(
+                f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            )
+            weekly.to_sql(
+                db_table_safe,
+                con,
+                index=False,
+                if_exists="replace",
+            )
+            logger.info(f"Written DB output into {db_table} ({db_name})")
 
 
 class Era5MissingData(Exception):
@@ -499,6 +600,94 @@ def fix_geometries(geodf: gpd.GeoDataFrame):
             f"{n_features_orig - n_features} are invalid and were excluded from the analysis"
         )
     return geodf_
+
+
+class EpiSystem(enum.Enum):
+    CDC = "CDC"
+    WHO = "WHO"
+
+
+class EpiWeek:
+    """How do we define the first week of the year/January ?
+        - Epi Week begins on a Sunday and end on a Saturday.
+        - The first EpiWeek ends on the first Saturday of January as long as
+          the week is at least 4 days long.
+        - If less than 4 days long, the EpiWeek began on the first Sunday of
+          January and the days before than belong to the last week of the
+          year before.
+        - If at least 4 days long, the last days of December will be part of
+          the first week of the next year.
+    In other words, the first epidemiological week always begins on a date
+    between December 29 and January 4 and ends on a date between
+    January 4 and 10.
+        - Number of weeks by year : 52 or 53
+        - If January 1 occurs on Sunday, Monday, Tuesday or Wednesday,
+          calendar week that includes January 1 will be the week 1 of the
+          current year
+        - If January 1 occurs on Thursday, Friday or Saturday, the calendar
+          week that includes January 1 will be th last week of previous year.
+    """
+
+    def __init__(self, date_object: date, system: EpiSystem = "CDC"):
+        self.from_date(date_object, system)
+
+    def __iter__(self):
+        """Iterate over days of the epi. week."""
+        n_days = (self.end - self.start).days + 1
+        for wday in range(0, n_days):
+            yield self.start + timedelta(days=wday)
+
+    def __eq__(self, other):
+        """Compare only week and year."""
+        return self.week == other.week and self.year == other.year
+
+    def __repr__(self):
+        return f"EpiWeek({self.year}W{self.week})"
+
+    def __str__(self):
+        return f"{self.year}W{str(self.week).zfill(2)}"
+
+    def __hash__(self):
+        return id(self)
+
+    def from_date(self, date_object: date, system: EpiSystem = "CDC"):
+        """Get epidemiological week info from date object."""
+        systems = {"CDC": 0, "WHO": 1}
+        if system.upper() not in systems.keys():
+            raise ValueError("System not in {}".format(list(systems.keys())))
+
+        week_day = (date_object - timedelta(days=systems[system.upper()])).isoweekday()
+        week_day = 0 if week_day == 7 else week_day  # Week : Sun = 0 ; Sat = 6
+
+        # Start the weekday on Sunday (CDC)
+        self.start = date_object - timedelta(days=week_day)
+        # End the weekday on Saturday (CDC)
+        self.end = self.start + timedelta(days=6)
+
+        week_start_year_day = self.start.timetuple().tm_yday
+        week_end_year_day = self.end.timetuple().tm_yday
+
+        if week_end_year_day in range(4, 11):
+            self.week = 1
+        else:
+            self.week = ((week_start_year_day + 2) // 7) + 1
+
+        if week_end_year_day in range(4, 11):
+            self.year = self.end.year
+        else:
+            self.year = self.start.year
+
+
+def epiweek_range(start: date, end: date) -> List[EpiWeek]:
+    """Get a range of epidemiological weeks between two dates."""
+    epiweeks = []
+    day = start
+    while day <= end:
+        epiweek = EpiWeek(day)
+        if epiweek not in epiweeks:
+            epiweeks.append(epiweek)
+        day += timedelta(days=1)
+    return epiweeks
 
 
 if __name__ == "__main__":
