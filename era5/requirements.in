@@ -17,3 +17,4 @@ xarray
 requests
 pytest
 cdsapi
+netCDF4

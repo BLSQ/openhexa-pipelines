@@ -6,7 +6,7 @@ RUN mkdir /app
 WORKDIR /app
 
 RUN apt-get update
-RUN apt-get install -y libgdal-dev
+RUN apt-get install -y libgdal-dev netcdf-bin
 
 COPY requirements.txt .
 RUN pip install -r /app/requirements.txt
