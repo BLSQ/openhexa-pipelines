@@ -322,7 +322,7 @@ def aggregate(
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         tmp_file = os.path.join(tmp_dir, os.path.basename(src_file))
-        fs.put(src_file, tmp_file)
+        fs.get(src_file, tmp_file)
         logger.info(f"Using daily data from {src_file}")
 
         daily = pd.read_csv(tmp_file)
