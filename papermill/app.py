@@ -17,6 +17,8 @@ except ImportError as e:
     )
 
 # import fuse mount script _after_ env variables injection
+import sys
+sys.path.insert(1, '/home/jovyan/.fuse')
 import fuse_mount  # noqa: F401, E402
 
 logger = logging.getLogger("papermill_app")
