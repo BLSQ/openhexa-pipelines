@@ -9,6 +9,7 @@ import papermill as pm
 try:
     import common  # noqa: F401
 except ImportError as e:
+    print(f"Unexpected {e=}, {type(e)=}")
     # ignore import error -> work anyway (but define logging)
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",

@@ -81,3 +81,5 @@ if "HEXA_PIPELINE_TOKEN" in os.environ:
         print("Hexa files injection:")
         for path in sorted(data["files"]):
             print(f"File {path} added")
+else:
+    print("WARNING: no HEXA_PIPELINE_TOKEN env variable")
