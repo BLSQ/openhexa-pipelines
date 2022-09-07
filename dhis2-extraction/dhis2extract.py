@@ -1,3 +1,4 @@
+import http.client
 import json
 import logging
 import os
@@ -32,6 +33,9 @@ except ImportError as e:
     )
 
 logger = logging.getLogger(__name__)
+
+# fix "http.client.HTTPException: got more than 100 headers"
+http.client._MAXHEADERS = 1000
 
 
 class DHIS2ExtractError(Exception):
@@ -147,6 +151,9 @@ def cli():
 @click.option("--program", "-prg", type=str, multiple=True, help="Program UID.")
 @click.option("--from-json", type=str, help="Load parameters from a JSON file.")
 @click.option(
+    "--reporting-rates", is_flag=True, default=False, help="Get dataset reporting rates"
+)
+@click.option(
     "--children/--no-children",
     is_flag=True,
     default=False,
@@ -185,6 +192,7 @@ def download(
     category_option_combo: typing.Sequence[str],
     program: typing.Sequence[str],
     from_json: str,
+    reporting_rates: bool,
     children: bool,
     mode: str,
     metadata_only: bool,
@@ -245,6 +253,7 @@ def download(
         category_option_combo = params.get(
             "category-option-combo", category_option_combo
         )
+        reporting_rates = params.get("reporting-rates", reporting_rates)
         program = params.get("program", program)
 
     output_meta = f"{output_dir}/metadata.json"
@@ -258,6 +267,11 @@ def download(
     # The dataValueSets endpoint does not support data elements UIDs as parameters,
     # only datasets.
     if mode.lower() == "raw":
+
+        if reporting_rates:
+            raise DHIS2ExtractError(
+                "Analytics is required to extract dataset reporting rates"
+            )
 
         csv = dhis.data_value_sets(
             datasets=dataset,
@@ -311,6 +325,10 @@ def download(
             programs=program,
         )
         output_file = f"{output_dir}/analytics_raw_data.csv"
+
+    elif mode.lower() == "reporting-rates":
+
+        pass
 
     else:
         raise DHIS2ExtractError(f"{mode} is an invalid request mode.")
@@ -763,6 +781,51 @@ class DHIS2:
         )
 
         return r.content.decode()
+
+    def dataset_reporting_rates(
+        self,
+        datasets: typing.List[str],
+        periods: typing.Sequence[str] = None,
+        start_date: str = None,
+        end_date: str = None,
+    ) -> str:
+        if not periods and not (start_date and end_date):
+            raise DHIS2ExtractError(
+                "At least one period or start/end dates must be provided."
+            )
+
+        if (start_date and not _check_dhis2_period(start_date)) or (
+            end_date and not _check_dhis2_period(end_date)
+        ):
+            # if start and end dates are provided in ISO format, default to
+            # monthly DHIS2 period format
+            if _check_iso_date(start_date) and _check_iso_date(end_date):
+                start_date = start_date[:7].replace("-", "")
+                end_date = end_date[:7].replace("-", "")
+            else:
+                raise DHIS2ExtractError("Unrecognized format for start and end dates.")
+
+        # The analytics API doesn't support start and end dates, only periods.
+        # Here, start and end dates are assumed to be in the DHIS2 format and
+        # are split into a period range according to the format identified, e.g.
+        # yearly, monthly, quarterly, etc.
+        # NB: The periods parameter still takes precedence over start and end dates,
+        # for consistency with the DHIS2 API.
+        if not periods and (start_date and end_date):
+            periods = get_range(Period(start_date), Period(end_date))
+
+        dimension = _dimension_param(
+            datasets=datasets, periods=periods, add_empty_co_arg=False
+        )
+
+        r = self.api.chunked_get(
+            "analytics",
+            params={"dimension": None},
+            chunk_on=("dimension", self.chunk_dimension_param(dimension)),
+            chunk_size=1,
+            file_type="csv",
+            timeout=self.timeout,
+        )
 
     def chunk_dimension_param(
         self,
