@@ -2,12 +2,16 @@
 import argparse
 import datetime
 import logging
+import sys
 
 import papermill as pm
 
+print(sys.path)
 # comon is a script to set parameters on production
 try:
-    import common  # noqa: F401
+    import common_oh_prod  # noqa: F401
+
+    importerror = False
 except ImportError as e:
     print(f"Unexpected {e=}, {type(e)=}")
     # ignore import error -> work anyway (but define logging)
@@ -16,14 +20,16 @@ except ImportError as e:
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-
-# import fuse mount script _after_ env variables injection
-import sys
-
-sys.path.insert(1, "/home/jovyan/.fuse")
-import fuse_mount  # noqa: F401, E402
+    importerror = True
 
 logger = logging.getLogger("papermill_app")
+
+if importerror:
+    logger.warning("No Hexa env updated, failed to import 'common.py'")
+
+# import fuse mount script _after_ env variables injection
+sys.path.insert(1, "/home/jovyan/.fuse")
+import fuse_mount  # noqa: F401, E402
 
 parser = argparse.ArgumentParser(description="Papermill pipeline")
 parser.add_argument(
