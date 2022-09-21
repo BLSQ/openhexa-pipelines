@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import logging
+import sys
 
 import papermill as pm
 
@@ -17,13 +18,11 @@ except ImportError as e:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-# import fuse mount script _after_ env variables injection
-import sys
+logger = logging.getLogger("papermill_app")
 
+# import fuse mount script _after_ env variables injection
 sys.path.insert(1, "/home/jovyan/.fuse")
 import fuse_mount  # noqa: F401, E402
-
-logger = logging.getLogger("papermill_app")
 
 parser = argparse.ArgumentParser(description="Papermill pipeline")
 parser.add_argument(
