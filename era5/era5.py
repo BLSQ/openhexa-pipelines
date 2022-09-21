@@ -308,12 +308,15 @@ def aggregate(
         raise ValueError("No output specified")
 
     # temporal aggregation function
-    if agg_function.lower() == "mean":
-        agg_function = np.mean
-    elif agg_function.lower() == "median":
-        agg_function = np.median
-    elif agg_function.lower() == "sum":
-        agg_function = np.sum
+    AGG_FUNCTIONS = {
+        "mean": np.mean,
+        "median": np.median,
+        "sum": np.sum,
+        "min": np.min,
+        "max": np.max,
+    }
+    if agg_function.lower() in AGG_FUNCTIONS:
+        agg_function = AGG_FUNCTIONS[agg_function.lower()]
     else:
         raise ValueError(f"Aggregation function {agg_function} not supported")
 
