@@ -114,6 +114,8 @@ class Api(BaseApi):
         r = None
         for i in range(0, len(chunk_parameter_values), chunk_size):
             params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
+            print(endpoint)
+            print(params)
             r = self.get(endpoint, params=params, **kwargs)
             logger.info(f"Request URL: {r.url}")
             df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))

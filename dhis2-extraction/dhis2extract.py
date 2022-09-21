@@ -162,7 +162,7 @@ def cli():
 @click.option(
     "--mode",
     "-m",
-    type=Choice(["analytics", "raw"], case_sensitive=False),
+    type=Choice(["analytics", "raw", "reporting-rates"], case_sensitive=False),
     default="analytics",
     help="DHIS2 API endpoint to use",
 )
@@ -328,7 +328,16 @@ def download(
 
     elif mode.lower() == "reporting-rates":
 
-        pass
+        csv = dhis.dataset_reporting_rates(
+            datasets=dataset,
+            periods=period,
+            org_units=org_unit,
+            org_unit_groups=org_unit_group,
+            org_unit_levels=org_unit_level,
+            start_date=start,
+            end_date=end,
+        )
+        output_file = f"{output_dir}/analytics_reporting_rates.csv"
 
     else:
         raise DHIS2ExtractError(f"{mode} is an invalid request mode.")
@@ -786,9 +795,36 @@ class DHIS2:
         self,
         datasets: typing.List[str],
         periods: typing.Sequence[str] = None,
+        org_units: typing.Sequence[str] = None,
+        org_unit_groups: typing.Sequence[str] = None,
+        org_unit_levels: typing.Sequence[int] = None,
         start_date: str = None,
         end_date: str = None,
     ) -> str:
+        """Extract dataset reporting rates.
+
+        Parameters
+        ----------
+        datasets : list of str
+            UIDs of the datasets.
+        periods : list of str, optional
+            List of DHIS2 periods.
+        org_units : list of str, optional
+            UIDs of the organisation units of interest.
+        org_unit_groups : list of str, optional
+            UIDs of the organisation unit groups of interest.
+        org_unit_levels : list of int, optional
+            Hierarchical org unit levels of interest.
+        start_date : str
+            Start date in ISO format.
+        end_date : str
+            End date in ISO format.
+
+        Return
+        ------
+        str
+            Output data as a CSV string.
+        """
         if not periods and not (start_date and end_date):
             raise DHIS2ExtractError(
                 "At least one period or start/end dates must be provided."
@@ -814,9 +850,23 @@ class DHIS2:
         if not periods and (start_date and end_date):
             periods = get_range(Period(start_date), Period(end_date))
 
+        # we can request reporting rates and reports count of a dataset in the dhis2 web api
+        # by appending ".REPORTING_RATE" and ".ACTUAL_REPORTS" to the dataset UID
+        datasets_ = []
+        for dataset in datasets:
+            datasets_.append(f"{dataset}.REPORTING_RATE")
+            datasets_.append(f"{dataset}.ACTUAL_REPORTS")
+        datasets = datasets_
+
         dimension = _dimension_param(
-            datasets=datasets, periods=periods, add_empty_co_arg=False
+            datasets=datasets,
+            periods=periods,
+            org_units=org_units,
+            org_unit_groups=org_unit_groups,
+            org_unit_levels=org_unit_levels,
+            add_empty_co_arg=False,
         )
+        print(dimension)
 
         r = self.api.chunked_get(
             "analytics",
@@ -826,6 +876,8 @@ class DHIS2:
             file_type="csv",
             timeout=self.timeout,
         )
+
+        return r.content.decode()
 
     def chunk_dimension_param(
         self,
@@ -876,20 +928,31 @@ class DHIS2:
                 other_params.append(param)
 
         chunks = []
-        if pe_params:
+
+        if pe_params and ou_params and dx_params:
             for ou_param, dx_param, pe_param in product(
                 ou_params, dx_params, pe_params
             ):
                 chunks.append(other_params + [ou_param, dx_param, pe_param])
-        else:
+
+        elif ou_params and dx_params:
             for ou_param, dx_param in product(ou_params, dx_params):
                 chunks.append(other_params + [ou_param, dx_param])
 
+        elif pe_params and dx_params:
+            for pe_param, dx_param in product(pe_params, dx_params):
+                chunks.append(other_params + [pe_param, dx_param])
+
+        else:
+            raise DHIS2ExtractError("Unsupported parameter combination")
+
+        print(chunks)
         return chunks
 
 
 def _dimension_param(
     periods: typing.Sequence[str] = None,
+    datasets: typing.Sequence[str] = None,
     org_units: typing.Sequence[str] = None,
     org_unit_groups: typing.Sequence[str] = None,
     org_unit_levels: typing.Sequence[int] = None,
@@ -910,6 +973,8 @@ def _dimension_param(
     dimension = []
     if periods:
         dimension.append("pe:" + ";".join(periods))
+    if datasets:
+        dimension.append("dx:" + ";".join(datasets))
     if org_units:
         dimension.append("ou:" + ";".join(org_units))
     if org_unit_groups:
@@ -1052,9 +1117,15 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     data_elements = pd.read_csv(f"{metadata_output_dir}/data_elements.csv", index_col=0)
     indicators = pd.read_csv(f"{metadata_output_dir}/indicators.csv", index_col=0)
     coc = pd.read_csv(f"{metadata_output_dir}/category_option_combos.csv", index_col=0)
+    datasets = pd.read_csv(f"{metadata_output_dir}/datasets.csv", index_col=0)
 
     # Transform API response
-    for fname in ["analytics.csv", "analytics_raw_data.csv", "data_value_sets.csv"]:
+    for fname in [
+        "analytics.csv",
+        "analytics_raw_data.csv",
+        "data_value_sets.csv",
+        "analytics_reporting_rates.csv",
+    ]:
 
         fpath_input = f"{input_dir}/{fname}"
         fpath_output = f"{output_dir}/extract.csv"
@@ -1069,16 +1140,26 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
         with fs_input.open(fpath_input) as f:
             api_response = pd.read_csv(f)
-        extract = _transform(api_response)
 
-        if empty_rows:
-            extract = _add_empty_rows(
-                extract, index_columns=["dx_uid", "coc_uid", "period", "ou_uid"]
+        # we use a different transform function for analytics_reporting_rates
+        if fname == "analytics_reporting_rates.csv":
+            extract = _transform_reporting_rates(api_response)
+            extract = _join_from_metadata(
+                extract=extract, organisation_units=org_units, datasets=datasets
             )
-
-        extract = _join_from_metadata(
-            extract, data_elements, indicators, coc, org_units
-        )
+        else:
+            extract = _transform(api_response)
+            extract = _join_from_metadata(
+                extract=extract,
+                data_elements=data_elements,
+                indicators=indicators,
+                category_option_combos=coc,
+                organisation_units=org_units,
+            )
+            if empty_rows:
+                extract = _add_empty_rows(
+                    extract, index_columns=["dx_uid", "coc_uid", "period", "ou_uid"]
+                )
 
         for column in extract.columns:
             if column.startswith("Unnamed"):
@@ -1329,6 +1410,40 @@ def _transform(data: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _transform_reporting_rates(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform API response for dataset reporting rates."""
+    COLUMNS = {
+        "Organisation unit": "ou_uid",
+        "ds_uid": "ds_uid",
+        "Period": "period",
+        "reporting_rate": "reporting_rate",
+        "actual_reports": "actual_reports",
+    }
+
+    # info regarding dataset UID and type of value in the row (reporting rate or number
+    # of reports) is contained in the ds_uid column
+    # in the source dataframe, each row contains a value for either reporting rate or
+    # or actual reports
+    data["ds_uid"] = data["Data"].apply(lambda x: x.split(".")[0])
+    data["value_type"] = data["Data"].apply(lambda x: x.split(".")[1])
+    data["reporting_rate"] = data.apply(
+        lambda row: row.Value if row["value_type"] == "REPORTING_RATE" else None, axis=1
+    )
+    data["actual_reports"] = data.apply(
+        lambda row: row.Value if row["value_type"] == "ACTUAL_REPORTS" else None, axis=1
+    )
+
+    # in the output dataframe, we want one row per dataset and period
+    df = data.groupby(by=["Organisation unit", "ds_uid", "Period"]).first()
+    df = df.reset_index()
+
+    # clean column names and drop unwanted columns
+    df = df.rename(columns=COLUMNS)
+    df = df.drop(columns=[col for col in df.columns if col not in COLUMNS.values()])
+
+    return df
+
+
 def _add_empty_rows(
     dataframe: pd.DataFrame, index_columns: typing.List[str]
 ) -> pd.DataFrame:
@@ -1394,6 +1509,17 @@ def _dx_name(dx_uid: str, data_elements: pd.DataFrame, indicators: pd.DataFrame)
         )
 
 
+def _ds_name(ds_uid: str, datasets: pd.DataFrame) -> str:
+    """Get the name of a dataset.
+
+    Examples
+    --------
+    >>> _ds_name("vc6nF5yZsPR", datasets)
+    'HIV Care Monthly'
+    """
+    return datasets.at[ds_uid, "ds_name"]
+
+
 def _level_uid(ou_path: str, level: int) -> str:
     """Get the org unit UID corresponding to a given hierarchical level.
 
@@ -1411,47 +1537,56 @@ def _level_uid(ou_path: str, level: int) -> str:
 
 def _join_from_metadata(
     extract: pd.DataFrame,
-    data_elements: pd.DataFrame,
-    indicators: pd.DataFrame,
-    category_option_combos: pd.DataFrame,
-    organisation_units: pd.DataFrame,
+    data_elements: pd.DataFrame = None,
+    indicators: pd.DataFrame = None,
+    category_option_combos: pd.DataFrame = None,
+    organisation_units: pd.DataFrame = None,
+    datasets: pd.DataFrame = None,
 ) -> pd.DataFrame:
     """Join fields from the metadata tables into the extract.
 
-    More specifically, the following columns are added to the dataframe:
+    More specifically, the following columns may be added to the dataframe:
         * dx_name (name of the data element/indicator)
         * dx_type ('Data Element' or 'Indicator')
         * coc_name (name of the category option combo)
         * level_<lvl>_uid (UID of the org unit for each hierarchical level)
         * level_<lvl>_name (name of the org unit for each hierarchical level)
+        * ds_name (name of the dataset)
     """
     extract = extract.copy()
-    extract["dx_name"] = extract.dx_uid.apply(
-        lambda uid: _dx_name(uid, data_elements, indicators)
-    )
-    extract["dx_type"] = extract.dx_uid.apply(
-        lambda uid: _dx_type(uid, data_elements, indicators)
-    )
+
+    if "dx_uid" in extract and data_elements is not None and indicators is not None:
+        extract["dx_name"] = extract.dx_uid.apply(
+            lambda uid: _dx_name(uid, data_elements, indicators)
+        )
+        extract["dx_type"] = extract.dx_uid.apply(
+            lambda uid: _dx_type(uid, data_elements, indicators)
+        )
+
+    if "ds_uid" in extract and datasets is not None:
+        extract["ds_name"] = extract.ds_uid.apply(lambda uid: _ds_name(uid, datasets))
 
     # in some cases the extract does not contain any COC info
-    if "coc_uid" in extract:
+    if "coc_uid" in extract and category_option_combos is not None:
         extract["coc_name"] = extract.coc_uid.apply(
             lambda uid: category_option_combos.at[uid, "coc_name"]
         )
 
-    # Max number of hierarchical levels in the instance
-    levels = len(organisation_units.path.max().split("/")) - 1
+    if "ou_uid" in extract and organisation_units is not None:
 
-    # Add UID and name for each hierarchical level
-    for level in range(1, levels + 1):
-        column_uid = f"level_{level}_uid"
-        column_name = f"level_{level}_name"
-        extract[column_uid] = extract.ou_uid.apply(
-            lambda uid: _level_uid(organisation_units.at[uid, "path"], level)
-        )
-        extract[column_name] = extract[column_uid].apply(
-            lambda uid: organisation_units.at[uid, "ou_name"] if uid else None
-        )
+        # Max number of hierarchical levels in the instance
+        levels = len(organisation_units.path.max().split("/")) - 1
+
+        # Add UID and name for each hierarchical level
+        for level in range(1, levels + 1):
+            column_uid = f"level_{level}_uid"
+            column_name = f"level_{level}_name"
+            extract[column_uid] = extract.ou_uid.apply(
+                lambda uid: _level_uid(organisation_units.at[uid, "path"], level)
+            )
+            extract[column_name] = extract[column_uid].apply(
+                lambda uid: organisation_units.at[uid, "ou_name"] if uid else None
+            )
 
     return extract
 
