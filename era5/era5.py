@@ -160,7 +160,16 @@ def download(
 @click.option("--boundaries", type=str, required=True, help="aggregation boundaries")
 @click.option("--cds-variable", type=str, required=True, help="cds variable name")
 @click.option(
-    "--agg-function", type=str, default="mean", help="spatial aggregation function"
+    "--agg-function-spatial",
+    type=str,
+    default="mean",
+    help="spatial aggregation function",
+)
+@click.option(
+    "--agg-function-temporal",
+    type=str,
+    default="mean",
+    help="temporal aggregation function",
 )
 @click.option("--csv", type=str, required=False, help="output CSV file")
 @click.option("--db-user", type=str, required=False, help="output database username")
@@ -178,7 +187,8 @@ def daily(
     input_dir: str,
     boundaries: str,
     cds_variable: str,
-    agg_function: str,
+    agg_function_spatial: str,
+    agg_function_temporal: str,
     csv: str,
     db_user: str,
     db_password: str,
@@ -209,14 +219,14 @@ def daily(
         boundaries_data = boundaries_data.to_crs("EPSG:4326")
 
     # spatial aggregation function
-    if agg_function.lower() == "mean":
-        agg_function = np.mean
-    elif agg_function.lower() == "median":
-        agg_function = np.median
-    elif agg_function.lower() == "sum":
-        agg_function = np.sum
+    if agg_function_spatial.lower() == "mean":
+        agg_function_spatial = np.mean
+    elif agg_function_spatial.lower() == "median":
+        agg_function_spatial = np.median
+    elif agg_function_spatial.lower() == "sum":
+        agg_function_spatial = np.sum
     else:
-        raise ValueError(f"Aggregation function {agg_function} not supported")
+        raise ValueError(f"Aggregation function {agg_function_spatial} not supported")
 
     fs = filesystem(input_dir)
     src_files = fs.glob(os.path.join(input_dir, f"{cds_variable}*.nc"))
@@ -234,7 +244,8 @@ def daily(
                 zonal_stats(
                     boundaries=boundaries_data,
                     datafile=tmp_fp,
-                    agg_function=agg_function,
+                    agg_function_spatial=agg_function_spatial,
+                    agg_function_temporal=agg_function_temporal.lower(),
                 )
             )
         df = pd.concat(extracts)
@@ -514,7 +525,8 @@ class Era5:
 def zonal_stats(
     boundaries: gpd.GeoDataFrame,
     datafile: str,
-    agg_function: Callable,
+    agg_function_spatial: Callable,
+    agg_function_temporal: str,
     variable_name: str = None,
 ):
     """Extract aggregated value for each area and time step.
@@ -525,8 +537,10 @@ def zonal_stats(
         Boundaries/areas for spatial aggregation.
     datafile : str
         Path to input dataset.
-    agg_function : callable
+    agg_function_spatial : callable
         Function for spatial aggregation.
+    agg_function_temporal : str
+        Function for temporal aggregation (from multiple to one measurement per day).
     variable_name : str, optional
         Variable name in input dataset. If not set, first variable found will be
         used.
@@ -574,11 +588,20 @@ def zonal_stats(
         day = pd.to_datetime(day)
         measurements = ds.sel(time=(ds.time >= day) & (ds.time < day + timedelta(1)))
 
-        # for precipitation we want the accumulation during the day instead of the mean
-        if variable_name == "tp":
+        # function to aggregate multiple measurements in a day depends on the climate variable
+        # and must be provided as a parameter
+        if agg_function_temporal.lower() == "sum":
             measurements = measurements.sum(dim="time")
-        else:
+        elif agg_function_temporal.lower() == "mean":
             measurements = measurements.mean(dim="time")
+        elif agg_function_temporal.lower() == "min":
+            measurements = measurements.min(dim="time")
+        elif agg_function_temporal.lower() == "max":
+            measurements = measurements.max(dim="time")
+        else:
+            raise ValueError(
+                f"{agg_function_temporal} is not a valid aggregation function"
+            )
 
         data = measurements[variable_name].values
         period = day.to_pydatetime().strftime("%Y-%m-%d")
@@ -586,7 +609,7 @@ def zonal_stats(
         for i, area in enumerate(boundaries.index):
 
             # we can safely ignore negative values, temperature unit is K
-            value = agg_function(
+            value = agg_function_spatial(
                 data[(data >= 0) & (data != nodata) & (areas[i, :, :])]
             )
 

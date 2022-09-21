@@ -81,7 +81,8 @@ def test_zonal_stats():
             os.path.join(tests_datadir, "bfa_gadm_level1.geojson")
         ),
         datafile=os.path.join(tests_datadir, "2m_temperature.nc"),
-        agg_function=np.mean,
+        agg_function_spatial=np.mean,
+        agg_function_temporal="mean",
         variable_name=None,
     )
 
@@ -173,7 +174,9 @@ def test_cli_daily():
                 os.path.join(tests_datadir, "bfa_gadm_level1.geojson"),
                 "--cds-variable",
                 "2m_temperature",
-                "--agg-function",
+                "--agg-function-spatial",
+                "mean",
+                "--agg-function-temporal",
                 "mean",
                 "--csv",
                 os.path.join(tmp_dir, "data.csv"),
