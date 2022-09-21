@@ -525,8 +525,8 @@ class Era5:
 def zonal_stats(
     boundaries: gpd.GeoDataFrame,
     datafile: str,
-    agg_function_spatial: Callable,
-    agg_function_temporal: str,
+    agg_function_spatial: Callable = np.mean,
+    agg_function_temporal: str = "mean",
     variable_name: str = None,
 ):
     """Extract aggregated value for each area and time step.
@@ -537,9 +537,9 @@ def zonal_stats(
         Boundaries/areas for spatial aggregation.
     datafile : str
         Path to input dataset.
-    agg_function_spatial : callable
+    agg_function_spatial : callable, optional
         Function for spatial aggregation.
-    agg_function_temporal : str
+    agg_function_temporal : str, optional
         Function for temporal aggregation (from multiple to one measurement per day).
     variable_name : str, optional
         Variable name in input dataset. If not set, first variable found will be
