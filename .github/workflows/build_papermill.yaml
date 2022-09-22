@@ -4,13 +4,11 @@ on:
   pull_request:
     paths:
       - 'papermill/*'
-      - 'papermill/fuse/*'
       - 'production/common.py'
   push:
     branches: [main]
     paths:
       - 'papermill/*'
-      - 'papermill/fuse/*'
       - 'production/common.py'
 
 jobs:
