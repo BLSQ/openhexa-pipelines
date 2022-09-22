@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import logging
+import sys
 
 import papermill as pm
 
@@ -9,6 +10,7 @@ import papermill as pm
 try:
     import common  # noqa: F401
 except ImportError as e:
+    print(f"Unexpected {e=}, {type(e)=}")
     # ignore import error -> work anyway (but define logging)
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
@@ -16,10 +18,11 @@ except ImportError as e:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-# import fuse mount script _after_ env variables injection
-import fuse_mount  # noqa: F401, E402
-
 logger = logging.getLogger("papermill_app")
+
+# import fuse mount script _after_ env variables injection
+sys.path.insert(1, "/home/jovyan/.fuse")
+import fuse_mount  # noqa: F401, E402
 
 parser = argparse.ArgumentParser(description="Papermill pipeline")
 parser.add_argument(
