@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import argparse
+import base64
 import datetime
+import json
 import logging
 import sys
 
@@ -44,14 +46,19 @@ parser.add_argument(
 parser.add_argument(
     "-p",
     dest="parameters",
-    action="append",
+    action="store",
     type=str,
     help="Pipeline parameters",
-    default=[],
+    default="",
 )
 
 args = parser.parse_args()
-parameters = dict([e.split("=", 1) for e in args.parameters])
+
+logger.info("source parameters: %s", args.parameters)
+if args.parameters:
+    parameters = json.loads(base64.b64decode(args.parameters))
+else:
+    parameters = {}
 
 
 def dumb_cast(v):
