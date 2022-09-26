@@ -647,16 +647,16 @@ class DHIS2:
                 raise DHIS2ExtractError("End date is not in ISO format.")
 
         dimension = _dimension_param(
-            periods,
-            org_units,
-            org_unit_groups,
-            org_unit_levels,
-            data_elements,
-            data_element_groups,
-            indicators,
-            indicator_groups,
-            category_option_combos,
-            programs,
+            periods=periods,
+            org_units=org_units,
+            org_unit_groups=org_unit_groups,
+            org_unit_levels=org_unit_levels,
+            data_elements=data_elements,
+            data_element_groups=data_element_groups,
+            indicators=indicators,
+            indicator_groups=indicator_groups,
+            category_option_combos=category_option_combos,
+            programs=programs,
         )
 
         r = self.api.chunked_get(
@@ -767,16 +767,16 @@ class DHIS2:
             add_empty_co_arg = True
 
         dimension = _dimension_param(
-            periods,
-            org_units,
-            org_unit_groups,
-            org_unit_levels,
-            data_elements,
-            data_element_groups,
-            indicators,
-            indicator_groups,
-            category_option_combos,
-            programs,
+            periods=periods,
+            org_units=org_units,
+            org_unit_groups=org_unit_groups,
+            org_unit_levels=org_unit_levels,
+            data_elements=data_elements,
+            data_element_groups=data_element_groups,
+            indicators=indicators,
+            indicator_groups=indicator_groups,
+            category_option_combos=category_option_combos,
+            programs=programs,
             add_empty_co_arg=add_empty_co_arg,
         )
 
