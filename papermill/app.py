@@ -23,6 +23,7 @@ except ImportError as e:
 logger = logging.getLogger("papermill_app")
 
 # import fuse mount script _after_ env variables injection
+# these files come from blsq notebooks image
 sys.path.insert(1, "/home/jovyan/.fuse")
 import fuse_mount  # noqa: F401, E402
 
@@ -56,7 +57,7 @@ args = parser.parse_args()
 
 logger.info("source parameters: %s", args.parameters)
 if args.parameters:
-    parameters = json.loads(base64.b64decode(args.parameters))
+    parameters = json.loads(base64.b64decode(args.parameters).decode())
 else:
     parameters = {}
 
