@@ -1139,36 +1139,46 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         logger.info(f"Processing API response {fpath_input}.")
 
         with fs_input.open(fpath_input) as f:
-            api_response = pd.read_csv(f)
 
-        # we use a different transform function for analytics_reporting_rates
-        if fname == "analytics_reporting_rates.csv":
-            extract = _transform_reporting_rates(api_response)
-            extract = _join_from_metadata(
-                extract=extract, organisation_units=org_units, datasets=datasets
-            )
-        else:
-            extract = _transform(api_response)
-            extract = _join_from_metadata(
-                extract=extract,
-                data_elements=data_elements,
-                indicators=indicators,
-                category_option_combos=coc,
-                organisation_units=org_units,
-            )
-            if empty_rows:
-                extract = _add_empty_rows(
-                    extract, index_columns=["dx_uid", "coc_uid", "period", "ou_uid"]
-                )
+            api_response = pd.read_csv(f, chunksize=10000)
 
-        for column in extract.columns:
-            if column.startswith("Unnamed"):
-                extract.drop(columns=column, inplace=True)
+            for i, chunk in enumerate(api_response):
 
-        extract.dropna(axis=1, how="all", inplace=True)
+                # we use a different transform function for analytics_reporting_rates
+                if fname == "analytics_reporting_rates.csv":
+                    chunk = _transform_reporting_rates(chunk)
+                    chunk = _join_from_metadata(
+                        extract=chunk, organisation_units=org_units, datasets=datasets
+                    )
+                else:
+                    chunk = _transform(chunk)
+                    chunk = _join_from_metadata(
+                        extract=chunk,
+                        data_elements=data_elements,
+                        indicators=indicators,
+                        category_option_combos=coc,
+                        organisation_units=org_units,
+                    )
+                    if empty_rows:
+                        chunk = _add_empty_rows(
+                            chunk,
+                            index_columns=["dx_uid", "coc_uid", "period", "ou_uid"],
+                        )
 
-        with fs_output.open(fpath_output, "w") as f:
-            extract.to_csv(f, index=False)
+                for column in chunk.columns:
+                    if column.startswith("Unnamed"):
+                        chunk.drop(columns=column, inplace=True)
+
+                chunk.dropna(axis=1, how="all", inplace=True)
+
+                # write in append mode starting from the 2nd chunk
+                mode = "w" if i == 0 else "a"
+
+                # write header only for the 1st chunk
+                header = i == 0
+
+                with fs_output.open(fpath_output, mode) as f:
+                    chunk.to_csv(f, index=False, header=header, mode=mode)
 
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
