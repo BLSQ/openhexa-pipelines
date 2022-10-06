@@ -854,8 +854,13 @@ class DHIS2:
         # by appending ".REPORTING_RATE" and ".ACTUAL_REPORTS" to the dataset UID
         datasets_ = []
         for dataset in datasets:
-            datasets_.append(f"{dataset}.REPORTING_RATE")
-            datasets_.append(f"{dataset}.ACTUAL_REPORTS")
+            for metric in [
+                "REPORTING_RATE",
+                "ACTUAL_REPORTS",
+                "ACTUAL_REPORTS_ON_TIME",
+                "EXPECTED_REPORTS",
+            ]:
+                datasets_.append(f"{dataset}.{metric}")
         datasets = datasets_
 
         dimension = _dimension_param(
