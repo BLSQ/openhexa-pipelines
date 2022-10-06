@@ -866,7 +866,6 @@ class DHIS2:
             org_unit_levels=org_unit_levels,
             add_empty_co_arg=False,
         )
-        print(dimension)
 
         r = self.api.chunked_get(
             "analytics",
