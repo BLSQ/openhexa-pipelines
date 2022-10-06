@@ -950,7 +950,6 @@ class DHIS2:
         else:
             raise DHIS2ExtractError("Unsupported parameter combination")
 
-        print(chunks)
         return chunks
 
 
@@ -1154,6 +1153,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
                     chunk = _join_from_metadata(
                         extract=chunk, organisation_units=org_units, datasets=datasets
                     )
+                    chunk = _reorder_reporting_rates_columns(chunk)
                 else:
                     chunk = _transform(chunk)
                     chunk = _join_from_metadata(
@@ -1429,9 +1429,9 @@ def _transform_reporting_rates(data: pd.DataFrame) -> pd.DataFrame:
     COLUMNS = {
         "Organisation unit": "ou_uid",
         "ds_uid": "ds_uid",
+        "metric": "metric",
         "Period": "period",
-        "reporting_rate": "reporting_rate",
-        "actual_reports": "actual_reports",
+        "Value": "value",
     }
 
     # info regarding dataset UID and type of value in the row (reporting rate or number
@@ -1439,16 +1439,10 @@ def _transform_reporting_rates(data: pd.DataFrame) -> pd.DataFrame:
     # in the source dataframe, each row contains a value for either reporting rate or
     # or actual reports
     data["ds_uid"] = data["Data"].apply(lambda x: x.split(".")[0])
-    data["value_type"] = data["Data"].apply(lambda x: x.split(".")[1])
-    data["reporting_rate"] = data.apply(
-        lambda row: row.Value if row["value_type"] == "REPORTING_RATE" else None, axis=1
-    )
-    data["actual_reports"] = data.apply(
-        lambda row: row.Value if row["value_type"] == "ACTUAL_REPORTS" else None, axis=1
-    )
+    data["metric"] = data["Data"].apply(lambda x: x.split(".")[1])
 
     # in the output dataframe, we want one row per dataset and period
-    df = data.groupby(by=["Organisation unit", "ds_uid", "Period"]).first()
+    df = data.groupby(by=["Organisation unit", "ds_uid", "Period", "metric"]).first()
     df = df.reset_index()
 
     # clean column names and drop unwanted columns
@@ -1456,6 +1450,19 @@ def _transform_reporting_rates(data: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=[col for col in df.columns if col not in COLUMNS.values()])
 
     return df
+
+
+def _reorder_reporting_rates_columns(data: pd.DataFrame) -> pd.DataFrame:
+    """Reorder columns of the reporting rates dataframe.
+
+    Mainly coupling UIDs and names columns together, and adding the full org unit pyramid
+    at the end.
+    """
+    columns_ordered = ["ou_uid", "ds_uid", "ds_name", "period", "metric", "value"]
+    columns_ordered += [
+        column for column in data.columns if column.startswith("level_")
+    ]
+    return data[columns_ordered]
 
 
 def _add_empty_rows(
