@@ -360,7 +360,7 @@ def _check_parameters(**kwargs):
     if (
         not kwargs["org_unit"]
         and not kwargs["org_unit_group"]
-        and not kwargs["org_unit_group"]
+        and not kwargs["org_unit_level"]
     ):
         msg = "No organisation unit provided"
         dag.log_message("ERROR", msg)
