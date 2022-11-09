@@ -3,12 +3,14 @@ import json
 import logging
 import os
 import re
+import sys
 import tempfile
 import typing
 from itertools import product
 
 import click
 import geopandas as gpd
+import openhexa
 import pandas as pd
 from api import Api
 from click.types import Choice
@@ -33,6 +35,8 @@ except ImportError as e:
     )
 
 logger = logging.getLogger(__name__)
+oh = openhexa.OpenHexaContext()
+dag = oh.get_current_dagrun()
 
 # fix "http.client.HTTPException: got more than 100 headers"
 http.client._MAXHEADERS = 1000
@@ -201,35 +205,10 @@ def download(
     """Download data from a DHIS2 instance via its web API."""
     dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
+
+    _check_parameters(**locals())
+
     fs = filesystem(output_dir)
-
-    # Check for existing files at the beginning of the function to
-    # avoid making useless API calls.
-    for fname in (
-        "data_value_sets.csv",
-        "analytics.csv",
-        "analytics_raw_data.csv",
-        "metadata.json",
-    ):
-        fpath = f"{output_dir}/{fname}"
-        if fs.exists(fpath) and not overwrite:
-            raise FileExistsError(f"File {fpath} already exists.")
-
-    # S3FileSystem.mkdirs() will automatically create a new
-    # bucket if permissions allow it and we do not want that.
-    if output_dir.startswith("s3://"):
-        bucket = output_dir.split("//")[-1].split("/")[0]
-        if not _s3_bucket_exists(fs, bucket):
-            raise DHIS2ExtractError(f"S3 bucket {bucket} does not exist.")
-
-    # as of today we do not support requesting data elements and indicators at
-    # the same time
-    if (data_element or data_element_group) and (indicator or indicator_group):
-        raise DHIS2ExtractError(
-            "Cannot extract data elements and indicators at the same time."
-        )
-
-    fs.mkdirs(output_dir, exist_ok=True)
 
     # Load dimension parameters from JSON file.
     # If key is present in the JSON file, it overrides the
@@ -267,11 +246,6 @@ def download(
     # The dataValueSets endpoint does not support data elements UIDs as parameters,
     # only datasets.
     if mode.lower() == "raw":
-
-        if reporting_rates:
-            raise DHIS2ExtractError(
-                "Analytics is required to extract dataset reporting rates"
-            )
 
         csv = dhis.data_value_sets(
             datasets=dataset,
@@ -347,6 +321,86 @@ def download(
         f.write(csv)
 
 
+def _check_parameters(**kwargs):
+    """Check validity of input parameters."""
+    fs = filesystem(kwargs["output_dir"])
+    for fname in (
+        "data_value_sets.csv",
+        "analytics.csv",
+        "analytics_raw_data.csv",
+        "metadata.json",
+    ):
+        fpath = f"{kwargs['output_dir']}/{fname}"
+        if fs.exists(fpath) and not kwargs["overwrite"]:
+            msg = f"File {fpath} already exists"
+            dag.log_message("ERROR", msg)
+            raise FileExistsError(msg)
+
+    # S3FileSystem.mkdirs() will automatically create a new bucket if permissions
+    # allow it and we do not want that
+    if kwargs["output_dir"].startswith("s3://"):
+        bucket = kwargs["output_dir"].split("//")[-1].split("/")[0]
+        if not _s3_bucket_exists(fs, bucket):
+            msg = f"Bucket {bucket} does not exist"
+            dag.log_message("ERROR", msg)
+            raise DHIS2ExtractError(msg)
+
+    # as of today we do not support requesting data elements and indicators at
+    # the same time
+    if (kwargs["data_element"] or kwargs["data_element_group"]) and (
+        kwargs["indicator"] or kwargs["indicator_group"]
+    ):
+        msg = "Cannot extract data elements and indicators at the same time"
+        dag.log_message("ERROR", msg)
+        raise ValueError(msg)
+
+    if (
+        not kwargs["org_unit"]
+        and not kwargs["org_unit_group"]
+        and not kwargs["org_unit_group"]
+    ):
+        msg = "No organisation unit provided"
+        dag.log_message("ERROR", msg)
+        raise ValueError(msg)
+
+    if not kwargs["period"] and (not kwargs["start"] and not kwargs["end"]):
+        msg = "No date or period provided"
+        dag.log_message("ERROR", msg)
+        raise ValueError(msg)
+
+    if bool(kwargs["start"]) ^ bool(kwargs["end"]):
+        msg = "Both start and end dates must be provided"
+        dag.log_message("ERROR", msg)
+        raise ValueError(msg)
+
+    if kwargs["start"] and kwargs["end"]:
+        if kwargs["start"] > kwargs["end"]:
+            msg = "The start date must precede the end date"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
+
+    data_element = (
+        kwargs["data_element"] and kwargs["data_elements_group"] and kwargs["datasets"]
+    )
+    indicator = kwargs["indicator"] and kwargs["indicators"]
+    if not data_element and not indicator:
+        msg = "No data element or indicator provided"
+        dag.log_message("ERROR", msg)
+        raise ValueError(msg)
+
+    if kwargs["mode"] == "analytics" and kwargs["dataset"]:
+        msg = "Dataset parameter is not supported in analytics mode and will be ignored"
+        dag.log_message("WARNING", msg)
+
+    if kwargs["mode"] == "analytics" and kwargs["include_children"]:
+        msg = "`include_children` option is not supported in analytics mode and will be ignored"
+        dag.log_message("WARNING", msg)
+
+    if kwargs["mode"] == "raw" and kwargs["programs"]:
+        msg = "Programs parameter is not supported in raw mode and will be ignored"
+        dag.log_message("WARNING", msg)
+
+
 # Metadata tables and fields to extract from the DHIS2 instance
 METADATA_TABLES = {
     "organisationUnits": "id,code,shortName,name,path,level,geometry",
@@ -386,7 +440,9 @@ class DHIS2:
             user_agent="openhexa-pipelines/dhis2-extraction",
         )
         self.timeout = timeout
+        dag.log_message("INFO", "Extracting instance metadata")
         self.metadata = self.get_metadata()
+        dag.progress_update(10)
 
     def get_metadata(self) -> dict:
         """Pull main metadata tables from the instance.
@@ -445,11 +501,13 @@ class DHIS2:
         list of str
             UIDs of the org units belonging to the provided level.
         """
-        return [
+        org_units = [
             org_unit["id"]
             for org_unit in self.metadata.get("organisationUnits")
             if org_unit.get("level") == level
         ]
+        dag.log_message("INFO", f"{len(org_units)} organisation units in level {level}")
+        return org_units
 
     def data_value_sets(
         self,
@@ -745,10 +803,16 @@ class DHIS2:
             # if start and end dates are provided in ISO format, default to
             # monthly DHIS2 period format
             if _check_iso_date(start_date) and _check_iso_date(end_date):
+                dag.log_message(
+                    "WARNING",
+                    "Start and end dates have been provided in ISO format, defaulting to monthly DHIS2 periods",
+                )
                 start_date = start_date[:7].replace("-", "")
                 end_date = end_date[:7].replace("-", "")
             else:
-                raise DHIS2ExtractError("Unrecognized format for start and end dates.")
+                msg = "Unrecognized format for start and end dates"
+                dag.log_message("ERROR", msg)
+                raise DHIS2ExtractError(msg)
 
         # The analytics API doesn't support start and end dates, only periods.
         # Here, start and end dates are assumed to be in the DHIS2 format and
@@ -758,6 +822,7 @@ class DHIS2:
         # for consistency with the DHIS2 API.
         if not periods and (start_date and end_date):
             periods = get_range(Period(start_date), Period(end_date))
+            dag.log_message("INFO", f"Extracting data for {len(periods)} periods")
 
         # do not add an empty CO parameter to the request if we want indicators
         # instead of data elements
@@ -948,7 +1013,13 @@ class DHIS2:
                 chunks.append(other_params + [pe_param, dx_param])
 
         else:
-            raise DHIS2ExtractError("Unsupported parameter combination")
+            msg = "Unspported parameter combination"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
+
+        dag.log_message(
+            "INFO", f"Extraction request have been divided into {len(chunks)} chunks"
+        )
 
         return chunks
 
@@ -1073,6 +1144,8 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         ("categories.csv", _transform_categories),
     ]
 
+    # progress from 75% to 85%
+    i = 0
     for fname, transform in transform_functions:
 
         fpath = f"{metadata_output_dir}/{fname}"
@@ -1081,16 +1154,27 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
             raise FileExistsError(f"File {fpath} already exists.")
 
         # Transform metadata and write output dataframe to disk
-        logger.info(f"Creating metadata table {fname}.")
+        msg = f"Creating {fname} metadata table"
+        dag.log_message("INFO", msg)
+        logger.info(msg)
         df = transform(metadata)
         with fs_output.open(fpath, "w") as f:
             df.to_csv(f, index=False)
+
+        # progress from 75% to 85%
+        i += 1
+        progress = 75 + (i / len(transform_functions)) * 10
+        dag.progress_update(round(progress))
+
+        dag.add_outputfile(fname, fpath)
 
     # Create a GPKG with all org units for which we have geometries
     fpath = f"{metadata_output_dir}/organisation_units.gpkg"
     if fs_output.exists(fpath) and not overwrite:
         raise FileExistsError(f"File {fpath} already exists.")
 
+    msg = "Creating organisation units geopackage"
+    dag.log_message("INFO", msg)
     logger.info("Creating org units geopackage.")
     fpath = f"{metadata_output_dir}/organisation_units.gpkg"
     if fs_output.exists(fpath) and not overwrite:
@@ -1112,6 +1196,9 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
             )
         fs_output.put(f"{tmpf.name}.gpkg", fpath)
 
+    dag.progress_update(90)
+    dag.add_outputfile("organisation_units.gpkg", fpath)
+
     # These metadata tables are needed to join element names and full org unit
     # hierarchy into the final extract.
     org_units = pd.read_csv(
@@ -1123,15 +1210,18 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     datasets = pd.read_csv(f"{metadata_output_dir}/datasets.csv", index_col=0)
 
     # Transform API response
-    for fname in [
+    fnames = [
         "analytics.csv",
         "analytics_raw_data.csv",
         "data_value_sets.csv",
         "analytics_reporting_rates.csv",
-    ]:
+    ]
+    for i_fname, fname in enumerate(fnames):
+
+        dag.log_message("INFO", f"Creating {fname}")
 
         fpath_input = f"{input_dir}/{fname}"
-        fpath_output = f"{output_dir}/extract.csv"
+        fpath_output = f"{output_dir}/{fname}"
 
         if not fs_input.exists(fpath_input):
             continue
@@ -1164,6 +1254,10 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
                         organisation_units=org_units,
                     )
                     if empty_rows:
+                        dag.log_message(
+                            "WARNING",
+                            "The `empty_rows` option slows down the pipeline significantly - use it only if necessary",
+                        )
                         chunk = _add_empty_rows(
                             chunk,
                             index_columns=["dx_uid", "coc_uid", "period", "ou_uid"],
@@ -1183,6 +1277,11 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
                 with fs_output.open(fpath_output, mode) as f:
                     chunk.to_csv(f, index=False, header=header, mode=mode)
+
+        # progress from 90% to 100%
+        progress = 90 + ((i_fname + 1) / len(fnames)) * 10
+        dag.progress_update(round(progress))
+        dag.add_outputfile(fname, fpath_output)
 
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
@@ -1613,4 +1712,8 @@ def _join_from_metadata(
 
 
 if __name__ == "__main__":
+
+    if "-o" not in sys.argv and "--output-dir" not in sys.argv:
+        dag.log_message("ERROR", "No output directory provided")
+
     cli()
