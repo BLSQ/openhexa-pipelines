@@ -395,11 +395,11 @@ def _check_parameters(**kwargs):
         msg = "Dataset parameter is not supported in analytics mode and will be ignored"
         dag.log_message("WARNING", msg)
 
-    if kwargs["mode"] == "analytics" and kwargs["include_children"]:
+    if kwargs["mode"] == "analytics" and kwargs["children"]:
         msg = "`include_children` option is not supported in analytics mode and will be ignored"
         dag.log_message("WARNING", msg)
 
-    if kwargs["mode"] == "raw" and kwargs["programs"]:
+    if kwargs["mode"] == "raw" and kwargs["program"]:
         msg = "Programs parameter is not supported in raw mode and will be ignored"
         dag.log_message("WARNING", msg)
 
