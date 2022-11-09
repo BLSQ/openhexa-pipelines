@@ -4,6 +4,7 @@ from io import StringIO
 from time import sleep
 from typing import List, Union
 
+import openhexa
 import pandas as pd
 from dhis2 import Api as BaseApi
 from dhis2.exceptions import RequestException
@@ -16,6 +17,8 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+oh = openhexa.OpenHexaContext()
+dag = oh.get_current_dagrun()
 
 
 class MergedResponse:
@@ -66,6 +69,9 @@ class Api(BaseApi):
                 if retries >= max_retries:
                     raise
 
+        if r.status_code != 200:
+            dag.log_message("ERROR", f"HTTP error {r.status_code}")
+
         r.raise_for_status()
         return r
 
@@ -114,10 +120,13 @@ class Api(BaseApi):
         r = None
         for i in range(0, len(chunk_parameter_values), chunk_size):
             params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
-            print(endpoint)
-            print(params)
             r = self.get(endpoint, params=params, **kwargs)
             logger.info(f"Request URL: {r.url}")
             df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))
+
+            # progress between 10 and 75% - downloading data is supposed to be
+            # the longest step
+            progress = 10 + ((i + 1) / len(chunk_parameter_values) * 65)
+            dag.progress_update(round(progress))
 
         return MergedResponse(r, df.to_csv().encode("utf8"))
