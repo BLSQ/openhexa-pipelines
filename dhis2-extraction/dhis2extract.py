@@ -383,9 +383,9 @@ def _check_parameters(**kwargs):
             raise ValueError(msg)
 
     data_element = (
-        kwargs["data_element"] and kwargs["data_element_group"] and kwargs["datasets"]
+        kwargs["data_element"] or kwargs["data_element_group"] or kwargs["datasets"]
     )
-    indicator = kwargs["indicator"] and kwargs["indicator_group"]
+    indicator = kwargs["indicator"] or kwargs["indicator_group"]
     if not data_element and not indicator:
         msg = "No data element or indicator provided"
         dag.log_message("ERROR", msg)
