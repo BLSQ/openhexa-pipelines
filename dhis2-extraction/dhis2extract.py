@@ -345,6 +345,9 @@ def _check_parameters(**kwargs):
             dag.log_message("ERROR", msg)
             raise DHIS2ExtractError(msg)
 
+    if kwargs["metadata_only"]:
+        return
+
     # as of today we do not support requesting data elements and indicators at
     # the same time
     if (kwargs["data_element"] or kwargs["data_element_group"]) and (
