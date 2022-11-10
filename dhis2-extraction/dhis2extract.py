@@ -383,7 +383,7 @@ def _check_parameters(**kwargs):
             raise ValueError(msg)
 
     data_element = (
-        kwargs["data_element"] or kwargs["data_element_group"] or kwargs["datasets"]
+        kwargs["data_element"] or kwargs["data_element_group"] or kwargs["dataset"]
     )
     indicator = kwargs["indicator"] or kwargs["indicator_group"]
     if not data_element and not indicator:
