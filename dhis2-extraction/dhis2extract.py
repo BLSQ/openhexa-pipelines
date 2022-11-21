@@ -629,7 +629,7 @@ class DHIS2:
             "dataValueSets",
             params=params,
             chunk_on=("orgUnit", org_units),
-            chunk_size=50,
+            chunk_size=10,
             file_type="csv",
             timeout=self.timeout,
         ).content.decode()
