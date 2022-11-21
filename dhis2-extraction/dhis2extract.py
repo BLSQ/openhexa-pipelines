@@ -954,7 +954,7 @@ class DHIS2:
     def chunk_dimension_param(
         self,
         src_dimension_param: typing.List[str],
-        chunk_size_ou: int = 50,
+        chunk_size_ou: int = 10,
         chunk_size_pe: int = 10,
         chunk_size_dx: int = 10,
     ):
