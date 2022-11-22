@@ -52,7 +52,9 @@ class Api(BaseApi):
 
         retries = 0
         while retries < max_retries:
+
             try:
+
                 r = self._make_request(
                     "get",
                     endpoint,
@@ -62,17 +64,18 @@ class Api(BaseApi):
                     timeout=timeout,
                 )
                 break
-            except RequestException:
-                logger.info("Request failed. Retrying in 3s...")
+
+            # 1st try failed
+            except RequestException as e:
+                logger.warn("A request failed and is being retried")
                 sleep(3)
                 retries += 1
                 if retries >= max_retries:
+                    dag.log_message(
+                        "ERROR", f"Connection to DHIS2 failed: error {e.code}"
+                    )
                     raise
 
-        if r.status_code != 200:
-            dag.log_message("ERROR", f"HTTP error {r.status_code}")
-
-        r.raise_for_status()
         return r
 
     def chunked_get(
