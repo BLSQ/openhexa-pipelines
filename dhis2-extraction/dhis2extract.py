@@ -12,6 +12,7 @@ import click
 import geopandas as gpd
 import openhexa
 import pandas as pd
+import requests_cache
 from api import Api
 from click.types import Choice
 from fsspec import AbstractFileSystem
@@ -442,6 +443,16 @@ class DHIS2:
             password,
             user_agent="openhexa-pipelines/dhis2-extraction",
         )
+
+        # use requests_cache
+        # as we replace the original session we need to reassign headers
+        # and auth data
+        headers = self.api.session.headers
+        auth = self.api.session.auth
+        self.api.session = requests_cache.CachedSession()
+        self.api.session.headers = headers
+        self.api.session.auth = auth
+
         self.timeout = timeout
         dag.log_message("INFO", "Extracting instance metadata")
         self.metadata = self.get_metadata()
