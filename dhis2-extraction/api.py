@@ -52,7 +52,9 @@ class Api(BaseApi):
 
         retries = 0
         while retries < max_retries:
+
             try:
+
                 r = self._make_request(
                     "get",
                     endpoint,
@@ -62,17 +64,18 @@ class Api(BaseApi):
                     timeout=timeout,
                 )
                 break
-            except RequestException:
-                logger.info("Request failed. Retrying in 3s...")
+
+            # 1st try failed
+            except RequestException as e:
+                logger.warn("A request failed and is being retried")
                 sleep(3)
                 retries += 1
                 if retries >= max_retries:
+                    dag.log_message(
+                        "ERROR", f"Connection to DHIS2 failed: error {e.code}"
+                    )
                     raise
 
-        if r.status_code != 200:
-            dag.log_message("ERROR", f"HTTP error {r.status_code}")
-
-        r.raise_for_status()
         return r
 
     def chunked_get(
@@ -119,8 +122,56 @@ class Api(BaseApi):
         df = pd.DataFrame()
         r = None
         for i in range(0, len(chunk_parameter_values), chunk_size):
+
             params[chunk_parameter_name] = chunk_parameter_values[i : i + chunk_size]
-            r = self.get(endpoint, params=params, **kwargs)
+
+            # when large datasets are requested, DHIS2 may timeout
+            # in that case, chunk on the longest dimension
+            # 1st try: longest dimension is splitted in 2 parts
+            # 2nd try: longest dimension is splitted in 4 parts
+            # 3rd try: longest dimension is splitted in 8 parts
+            MAX_RETRIES = 3
+            TIMEOUT = 60
+            retries = 0
+
+            while retries < MAX_RETRIES:
+
+                try:
+                    r = self.get(endpoint, params=params, **kwargs)
+                    break
+
+                except RequestException as e:
+
+                    if e.code == 504:
+
+                        logger.warn(
+                            "A request timed out and is beging chunked before retry"
+                        )
+                        retries += 1
+
+                        parameter_values = split_params(
+                            params=params[chunk_parameter_name].copy(),
+                            chunk_parameter_name=chunk_parameter_name,
+                            n_splits=2 ** (retries + 1),
+                        )
+
+                        r = self.chunked_get(
+                            endpoint=endpoint,
+                            params={chunk_parameter_name: None},
+                            chunk_on=(chunk_parameter_name, parameter_values),
+                            chunk_size=1,
+                            file_type="csv",
+                            timeout=TIMEOUT,
+                        )
+                        break
+
+                    else:
+                        dag.log_message(
+                            "ERROR",
+                            f"Connection to DHIS2 instance failed (HTTP Error {e.code}",
+                        )
+                        raise
+
             logger.info(f"Request URL: {r.url}")
             df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))
 
@@ -130,3 +181,46 @@ class Api(BaseApi):
             dag.progress_update(round(progress))
 
         return MergedResponse(r, df.to_csv().encode("utf8"))
+
+
+def split_list(src_list: list, n_splits: int = 2) -> List[list]:
+    """Split a list into multiple parts."""
+    length = len(src_list)
+    return [
+        src_list[i * length // n_splits : (i + 1) * length // n_splits]
+        for i in range(n_splits)
+    ]
+
+
+def split_params(
+    params: dict, chunk_parameter_name: str, n_splits: int = 2
+) -> List[dict]:
+    """Split request parameters into multiple parts."""
+    chunks = []
+
+    # get index of longest dimension
+    max_length = 0
+    longest = None
+    for i, dimension in enumerate(params[chunk_parameter_name][0]):
+        key, elements = dimension.split(":")
+        values = elements.split(";")
+        if len(values) > max_length:
+            longest = i
+
+    dim = params[chunk_parameter_name][0][longest]
+    key, elements = dim.split(":")
+    values = elements.split(";")
+
+    # split list of values in half
+    values_splitted = split_list(values, n_splits)
+
+    for values in values_splitted:
+        elements = ";".join([str(v) for v in values])
+        # do not allow chunks with empty dimension
+        if elements:
+            dimension = f"{key}:{elements}"
+            chunk = params[chunk_parameter_name][0].copy()
+            chunk[longest] = dimension
+            chunks.append(chunk)
+
+    return chunks

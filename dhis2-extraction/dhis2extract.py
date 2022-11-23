@@ -12,6 +12,7 @@ import click
 import geopandas as gpd
 import openhexa
 import pandas as pd
+import requests_cache
 from api import Api
 from click.types import Choice
 from fsspec import AbstractFileSystem
@@ -206,8 +207,6 @@ def download(
     dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
 
-    _check_parameters(**locals())
-
     fs = filesystem(output_dir)
 
     # Load dimension parameters from JSON file.
@@ -217,6 +216,8 @@ def download(
         fs = filesystem(from_json)
         with fs.open(from_json) as f:
             params = json.load(f)
+        start = params.get("start", start)
+        end = params.get("end", end)
         period = params.get("period", period)
         org_unit = params.get("org-unit", org_unit)
         org_unit_group = params.get("org-unit-group", org_unit_group)
@@ -234,6 +235,8 @@ def download(
         )
         reporting_rates = params.get("reporting-rates", reporting_rates)
         program = params.get("program", program)
+
+    _check_parameters(**locals())
 
     output_meta = f"{output_dir}/metadata.json"
     with fs.open(output_meta, "w") as f:
@@ -442,6 +445,16 @@ class DHIS2:
             password,
             user_agent="openhexa-pipelines/dhis2-extraction",
         )
+
+        # use requests_cache
+        # as we replace the original session we need to reassign headers
+        # and auth data
+        headers = self.api.session.headers
+        auth = self.api.session.auth
+        self.api.session = requests_cache.CachedSession()
+        self.api.session.headers = headers
+        self.api.session.auth = auth
+
         self.timeout = timeout
         dag.log_message("INFO", "Extracting instance metadata")
         self.metadata = self.get_metadata()
@@ -629,7 +642,7 @@ class DHIS2:
             "dataValueSets",
             params=params,
             chunk_on=("orgUnit", org_units),
-            chunk_size=10,
+            chunk_size=50,
             file_type="csv",
             timeout=self.timeout,
         ).content.decode()
