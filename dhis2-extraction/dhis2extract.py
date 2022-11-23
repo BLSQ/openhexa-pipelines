@@ -207,8 +207,6 @@ def download(
     dhis = DHIS2(instance, username, password, timeout=120)
     output_dir = output_dir.rstrip("/")
 
-    _check_parameters(**locals())
-
     fs = filesystem(output_dir)
 
     # Load dimension parameters from JSON file.
@@ -218,6 +216,8 @@ def download(
         fs = filesystem(from_json)
         with fs.open(from_json) as f:
             params = json.load(f)
+        start = params.get("start", start)
+        end = params.get("end", end)
         period = params.get("period", period)
         org_unit = params.get("org-unit", org_unit)
         org_unit_group = params.get("org-unit-group", org_unit_group)
@@ -235,6 +235,8 @@ def download(
         )
         reporting_rates = params.get("reporting-rates", reporting_rates)
         program = params.get("program", program)
+
+    _check_parameters(**locals())
 
     output_meta = f"{output_dir}/metadata.json"
     with fs.open(output_meta, "w") as f:
