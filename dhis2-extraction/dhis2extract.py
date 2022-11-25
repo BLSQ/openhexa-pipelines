@@ -1039,6 +1039,10 @@ class DHIS2:
             for pe_param, dx_param in product(pe_params, dx_params):
                 chunks.append(other_params + [pe_param, dx_param])
 
+        elif pe_params and ou_params:
+            for pe_param, ou_param in product(pe_params, ou_params):
+                chunks.append(other_params + [pe_param, ou_param])
+
         else:
             msg = "Unspported parameter combination"
             dag.log_message("ERROR", msg)
