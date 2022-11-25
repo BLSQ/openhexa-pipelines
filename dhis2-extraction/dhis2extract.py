@@ -334,6 +334,16 @@ def _check_parameters(**kwargs):
         "metadata.json",
     ):
         fpath = f"{kwargs['output_dir']}/{fname}"
+
+        try:
+            fs.exists(fpath)
+        except PermissionError:
+            bucket = fpath.split("//")[-1].split("/")[0]
+            dag.log_message(
+                "ERROR", f"Permission error when trying to access bucket {bucket}"
+            )
+            raise
+
         if fs.exists(fpath) and not kwargs["overwrite"]:
             msg = f"File {fpath} already exists"
             dag.log_message("ERROR", msg)
