@@ -138,6 +138,7 @@ class Api(BaseApi):
 
                 try:
                     r = self.get(endpoint, params=params, **kwargs)
+                    logger.info(f"Request URL: {r.url}")
                     break
 
                 except RequestException as e:
@@ -147,6 +148,7 @@ class Api(BaseApi):
                         logger.warn(
                             "A request timed out and is beging chunked before retry"
                         )
+                        logger.info("Request timed out")
                         retries += 1
 
                         parameter_values = split_params(
@@ -163,6 +165,7 @@ class Api(BaseApi):
                             file_type="csv",
                             timeout=TIMEOUT,
                         )
+                        logger.info(f"Request URL: {r.url}")
                         break
 
                     else:
@@ -170,9 +173,8 @@ class Api(BaseApi):
                             "ERROR",
                             f"Connection to DHIS2 instance failed (HTTP Error {e.code}",
                         )
-                        raise
+                        raise e
 
-            logger.info(f"Request URL: {r.url}")
             df = pd.concat((df, pd.read_csv(StringIO(r.content.decode()))))
 
             # progress between 10 and 75% - downloading data is supposed to be
