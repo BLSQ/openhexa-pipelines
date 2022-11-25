@@ -322,6 +322,7 @@ def download(
     with fs.open(output_file, "w") as f:
         logger.debug(f"Writing CSV data to {output_file}.")
         f.write(csv)
+        dag.log_message("INFO", "Data successfully downloaded")
 
 
 def _check_parameters(**kwargs):
@@ -334,6 +335,16 @@ def _check_parameters(**kwargs):
         "metadata.json",
     ):
         fpath = f"{kwargs['output_dir']}/{fname}"
+
+        try:
+            fs.exists(fpath)
+        except PermissionError:
+            bucket = fpath.split("//")[-1].split("/")[0]
+            dag.log_message(
+                "ERROR", f"Permission error when trying to access bucket {bucket}"
+            )
+            raise
+
         if fs.exists(fpath) and not kwargs["overwrite"]:
             msg = f"File {fpath} already exists"
             dag.log_message("ERROR", msg)
@@ -1162,6 +1173,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
     # progress from 75% to 85%
     i = 0
+    dag.log_message("INFO", "Exporting instance metadata as CSV files")
     for fname, transform in transform_functions:
 
         fpath = f"{metadata_output_dir}/{fname}"
@@ -1171,7 +1183,6 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
         # Transform metadata and write output dataframe to disk
         msg = f"Creating {fname} metadata table"
-        dag.log_message("INFO", msg)
         logger.info(msg)
         df = transform(metadata)
         with fs_output.open(fpath, "w") as f:
@@ -1189,7 +1200,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     if fs_output.exists(fpath) and not overwrite:
         raise FileExistsError(f"File {fpath} already exists.")
 
-    msg = "Creating organisation units geopackage"
+    msg = "Exporting organisation units geopackage"
     dag.log_message("INFO", msg)
     logger.info("Creating org units geopackage.")
     fpath = f"{metadata_output_dir}/organisation_units.gpkg"
@@ -1234,13 +1245,13 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     ]
     for i_fname, fname in enumerate(fnames):
 
-        dag.log_message("INFO", f"Creating {fname}")
-
         fpath_input = f"{input_dir}/{fname}"
         fpath_output = f"{output_dir}/{fname}"
 
         if not fs_input.exists(fpath_input):
             continue
+
+        dag.log_message("INFO", f"Creating {fname}")
 
         if fs_output.exists(fpath_output) and not overwrite:
             raise FileExistsError(f"File {fpath_output} already exists.")
@@ -1298,6 +1309,8 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         progress = 90 + ((i_fname + 1) / len(fnames)) * 10
         dag.progress_update(round(progress))
         dag.add_outputfile(fname, fpath_output)
+
+    dag.log_message("INFO", "Data successfully transformed")
 
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
