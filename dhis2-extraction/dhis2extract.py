@@ -322,6 +322,7 @@ def download(
     with fs.open(output_file, "w") as f:
         logger.debug(f"Writing CSV data to {output_file}.")
         f.write(csv)
+        dag.log_message("INFO", "Data successfully downloaded")
 
 
 def _check_parameters(**kwargs):
@@ -1308,6 +1309,8 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         progress = 90 + ((i_fname + 1) / len(fnames)) * 10
         dag.progress_update(round(progress))
         dag.add_outputfile(fname, fpath_output)
+
+    dag.log_message("INFO", "Data successfully transformed")
 
 
 def _transform_org_units(metadata: dict) -> pd.DataFrame:
