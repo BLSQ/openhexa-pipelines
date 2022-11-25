@@ -1244,13 +1244,13 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     ]
     for i_fname, fname in enumerate(fnames):
 
-        dag.log_message("INFO", f"Creating {fname}")
-
         fpath_input = f"{input_dir}/{fname}"
         fpath_output = f"{output_dir}/{fname}"
 
         if not fs_input.exists(fpath_input):
             continue
+
+        dag.log_message("INFO", f"Creating {fname}")
 
         if fs_output.exists(fpath_output) and not overwrite:
             raise FileExistsError(f"File {fpath_output} already exists.")
