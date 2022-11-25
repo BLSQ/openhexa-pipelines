@@ -1172,6 +1172,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
     # progress from 75% to 85%
     i = 0
+    dag.log_message("INFO", "Exporting instance metadata as CSV files")
     for fname, transform in transform_functions:
 
         fpath = f"{metadata_output_dir}/{fname}"
@@ -1181,7 +1182,6 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
 
         # Transform metadata and write output dataframe to disk
         msg = f"Creating {fname} metadata table"
-        dag.log_message("INFO", msg)
         logger.info(msg)
         df = transform(metadata)
         with fs_output.open(fpath, "w") as f:
@@ -1199,7 +1199,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     if fs_output.exists(fpath) and not overwrite:
         raise FileExistsError(f"File {fpath} already exists.")
 
-    msg = "Creating organisation units geopackage"
+    msg = "Exporting organisation units geopackage"
     dag.log_message("INFO", msg)
     logger.info("Creating org units geopackage.")
     fpath = f"{metadata_output_dir}/organisation_units.gpkg"
