@@ -1517,9 +1517,11 @@ def _transform_category_option_combos(metadata: dict) -> pd.DataFrame:
     columns = {src: dst for src, dst in COLUMNS.items() if src in df.columns}
     df = df[columns.keys()]
     df = df.rename(columns=columns)
-    df["category_combo"] = df.category_combo.apply(lambda x: x.get("id"))
+    df["category_combo"] = df.category_combo.apply(
+        lambda x: x.get("id") if isinstance(x, dict) else None
+    )
     df["category_options"] = df.category_options.apply(
-        lambda x: ";".join([co.get("id") for co in x])
+        lambda x: ";".join([co.get("id") for co in x if isinstance(x, dict)])
     )
     return df
 
