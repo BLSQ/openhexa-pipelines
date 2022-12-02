@@ -1,0 +1,13 @@
+pandas
+s3fs==2022.2.0
+gcsfs==2022.2.0
+fsspec
+click
+botocore
+geopandas
+sentry-sdk
+sqlalchemy
+rasterstats
+rasterio
+requests
+pytest
