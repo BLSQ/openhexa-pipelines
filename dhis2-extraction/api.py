@@ -63,6 +63,7 @@ class Api(BaseApi):
                     stream=stream,
                     timeout=timeout,
                 )
+                logger.info(f"Request URL: {r.url}")
                 break
 
             # 1st try failed
@@ -115,8 +116,7 @@ class Api(BaseApi):
         if len(chunk_parameter_values) == 0:
             raise ValueError("Cannot chunk requests with an empty list of values")
         elif len(chunk_parameter_values) < chunk_size:
-            params[chunk_parameter_name] = chunk_parameter_values
-
+            params[chunk_parameter_name] = chunk_parameter_values[0]
             return self.get(endpoint, params=params, **kwargs)
 
         df = pd.DataFrame()
@@ -138,12 +138,11 @@ class Api(BaseApi):
 
                 try:
                     r = self.get(endpoint, params=params, **kwargs)
-                    logger.info(f"Request URL: {r.url}")
                     break
 
                 except RequestException as e:
 
-                    if e.code == 504:
+                    if e.code == 504 and "analytics" in endpoint:
 
                         logger.warn(
                             "A request timed out and is beging chunked before retry"
@@ -152,7 +151,7 @@ class Api(BaseApi):
                         retries += 1
 
                         parameter_values = split_params(
-                            params=params[chunk_parameter_name].copy(),
+                            params=params.copy(),
                             chunk_parameter_name=chunk_parameter_name,
                             n_splits=2 ** (retries + 1),
                         )
@@ -165,7 +164,6 @@ class Api(BaseApi):
                             file_type="csv",
                             timeout=TIMEOUT,
                         )
-                        logger.info(f"Request URL: {r.url}")
                         break
 
                     else:
@@ -200,29 +198,31 @@ def split_params(
     """Split request parameters into multiple parts."""
     chunks = []
 
-    # get index of longest dimension
-    max_length = 0
-    longest = None
-    for i, dimension in enumerate(params[chunk_parameter_name][0]):
-        key, elements = dimension.split(":")
+    for param in params[chunk_parameter_name]:
+
+        # get index of longest dimension
+        max_length = 0
+        longest = None
+        for i, dimension in enumerate(param):
+            key, elements = dimension.split(":")
+            values = elements.split(";")
+            if len(values) > max_length:
+                longest = i
+
+        dim = param[longest]
+        key, elements = dim.split(":")
         values = elements.split(";")
-        if len(values) > max_length:
-            longest = i
 
-    dim = params[chunk_parameter_name][0][longest]
-    key, elements = dim.split(":")
-    values = elements.split(";")
+        # split list of values in n_splits parts
+        values_splitted = split_list(values, n_splits)
 
-    # split list of values in half
-    values_splitted = split_list(values, n_splits)
-
-    for values in values_splitted:
-        elements = ";".join([str(v) for v in values])
-        # do not allow chunks with empty dimension
-        if elements:
-            dimension = f"{key}:{elements}"
-            chunk = params[chunk_parameter_name][0].copy()
-            chunk[longest] = dimension
-            chunks.append(chunk)
+        for values in values_splitted:
+            elements = ";".join([str(v) for v in values])
+            # do not allow chunks with empty dimension
+            if elements:
+                dimension = f"{key}:{elements}"
+                chunk = param.copy()
+                chunk[longest] = dimension
+                chunks.append(chunk)
 
     return chunks
