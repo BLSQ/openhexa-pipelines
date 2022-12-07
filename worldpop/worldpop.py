@@ -98,16 +98,15 @@ def download(country: str, dataset: str, year: int, output_dir: str, overwrite: 
         dag.log_message("ERROR", msg)
         raise ValueError(msg)
 
-    dst_dir = os.path.join(output_dir, dataset, country, str(year))
-    fs.makedirs(dst_dir, exist_ok=True)
+    fs.makedirs(output_dir, exist_ok=True)
 
-    if len(fs.ls(dst_dir)) > 0:
+    if len(fs.ls(output_dir)) > 0:
         if overwrite:
-            msg = f"Data found in {dst_dir} will be overwritten"
+            msg = f"Data found in {output_dir} will be overwritten"
             logger.info(msg)
             dag.log_message("WARNING", msg)
         else:
-            msg = f"Data found in {dst_dir}, skipping download"
+            msg = f"Data found in {output_dir}, skipping download"
             logger.info(msg)
             dag.log_message("WARNING", msg)
             dag.progress_update(50)
@@ -123,7 +122,7 @@ def download(country: str, dataset: str, year: int, output_dir: str, overwrite: 
         tmp_files = worldpop.download(tmp_dir, year)
         dag.progress_update(25)
         for tmp_file in tmp_files:
-            fs.put(tmp_file, os.path.join(dst_dir, os.path.basename(tmp_file)))
+            fs.put(tmp_file, os.path.join(output_dir, os.path.basename(tmp_file)))
         dag.progress_update(50)
 
     dag.log_message("INFO", "Data download succeeded")
