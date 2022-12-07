@@ -9,7 +9,7 @@ import click
 import geopandas as gpd
 import openhexa
 import rasterio
-import requests_cache
+import requests
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -98,16 +98,15 @@ def download(country: str, dataset: str, year: int, output_dir: str, overwrite: 
         dag.log_message("ERROR", msg)
         raise ValueError(msg)
 
-    dst_dir = os.path.join(output_dir, dataset, country, str(year))
-    fs.makedirs(dst_dir, exist_ok=True)
+    fs.makedirs(output_dir, exist_ok=True)
 
-    if len(fs.ls(dst_dir)) > 0:
+    if len(fs.ls(output_dir)) > 0:
         if overwrite:
-            msg = f"Data found in {dst_dir} will be overwritten"
+            msg = f"Data found in {output_dir} will be overwritten"
             logger.info(msg)
             dag.log_message("WARNING", msg)
         else:
-            msg = f"Data found in {dst_dir}, skipping download"
+            msg = f"Data found in {output_dir}, skipping download"
             logger.info(msg)
             dag.log_message("WARNING", msg)
             dag.progress_update(50)
@@ -123,7 +122,7 @@ def download(country: str, dataset: str, year: int, output_dir: str, overwrite: 
         tmp_files = worldpop.download(tmp_dir, year)
         dag.progress_update(25)
         for tmp_file in tmp_files:
-            fs.put(tmp_file, os.path.join(dst_dir, os.path.basename(tmp_file)))
+            fs.put(tmp_file, os.path.join(output_dir, os.path.basename(tmp_file)))
         dag.progress_update(50)
 
     dag.log_message("INFO", "Data download succeeded")
@@ -143,10 +142,10 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
     fs = filesystem(src_boundaries)
 
     # if src_population is a dir, just use the first found .tif
-    if fs.isdir(src_boundaries):
-        for fname in fs.ls(src_boundaries):
+    if fs.isdir(src_population):
+        for fname in fs.ls(src_population):
             if fname.lower().endswith(".tif") or fname.lower().endswith(".tiff"):
-                src_boundaries = src_boundaries
+                src_population = fname
                 break
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -165,7 +164,16 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
         count = count_population(
             src_boundaries=tmp_boundaries, src_population=tmp_population
         )
-        count.to_file(tmp_count, driver="GPKG")
+
+        if dst_file.lower().endswith(".gpkg"):
+            count.to_file(tmp_count, driver="GPKG")
+        elif dst_file.lower().endswith(".csv"):
+            count.drop("geometry", axis=1).to_csv(tmp_count, index=False)
+        else:
+            msg = "Unspported extension for output file"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
+
         fs = filesystem(dst_file)
         fs.put(tmp_count, dst_file)
 
@@ -211,7 +219,7 @@ class WorldPop:
                 allowed_methods=["HEAD", "GET"],
             )
         )
-        self.s = requests_cache.CachedSession()
+        self.s = requests.Session()
         self.s.mount("https://", retry_adapter)
         self.s.mount("http://", retry_adapter)
 
