@@ -141,6 +141,14 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
     """Spatial aggregation of population counts."""
     fs = filesystem(src_boundaries)
 
+    try:
+        fs.isdir(src_population)
+    except PermissionError:
+        dag.log_message(
+            "ERROR", f"Permission error when trying to access {src_population}"
+        )
+        raise
+
     # if src_population is a dir, just use the first found .tif
     if fs.isdir(src_population):
         for fname in fs.ls(src_population):
