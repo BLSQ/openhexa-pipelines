@@ -9,7 +9,7 @@ import click
 import geopandas as gpd
 import openhexa
 import rasterio
-import requests_cache
+import requests
 from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
@@ -211,7 +211,7 @@ class WorldPop:
                 allowed_methods=["HEAD", "GET"],
             )
         )
-        self.s = requests_cache.CachedSession()
+        self.s = requests.Session()
         self.s.mount("https://", retry_adapter)
         self.s.mount("http://", retry_adapter)
 
