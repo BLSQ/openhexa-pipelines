@@ -139,10 +139,11 @@ def download(country: str, dataset: str, year: int, output_dir: str, overwrite: 
 @click.option("--overwrite", is_flag=True, default=False)
 def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite: bool):
     """Spatial aggregation of population counts."""
-    fs = filesystem(src_boundaries)
+    fs_boundaries = filesystem(src_boundaries)
+    fs_population = filesystem(src_population)
 
     try:
-        fs.isdir(src_population)
+        fs_population.isdir(src_population)
     except PermissionError:
         dag.log_message(
             "ERROR", f"Permission error when trying to access {src_population}"
@@ -150,21 +151,21 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
         raise
 
     # if src_population is a dir, just use the first found .tif
-    if fs.isdir(src_population):
-        for fname in fs.ls(src_population):
+    if fs_population.isdir(src_population):
+        for fname in fs_population.ls(src_population):
             if fname.lower().endswith(".tif") or fname.lower().endswith(".tiff"):
                 src_population = fname
                 break
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        fs = filesystem(src_boundaries)
+        fs_boundaries = filesystem(src_boundaries)
         tmp_boundaries = os.path.join(tmp_dir, os.path.basename(src_boundaries))
-        fs.get(src_boundaries, tmp_boundaries)
+        fs_boundaries.get(src_boundaries, tmp_boundaries)
 
-        fs = filesystem(src_population)
+        fs_population = filesystem(src_population)
         tmp_population = os.path.join(tmp_dir, os.path.basename(src_population))
-        fs.get(src_population, tmp_population)
+        fs_population.get(src_population, tmp_population)
 
         dag.progress_update(75)
 
