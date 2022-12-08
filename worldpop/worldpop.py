@@ -187,6 +187,8 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
         dag.log_message("INFO", "Spatial aggregagation succeeded")
         dag.progress_update(100)
 
+    dag.add_outputfile(os.path.basename(dst_file), dst_file)
+
 
 API_URL = "https://hub.worldpop.org/rest"
 DOWNLOAD_URL = "https://data.worldpop.org"
