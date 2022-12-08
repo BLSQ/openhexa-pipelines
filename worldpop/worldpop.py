@@ -159,11 +159,9 @@ def aggregate(src_boundaries: str, src_population: str, dst_file: str, overwrite
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        fs_boundaries = filesystem(src_boundaries)
         tmp_boundaries = os.path.join(tmp_dir, os.path.basename(src_boundaries))
         fs_boundaries.get(src_boundaries, tmp_boundaries)
 
-        fs_population = filesystem(src_population)
         tmp_population = os.path.join(tmp_dir, os.path.basename(src_population))
         fs_population.get(src_population, tmp_population)
 
