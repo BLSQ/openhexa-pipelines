@@ -42,7 +42,6 @@ parser.add_argument(
     action="store",
     type=str,
     help="Output notebook to generate",
-    required=True,
 )
 parser.add_argument(
     "-p",
@@ -83,7 +82,10 @@ parameters = {k: dumb_cast(v) for k, v in parameters.items()}
 
 # inject execution date, if present
 execution_date = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")
-out_notebook = args.out_nb.replace("%DATE", execution_date)
+if args.out_nb:
+    out_notebook = args.out_nb.replace("%DATE", execution_date)
+else:
+    out_notebook = None
 
 logger.info(
     "Papermill pipeline start, in %s, out %s, parameters %s",
