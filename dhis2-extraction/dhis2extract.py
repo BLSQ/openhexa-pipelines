@@ -123,6 +123,9 @@ def cli():
 @click.option(
     "--org-unit-level", "-lvl", type=int, multiple=True, help="Organisation unit level."
 )
+@click.option(
+    "--org-unit-mode", type=str, help="Org unit lookup mode", default="SELECTED"
+)
 @click.option("--dataset", "-ds", type=str, multiple=True, help="Dataset UID.")
 @click.option(
     "--data-element", "-de", type=str, multiple=True, help="Data element UID."
@@ -166,7 +169,9 @@ def cli():
 @click.option(
     "--mode",
     "-m",
-    type=Choice(["analytics", "raw", "reporting-rates"], case_sensitive=False),
+    type=Choice(
+        ["analytics", "raw", "reporting-rates", "tracker"], case_sensitive=False
+    ),
     default="analytics",
     help="DHIS2 API endpoint to use",
 )
@@ -187,6 +192,7 @@ def download(
     org_unit: typing.Sequence[str],
     org_unit_group: typing.Sequence[str],
     org_unit_level: typing.Sequence[str],
+    org_unit_mode: str,
     dataset: typing.Sequence[str],
     data_element: typing.Sequence[str],
     data_element_group: typing.Sequence[str],
@@ -315,6 +321,17 @@ def download(
         )
         output_file = f"{output_dir}/analytics_reporting_rates.csv"
 
+    elif mode.lower() == "tracker":
+
+        csv = dhis.tracker(
+            org_units=org_unit,
+            program=program,
+            start_date=start,
+            end_date=end,
+            ou_mode=org_unit_mode,
+        )
+        output_file = f"{output_dir}/tracker.csv"
+
     else:
         raise DHIS2ExtractError(f"{mode} is an invalid request mode.")
 
@@ -331,6 +348,7 @@ def _check_parameters(**kwargs):
         "data_value_sets.csv",
         "analytics.csv",
         "analytics_raw_data.csv",
+        "tracker.csv",
         "metadata.json",
     ):
         fpath = f"{kwargs['output_dir']}/{fname}"
@@ -399,10 +417,11 @@ def _check_parameters(**kwargs):
         kwargs["data_element"] or kwargs["data_element_group"] or kwargs["dataset"]
     )
     indicator = kwargs["indicator"] or kwargs["indicator_group"]
-    if not data_element and not indicator:
-        msg = "No data element or indicator provided"
-        dag.log_message("ERROR", msg)
-        raise ValueError(msg)
+    if kwargs["mode"] != "tracker":
+        if not data_element and not indicator:
+            msg = "No data element or indicator provided"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
 
     if kwargs["mode"] == "analytics" and kwargs["dataset"]:
         msg = "Dataset parameter is not supported in analytics mode and will be ignored"
@@ -1044,6 +1063,68 @@ class DHIS2:
 
         return chunks
 
+    @staticmethod
+    def _iter_event_data_values(r: dict) -> dict:
+        for event in r.get("instances"):
+            for data_value in event.get("dataValues"):
+                yield {
+                    "event_uid": event.get("event"),
+                    "event_date": event.get("occurredAt"),
+                    "program_uid": event.get("program"),
+                    "ou_uid": event.get("orgUnit"),
+                    "ou_name": event.get("orgUnitName"),
+                    "dx_uid": data_value.get("dataElement"),
+                    "value": data_value.get("value"),
+                }
+
+    def tracker(
+        self,
+        org_units: typing.List[str],
+        program: str,
+        start_date: str,
+        end_date: str,
+        ou_mode: str = "SELECTED",
+    ) -> str:
+        ou_mode = ou_mode.upper()
+        if ou_mode not in (
+            "SELECTED",
+            "CHILDREN",
+            "DESCENDANTS",
+            "ACCESSIBLE",
+            "CAPTURE",
+            "ALL",
+        ):
+            msg = "Invalid org unit mode"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
+
+        if not _check_iso_date(start_date) or not _check_iso_date(end_date):
+            msg = "Date not in ISO-8601 format"
+            dag.log_message("ERROR", msg)
+            raise ValueError(msg)
+
+        params = {
+            "orgUnit": ";".join(org_units),
+            "ouMode": ou_mode,
+            "program": program,
+            "eventOccuredAfter": start_date,
+            "eventOccuredBefore": end_date,
+            "paging": True,
+            "totalPages": True,
+        }
+
+        r = self.api.get(endpoint="tracker/events", params=params)
+        records = [dv for dv in self._iter_event_data_values(r.json())]
+        n_pages = r.json()["total"]
+
+        if n_pages > 1:
+            for page in (2, n_pages + 1):
+                params["page"] = page
+                r = self.api.get(endpoint="tracker/events", params=params)
+                records += [record for record in self._iter_event_data_values(r.json())]
+
+        return pd.DataFrame(records).to_csv()
+
 
 def _dimension_param(
     periods: typing.Sequence[str] = None,
@@ -1274,6 +1355,13 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
                         extract=chunk, organisation_units=org_units, datasets=datasets
                     )
                     chunk = _reorder_reporting_rates_columns(chunk)
+                elif fname == "tracker.csv":
+                    chunk = _transform_tracker(chunk)
+                    chunk = _join_from_metadata(
+                        extract=chunk,
+                        organisation_units=org_units,
+                        data_elements=data_elements,
+                    )
                 else:
                     chunk = _transform(chunk)
                     chunk = _join_from_metadata(
@@ -1581,6 +1669,25 @@ def _transform_reporting_rates(data: pd.DataFrame) -> pd.DataFrame:
     # clean column names and drop unwanted columns
     df = df.rename(columns=COLUMNS)
     df = df.drop(columns=[col for col in df.columns if col not in COLUMNS.values()])
+
+    return df
+
+
+def _transform_tracker(data: pd.DataFrame) -> pd.DataFrame:
+    """Transform API response for tracker events."""
+    COLUMNS = {
+        "event_uid": "event_uid",
+        "event_date": "event_date",
+        "program_uid": "program_uid",
+        "ou_uid": "ou_uid",
+        "ou_name": "ou_name",
+        "dx_uid": "dx_uid",
+        "value": "value",
+    }
+
+    columns_in_data = {src: dst for src, dst in COLUMNS.items() if src in data.columns}
+    df = data[[col for col in columns_in_data]]
+    df = data.rename(columns=columns_in_data)
 
     return df
 
