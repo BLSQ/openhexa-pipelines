@@ -1326,6 +1326,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
         "analytics_raw_data.csv",
         "data_value_sets.csv",
         "analytics_reporting_rates.csv",
+        "tracker.csv",
     ]
     for i_fname, fname in enumerate(fnames):
 
