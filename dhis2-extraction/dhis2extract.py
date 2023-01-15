@@ -156,6 +156,7 @@ def cli():
     help="Category option combo UID.",
 )
 @click.option("--program", "-prg", type=str, multiple=True, help="Program UID.")
+@click.option("--coc/--no-coc", is_flag=True, default=True, help="Include COCs")
 @click.option("--from-json", type=str, help="Load parameters from a JSON file.")
 @click.option(
     "--reporting-rates", is_flag=True, default=False, help="Get dataset reporting rates"
@@ -201,6 +202,7 @@ def download(
     attribute_option_combo: typing.Sequence[str],
     category_option_combo: typing.Sequence[str],
     program: typing.Sequence[str],
+    coc: bool,
     from_json: str,
     reporting_rates: bool,
     children: bool,
@@ -287,6 +289,7 @@ def download(
             indicator_groups=indicator_group,
             category_option_combos=category_option_combo,
             programs=program,
+            coc=coc
         )
         output_file = f"{output_dir}/analytics.csv"
 
@@ -778,6 +781,7 @@ class DHIS2:
         indicator_groups: typing.Sequence[str] = None,
         category_option_combos: typing.Sequence[str] = None,
         programs: typing.Sequence[str] = None,
+        coc: bool = False
     ) -> str:
         """Extract aggregated data values from a DHIS2 instance.
 
@@ -810,6 +814,8 @@ class DHIS2:
             UIDs of the category option combos of interest.
         programs : list of str, optional
             UIDs of the programs of interest.
+        coc : bool, optional
+            Include COCs in extract.
 
         Returns
         -------
@@ -865,7 +871,7 @@ class DHIS2:
         if indicators or indicator_groups:
             add_empty_co_arg = False
         else:
-            add_empty_co_arg = True
+            add_empty_co_arg = coc
 
         dimension = _dimension_param(
             periods=periods,
