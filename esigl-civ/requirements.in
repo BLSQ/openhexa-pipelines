@@ -1,0 +1,10 @@
+pandas
+s3fs
+gcsfs
+fsspec
+pytest
+click
+python-dateutil
+sentry-sdk
+requests
+requests_cache
