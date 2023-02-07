@@ -1,4 +1,4 @@
-name: Build worldpop component image
+name: Build ESIGL component image
 
 on:
   pull_request:
