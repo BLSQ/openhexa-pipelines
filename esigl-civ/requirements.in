@@ -8,3 +8,4 @@ python-dateutil
 sentry-sdk
 requests
 requests_cache
+sqlalchemy

@@ -81,6 +81,8 @@ google-resumable-media==2.4.1
     # via google-cloud-storage
 googleapis-common-protos==1.58.0
     # via google-api-core
+greenlet==2.0.2
+    # via sqlalchemy
 idna==3.4
     # via
     #   requests
@@ -143,10 +145,14 @@ six==1.16.0
     #   google-auth
     #   python-dateutil
     #   url-normalize
+sqlalchemy==2.0.2
+    # via -r requirements.in
 tomli==2.0.1
     # via pytest
 typing-extensions==4.4.0
-    # via aioitertools
+    # via
+    #   aioitertools
+    #   sqlalchemy
 url-normalize==1.4.3
     # via requests-cache
 urllib3==1.26.14
