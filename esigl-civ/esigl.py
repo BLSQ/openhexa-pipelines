@@ -236,6 +236,12 @@ def download(
             # progress from 0 to 50% at the end of the loop
             i += 1
             progress = i / (len(date_range) * len(program)) * 50
+
+            # openhexa-sdk return an error if the progress is < 1
+            # todo: fix this in openhexa-sdk instead
+            if progress < 1:
+                progress = 1
+
             dag.progress_update(round(progress))
 
     dag.log_message("INFO", "Successful data download")
