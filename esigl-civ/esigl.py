@@ -219,6 +219,7 @@ def download(
         fpath = os.path.join(output_dir, "metadata", f"{mtype}.csv")
         with fs.open(fpath, "w") as f:
             df.to_csv(f, index=True)
+            logger.info(f"Downloaded {mtype} metadata into {f}")
 
     # build range of dates for which we want to download reports
     date_range = []
@@ -226,6 +227,9 @@ def download(
     while date < end + relativedelta(months=1):
         date_range.append(date)
         date += relativedelta(months=1)
+    logger.info(
+        f"Will download monthly stock status reports for {len(date_range)} periods"
+    )
 
     i = 0
     for date in date_range:
@@ -246,6 +250,8 @@ def download(
             if not report.empty:
                 with fs.open(fpath, "w") as f:
                     report.to_csv(f, index=False)
+
+            logger.info(f"Downloaded monthly {prg} report for {date.strftime('%Y-%m')}")
 
             # progress from 0 to 50% at the end of the loop
             i += 1
