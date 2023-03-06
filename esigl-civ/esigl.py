@@ -153,6 +153,8 @@ def download(
     overwrite: bool,
 ):
     """Download monthly reports."""
+    output_dir = output_dir.lstrip("/")
+
     # check provided start and end dates
     if not _check_iso_date(start):
         msg = "Start date must be in ISO format"
@@ -178,6 +180,18 @@ def download(
             "ERROR", "Permission error when trying to access output directory"
         )
         raise
+
+    # remove data from previous run if it is detected in the output dir
+    # if overwrite is set to False, raise an error
+    raw_data_dir = f"{output_dir}/raw"
+    if fs.exists(raw_data_dir):
+        if overwrite:
+            for f in fs.glob(f"{raw_data_dir}/*.csv"):
+                fs.rm(f)
+            for f in fs.glob(f"{raw_data_dir}/metadata/*.csv"):
+                fs.rm(f)
+        else:
+            return FileExistsError("Output directory is not empty")
 
     # parse dates
     start = datetime.strptime(start[:7], "%Y-%m")
