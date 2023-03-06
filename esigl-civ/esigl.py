@@ -252,19 +252,36 @@ def download(
 
         for prg in program:
 
-            report = esigl.get_monthly_report(
-                year=date.year, month=date.month, program=prg
-            )
-
             fpath = os.path.join(
                 output_dir, f"stock_status_{date.strftime('%Y%m')}_{prg}.csv"
             )
 
-            if not report.empty:
-                with fs.open(fpath, "w") as f:
-                    report.to_csv(f, index=False)
+            if fs.exists(fpath):
 
-            logger.info(f"Downloaded monthly {prg} report for {date.strftime('%Y-%m')}")
+                # if the monthly stock status exists already, skip download
+                # if overwrite is set to True, then the files have already
+                # been removed anyway
+                logger.info(
+                    f"Skipping download for monthly {prg} report for {date.strftime('%Y-%m')}"
+                )
+
+            else:
+
+                report = esigl.get_monthly_report(
+                    year=date.year, month=date.month, program=prg
+                )
+
+                fpath = os.path.join(
+                    output_dir, f"stock_status_{date.strftime('%Y%m')}_{prg}.csv"
+                )
+
+                if not report.empty:
+                    with fs.open(fpath, "w") as f:
+                        report.to_csv(f, index=False)
+
+                logger.info(
+                    f"Downloaded monthly {prg} report for {date.strftime('%Y-%m')}"
+                )
 
             # progress from 0 to 50% at the end of the loop
             i += 1
