@@ -195,16 +195,12 @@ def download(
         raise
 
     # remove data from previous run if it is detected in the output dir
-    # if overwrite is set to False, raise an error
     raw_data_dir = f"{output_dir}/raw"
-    if fs.exists(raw_data_dir):
-        if overwrite:
-            for f in fs.glob(f"{raw_data_dir}/*.csv"):
-                fs.rm(f)
-            for f in fs.glob(f"{raw_data_dir}/metadata/*.csv"):
-                fs.rm(f)
-        else:
-            return FileExistsError("Output directory is not empty")
+    if fs.exists(raw_data_dir) and overwrite:
+        for f in fs.glob(f"{raw_data_dir}/*.csv"):
+            fs.rm(f)
+        for f in fs.glob(f"{raw_data_dir}/metadata/*.csv"):
+            fs.rm(f)
 
     # parse dates
     start = datetime.strptime(start[:7], "%Y-%m")
