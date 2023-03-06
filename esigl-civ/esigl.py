@@ -15,8 +15,10 @@ from fsspec import AbstractFileSystem
 from fsspec.implementations.http import HTTPFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
+from requests.adapters import HTTPAdapter
 from s3fs import S3FileSystem
 from sqlalchemy import create_engine
+from urllib3.util import Retry
 
 try:
     import common  # noqa: F401
@@ -50,6 +52,17 @@ class Esigl:
         self.url = url.rstrip("/")
         self.authenticate(username, password)
 
+        retry_adapter = HTTPAdapter(
+            max_retries=Retry(
+                total=3,
+                status_forcelist=[429, 500, 502, 503, 504],
+                allowed_methods=["HEAD", "GET"],
+            )
+        )
+        self.s = requests.Session()
+        self.s.mount("https://", retry_adapter)
+        self.s.mount("http://", retry_adapter)
+
     def authenticate(self, username: str, password: str):
 
         auth = base64.b64encode(f"{username}:{password}".encode()).decode()
@@ -59,14 +72,14 @@ class Esigl:
 
         url = f"{self.url}/rest-api/stock-status/monthly"
         params = {"month": f"{month:02}", "year": str(year), "program": program}
-        r = self.session.get(url, params=params)
+        r = self.session.get(url, params=params, timeout=30)
         r.raise_for_status()
         return pd.DataFrame.from_records(r.json()["report"])
 
     def get_metadata(self, metadata_type: str) -> pd.DataFrame:
 
         url = f"{self.url}/rest-api/lookup/{metadata_type}"
-        r = self.session.get(url, params={"pageSize": 10000})
+        r = self.session.get(url, params={"pageSize": 10000}, timeout=30)
         r.raise_for_status()
         df = pd.DataFrame.from_records(r.json()[metadata_type])
 
@@ -81,7 +94,7 @@ class Esigl:
 
         url = f"{self.url}/rest-api/requisitions"
         params = {"facilityCode": facility_code}
-        r = self.session.get(url, params=params)
+        r = self.session.get(url, params=params, timeout=30)
         r.raise_for_status()
         return r.json()["requisitions"]
 
