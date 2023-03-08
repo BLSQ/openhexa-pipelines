@@ -166,7 +166,7 @@ def download(
     overwrite: bool,
 ):
     """Download monthly reports."""
-    output_dir = output_dir.lstrip("/")
+    output_dir = output_dir.rstrip("/")
 
     # check provided start and end dates
     if not _check_iso_date(start):
@@ -376,7 +376,7 @@ def process_report(
         "programName": "programme",
         "reportPeriodName": "periode",
         "reportedDate": "date",
-        "facilityName": "code_ets",
+        "facilityName": "structure",
         "district": "district",
         "productCode": "code_produit",
         "product": "produit",
@@ -392,7 +392,7 @@ def process_report(
     }
     df = df.rename(columns=COLUMNS)
     df = df.drop(columns=[col for col in df.columns if col not in COLUMNS.values()])
-    df["code_ets"] = df["code_ets"].apply(lambda x: _get_facility_code(x, facilities))
+    df["code_ets"] = df["structure"].apply(lambda x: _get_facility_code(x, facilities))
     df["date"] = df["date"].apply(_from_unix_timestamp)
     df["region"] = df["district"].apply(lambda x: _get_parent_name(x, geographic_zones))
     df["unite_de_rapportage"] = df["code_produit"].apply(
