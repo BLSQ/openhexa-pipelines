@@ -289,7 +289,7 @@ def download(
             indicator_groups=indicator_group,
             category_option_combos=category_option_combo,
             programs=program,
-            coc=coc
+            coc=coc,
         )
         output_file = f"{output_dir}/analytics.csv"
 
@@ -781,7 +781,7 @@ class DHIS2:
         indicator_groups: typing.Sequence[str] = None,
         category_option_combos: typing.Sequence[str] = None,
         programs: typing.Sequence[str] = None,
-        coc: bool = False
+        coc: bool = False,
     ) -> str:
         """Extract aggregated data values from a DHIS2 instance.
 
@@ -1325,6 +1325,7 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
     indicators = pd.read_csv(f"{metadata_output_dir}/indicators.csv", index_col=0)
     coc = pd.read_csv(f"{metadata_output_dir}/category_option_combos.csv", index_col=0)
     datasets = pd.read_csv(f"{metadata_output_dir}/datasets.csv", index_col=0)
+    programs = pd.read_csv(f"{metadata_output_dir}/programs.csv", index_col=0)
 
     # Transform API response
     fnames = [
@@ -1368,6 +1369,8 @@ def transform(input_dir, output_dir, empty_rows, overwrite):
                         extract=chunk,
                         organisation_units=org_units,
                         data_elements=data_elements,
+                        indicators=indicators,
+                        programs=programs,
                     )
                 else:
                     chunk = _transform(chunk)
@@ -1686,9 +1689,11 @@ def _transform_tracker(data: pd.DataFrame) -> pd.DataFrame:
         "event_uid": "event_uid",
         "event_date": "event_date",
         "program_uid": "program_uid",
+        "program_name": "program_name",
         "ou_uid": "ou_uid",
         "ou_name": "ou_name",
         "dx_uid": "dx_uid",
+        "dx_name": "dx_name",
         "value": "value",
     }
 
@@ -1777,6 +1782,11 @@ def _dx_name(dx_uid: str, data_elements: pd.DataFrame, indicators: pd.DataFrame)
         )
 
 
+def _program_name(program_uid: str, programs: pd.DataFrame) -> str:
+    """Get name of a program."""
+    return programs.at[program_uid, "program_name"]
+
+
 def _ds_name(ds_uid: str, datasets: pd.DataFrame) -> str:
     """Get the name of a dataset.
 
@@ -1810,6 +1820,7 @@ def _join_from_metadata(
     category_option_combos: pd.DataFrame = None,
     organisation_units: pd.DataFrame = None,
     datasets: pd.DataFrame = None,
+    programs: pd.DataFrame = None,
 ) -> pd.DataFrame:
     """Join fields from the metadata tables into the extract.
 
@@ -1820,6 +1831,7 @@ def _join_from_metadata(
         * level_<lvl>_uid (UID of the org unit for each hierarchical level)
         * level_<lvl>_name (name of the org unit for each hierarchical level)
         * ds_name (name of the dataset)
+        * program_name (name of the program)
     """
     extract = extract.copy()
 
@@ -1838,6 +1850,11 @@ def _join_from_metadata(
     if "coc_uid" in extract and category_option_combos is not None:
         extract["coc_name"] = extract.coc_uid.apply(
             lambda uid: category_option_combos.at[uid, "coc_name"]
+        )
+
+    if "program_uid" in extract:
+        extract["program_name"] = extract.program_uid.apply(
+            lambda uid: _program_name(uid, programs)
         )
 
     if "ou_uid" in extract and organisation_units is not None:
